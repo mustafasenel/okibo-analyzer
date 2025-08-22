@@ -75,53 +75,45 @@ export default function ReviewDataTabs({ data }: ReviewDataTabsProps) {
                       </div>
                     )}
         
-                    {/* Kompakt Mobil Tablo */}
+                    {/* Kompakt ve Mobil Uyumlu İki Satırlı Tasarım */}
                     {hasInvoiceData && (
                       <div>
-                          <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('products', { count: data.invoice_data!.length })}</h3>
-                          <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
-                            {/* Başlık Satırı */}
-                            <div className="flex items-center p-2 bg-gray-50 text-xs font-bold text-gray-500">
-                                <div className="w-8 flex-shrink-0 text-center">#</div>
-                                <div className="flex-grow flex items-center mx-2">
-                                  <div className="w-20 sm:w-24 flex-shrink-0">{t('productCode')}</div>
-                                  <div className="flex-grow">{t('productName')}</div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('products', { count: data.invoice_data!.length })}</h3>
+                        <div className="bg-white rounded-lg border shadow-sm">
+                          {data.invoice_data!.map((item, index) => (
+                            <div key={index} className="flex items-center p-3 border-b last:border-b-0">
+                              {/* Sol Taraf: Ürün Kodu/Sıra ve Adı */}
+                              <div className="flex-grow mr-3 min-w-0">
+                                {/* Üst Satır: Sıra No ve Artikel No */}
+                                <div className="flex items-center text-xs text-gray-500 font-mono">
+                                  <span className="font-semibold text-gray-400 w-6 text-left">{index + 1}.</span>
+                                  <span>{String(item['ArtikelNumber'] || '-')}</span>
                                 </div>
-                                <div className="w-24 flex-shrink-0 text-right">{t('amount')}</div>
-                            </div>
-                            {/* Veri Satırları */}
-                            {data.invoice_data!.map((row, rowIndex) => (
-                              <div key={rowIndex} className="flex items-center p-3 border-t">
-                                {/* Sütun 1: Sıra No */}
-                                <div className="w-8 flex-shrink-0 text-center text-sm text-gray-400 font-medium">
-                                  {rowIndex + 1}
-                                </div>
-
-                                {/* Sütun 2: Ürün Bilgileri */}
-                                <div className="flex-grow flex items-center mx-2">
-                                  <div className="w-20 sm:w-24 flex-shrink-0 font-mono text-xs text-gray-500 pr-2">
-                                    {String(row['ArtikelNumber'] || '-')}
-                                  </div>
-                                  <div className="flex-grow font-bold text-gray-800 leading-tight">
-                                    {String(row['ArtikelBez'] || t('noNameProduct'))}
-                                  </div>
-                                </div>
-
-                                {/* Sütun 3: Fiyat Bilgileri (KOLİ BİLGİSİ EKLENDİ) */}
-                                <div className="w-24 flex-shrink-0 text-right">
-                                  <p className="font-bold text-base text-violet-600">
-                                    {String(row['Netto'] || '0.00')}€
-                                  </p>
-                                  {/* --- DEĞİŞİKLİK BURADA --- */}
-                                  <p className="text-xs text-gray-500 mt-0.5">
-                                    <span className="font-semibold">{String(row['Kolli'] || '0')} {t('boxes')}</span>
-                                    <span className="mx-1 text-gray-300">|</span>
-                                    <span>{String(row['Menge'] || '0')}x{String(row['Preis'] || '0.00')}</span>
-                                  </p>
-                                </div>
+                                {/* Alt Satır: Ürün Adı */}
+                                <p className="font-semibold text-gray-800 leading-tight truncate mt-0.5">
+                                  {String(item['ArtikelBez'] || t('noNameProduct'))}
+                                </p>
                               </div>
-                            ))}
-                          </div>
+                              
+                              {/* Orta Taraf: Koli, Miktar, Fiyat */}
+                              <div className="text-xs text-gray-600 text-right flex-shrink-0">
+                                <p>
+                                  {String(item['Kolli'] || '0')} x {String(item['Inhalt'] || '0')}
+                                </p>
+                                <p className="mt-0.5">
+                                  <span className="font-semibold">{String(item['Menge'] || '0')}</span> x {String(item['Preis'] || '0.00')}€
+                                </p>
+                              </div>
+
+                              {/* En Sağ Taraf: Net Tutar */}
+                              <div className="text-right ml-2 w-20 flex-shrink-0">
+                                <p className="font-bold text-base text-violet-600">
+                                  {String(item['Netto'] || '0.00')}€
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                     

@@ -6,6 +6,7 @@ import ImageCapture from '@/components/scanner/ImageCapture';
 import ImagePreviewGrid from '@/components/scanner/ImagePreviewGrid';
 import { Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import imageCompression from 'browser-image-compression';
 
 // Gelen JSON verisi için tip tanımı
 type InvoiceData = {
@@ -47,8 +48,22 @@ export default function ScannerPage() {
 
     try {
       setLoadingState({ isLoading: true, message: 'Görseller hazırlanıyor...' }); // Bu metin de dile çevrilebilir
-      const base64Promises = Array.from(files).map(readFileAsBase64);
+      
+      const compressionOptions = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+      };
+
+      const compressedFilesPromises = Array.from(files).map(file => {
+        return imageCompression(file, compressionOptions);
+      });
+
+      const compressedFiles = await Promise.all(compressedFilesPromises);
+
+      const base64Promises = compressedFiles.map(readFileAsBase64);
       const allBase64s = await Promise.all(base64Promises);
+      
       setImagePreviews(allBase64s);
       setImageBase64s(allBase64s);
     } catch (err) {
@@ -124,10 +139,6 @@ export default function ScannerPage() {
 
   return (
     <div className="p-4 max-w-lg mx-auto">
-      {/* PWA Test Butonu */}
-      <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded">
-        <p className="text-sm text-yellow-800">PWA Test: Sağ üst köşede "Uygulamayı Yükle" butonu görünmeli</p>
-      </div>
       
       {/* 2. Metinleri t() fonksiyonu ile dil dosyasından çek */}
       <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">{t('title')}</h1>

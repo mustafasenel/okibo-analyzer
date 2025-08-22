@@ -4,7 +4,7 @@ import './globals.css';
 import { getMessages } from 'next-intl/server';
 import BottomNavBar from '@/components/layout/BottomNavBar';
 import { LanguageProvider } from '@/components/providers/LanguageProvider';
-import PWAInstaller from '@/components/PWAInstaller';
+import { timeZone } from '@/i18n';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -60,8 +60,7 @@ export default async function RootLayout({
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={`${inter.className} bg-gray-100`}>
-        <LanguageProvider initialMessages={messages}>
-          <PWAInstaller />
+        <LanguageProvider initialMessages={messages} timeZone={timeZone}>
           <main className="pb-20">
             {children}
           </main>

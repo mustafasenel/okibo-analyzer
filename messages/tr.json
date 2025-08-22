@@ -31,7 +31,11 @@
     "productName": "Ürün Adı",
     "amount": "Tutar",
     "noNameProduct": "İsimsiz Ürün",
-    "boxes": "koli"
+    "boxes": "koli",
+    "quantity": "Miktar",
+    "price": "Fiyat",
+    "content": "İçerik",
+    "netAmount": "Net Tutar"
   },
   "Metadata": {
     "title": "Fatura Analiz Uygulaması",

@@ -23,9 +23,10 @@ export function useLanguage() {
 interface LanguageProviderProps {
   children: ReactNode;
   initialMessages: any;
+  timeZone: string;
 }
 
-export function LanguageProvider({ children, initialMessages }: LanguageProviderProps) {
+export function LanguageProvider({ children, initialMessages, timeZone }: LanguageProviderProps) {
   const [locale, setLocaleState] = useState('tr');
   const [messages, setMessages] = useState(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,7 +77,7 @@ export function LanguageProvider({ children, initialMessages }: LanguageProvider
 
   return (
     <LanguageContext.Provider value={contextValue}>
-      <NextIntlClientProvider locale={locale} messages={messages}>
+      <NextIntlClientProvider locale={locale} messages={messages} timeZone={timeZone}>
         {children}
       </NextIntlClientProvider>
     </LanguageContext.Provider>

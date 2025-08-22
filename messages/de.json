@@ -31,7 +31,11 @@
     "productName": "Bezeichnung",
     "amount": "Menge",
     "noNameProduct": "Unbenanntes Produkt",
-    "boxes": "Kolli"
+    "boxes": "Kolli",
+    "quantity": "Menge",
+    "price": "Preis",
+    "content": "Inhalt",
+    "netAmount": "Nettobetrag"
   },
   "Metadata": {
     "title": "Rechnungsanalyse-App",
