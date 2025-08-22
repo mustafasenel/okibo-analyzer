@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+</head>
+<body>
+    <canvas id="canvas" width="512" height="512" style="border: 1px solid #ccc;"></canvas>
+    <br><br>
+    <button onclick="downloadIcon(72)">72x72</button>
+    <button onclick="downloadIcon(96)">96x96</button>
+    <button onclick="downloadIcon(128)">128x128</button>
+    <button onclick="downloadIcon(144)">144x144</button>
+    <button onclick="downloadIcon(152)">152x152</button>
+    <button onclick="downloadIcon(192)">192x192</button>
+    <button onclick="downloadIcon(384)">384x384</button>
+    <button onclick="downloadIcon(512)">512x512</button>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Draw icon
+        function drawIcon() {
+            // Background
+            ctx.fillStyle = '#7c3aed';
+            ctx.fillRect(0, 0, 512, 512);
+            
+            // Invoice shape
+            ctx.fillStyle = 'white';
+            ctx.fillRect(64, 128, 384, 256);
+            
+            // Lines
+            ctx.fillStyle = '#e5e7eb';
+            ctx.fillRect(96, 160, 128, 16);
+            ctx.fillRect(96, 192, 192, 16);
+            ctx.fillRect(96, 224, 160, 16);
+            ctx.fillRect(96, 256, 96, 16);
+            
+            // Buttons
+            ctx.fillStyle = '#7c3aed';
+            ctx.fillRect(320, 160, 96, 32);
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(320, 208, 96, 32);
+            
+            // AI badge
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.arc(432, 96, 32, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Check mark
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(420, 96);
+            ctx.lineTo(428, 104);
+            ctx.lineTo(444, 88);
+            ctx.stroke();
+        }
+
+        function downloadIcon(size) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = size;
+            tempCanvas.height = size;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            tempCtx.drawImage(canvas, 0, 0, size, size);
+            
+            const link = document.createElement('a');
+            link.download = `icon-${size}x${size}.png`;
+            link.href = tempCanvas.toDataURL();
+            link.click();
+        }
+
+        // Draw initial icon
+        drawIcon();
+    </script>
+</body>
+</html>

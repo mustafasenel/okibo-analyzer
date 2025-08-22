@@ -1,0 +1,55 @@
+{
+  "BottomNavBar": {
+    "scan": "Scan",
+    "history": "History",
+    "settings": "Settings"
+  },
+  "ScannerPage": {
+    "title": "Scan Invoice",
+    "captureFromCamera": "Capture from Camera",
+    "captureFromGallery": "Select from Gallery",
+    "selectedPages": "{count} pages selected",
+    "analyzeButton": "Analyze ({count} Pages)",
+    "analyzingMessage": "Analyzing page {current}/{total}...",
+    "errorGeneric": "An error occurred. Please try again."
+  },
+  "ReviewPage": {
+    "title": "Review and Confirm Data",
+    "confirmButton": "Confirm & Save",
+    "discardButton": "Discard",
+    "loading": "Loading analysis results..."
+  },
+  "ReviewDataTabs": {
+    "table": "Table",
+    "json": "JSON",
+    "noDataTitle": "No Data Found",
+    "noDataMessage": "The AI could not extract invoice data from the image(s).",
+    "invoiceInfo": "Invoice Information",
+    "products": "Products (Total: {count})",
+    "summary": "Summary",
+    "productCode": "Artikel",
+    "productName": "Product Name",
+    "amount": "Amount",
+    "noNameProduct": "Unnamed Product",
+    "boxes": "Koli"
+  },
+  "Metadata": {
+    "title": "Invoice Analyzer App",
+    "description": "Scan and analyze your invoices with AI."
+  },
+  "SettingsPage": {
+    "title": "Settings",
+    "language": "Language",
+    "languageChanged": "Language changed! Page reloading...",
+    "databaseSettings": "Database Settings",
+    "host": "Host Address",
+    "username": "Username",
+    "password": "Password",
+    "database": "Database Name",
+    "saveSettings": "Save Settings",
+    "settingsSaved": "Settings saved successfully!"
+  },
+  "PWAInstaller": {
+    "installApp": "Install App"
+  }
+}

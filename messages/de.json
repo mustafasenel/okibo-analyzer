@@ -1,0 +1,55 @@
+{
+  "BottomNavBar": {
+    "scan": "Scannen",
+    "history": "Verlauf",
+    "settings": "Einstellungen"
+  },
+  "ScannerPage": {
+    "title": "Rechnung Scannen",
+    "captureFromCamera": "Kamera öffnen",
+    "captureFromGallery": "Aus Galerie wählen",
+    "selectedPages": "{count} Seiten ausgewählt",
+    "analyzeButton": "Analysieren ({count} Seiten)",
+    "analyzingMessage": "Seite {current}/{total} wird analysiert...",
+    "errorGeneric": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+  },
+  "ReviewPage": {
+    "title": "Daten prüfen und bestätigen",
+    "confirmButton": "Speichern",
+    "discardButton": "Verwerfen",
+    "loading": "Analyseergebnisse werden geladen..."
+  },
+  "ReviewDataTabs": {
+    "table": "Tabelle",
+    "json": "JSON",
+    "noDataTitle": "Keine Daten gefunden",
+    "noDataMessage": "Die KI konnte keine Rechnungsdaten aus dem/den Bild(ern) extrahieren.",
+    "invoiceInfo": "Rechnungsinformationen",
+    "products": "Produkte (Gesamt: {count})",
+    "summary": "Zusammenfassung",
+    "productCode": "Artikel",
+    "productName": "Bezeichnung",
+    "amount": "Menge",
+    "noNameProduct": "Unbenanntes Produkt",
+    "boxes": "Kolli"
+  },
+  "Metadata": {
+    "title": "Rechnungsanalyse-App",
+    "description": "Scannen und analysieren Sie Ihre Rechnungen mit KI."
+  },
+  "SettingsPage": {
+    "title": "Einstellungen",
+    "language": "Sprache",
+    "languageChanged": "Sprache geändert! Seite wird neu geladen...",
+    "databaseSettings": "Datenbankeinstellungen",
+    "host": "Host-Adresse",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "database": "Datenbankname",
+    "saveSettings": "Einstellungen speichern",
+    "settingsSaved": "Einstellungen erfolgreich gespeichert!"
+  },
+  "PWAInstaller": {
+    "installApp": "App installieren"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "BottomNavBar": {
+    "scan": "Tarama",
+    "history": "Geçmiş",
+    "settings": "Ayarlar"
+  },
+  "ScannerPage": {
+    "title": "Fatura Tara",
+    "captureFromCamera": "Kameradan Çek",
+    "captureFromGallery": "Galeriden Seç",
+    "selectedPages": "{count} sayfa seçildi",
+    "analyzeButton": "Analiz Et ({count} Sayfa)",
+    "analyzingMessage": "Sayfa {current}/{total} analiz ediliyor...",
+    "errorGeneric": "Bir hata oluştu. Lütfen tekrar deneyin."
+  },
+  "ReviewPage": {
+    "title": "Veriyi İncele ve Onayla",
+    "confirmButton": "Onayla ve Kaydet",
+    "discardButton": "Vazgeç",
+    "loading": "Analiz sonuçları yükleniyor..."
+  },
+  "ReviewDataTabs": {
+    "table": "Tablo",
+    "json": "JSON",
+    "noDataTitle": "Veri Bulunamadı",
+    "noDataMessage": "Yapay zeka bu görsel(ler)den fatura verisi çıkaramadı.",
+    "invoiceInfo": "Fatura Bilgileri",
+    "products": "Ürünler (Toplam {count} adet)",
+    "summary": "Özet",
+    "productCode": "Artikel",
+    "productName": "Ürün Adı",
+    "amount": "Tutar",
+    "noNameProduct": "İsimsiz Ürün",
+    "boxes": "koli"
+  },
+  "Metadata": {
+    "title": "Fatura Analiz Uygulaması",
+    "description": "Yapay zeka ile faturalarınızı tarayın ve analiz edin."
+  },
+  "SettingsPage": {
+    "title": "Ayarlar",
+    "language": "Dil",
+    "languageChanged": "Dil değiştirildi! Sayfa yenileniyor...",
+    "databaseSettings": "Veritabanı Ayarları",
+    "host": "Sunucu Adresi",
+    "username": "Kullanıcı Adı",
+    "password": "Şifre",
+    "database": "Veritabanı Adı",
+    "saveSettings": "Ayarları Kaydet",
+    "settingsSaved": "Ayarlar başarıyla kaydedildi!"
+  },
+  "PWAInstaller": {
+    "installApp": "Uygulamayı Yükle"
+  }
+}

@@ -1,103 +1,167 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import ImageCapture from '@/components/scanner/ImageCapture';
+import ImagePreviewGrid from '@/components/scanner/ImagePreviewGrid';
+import { Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+
+// Gelen JSON verisi için tip tanımı
+type InvoiceData = {
+  invoice_meta?: Record<string, string | number>;
+  invoice_data?: Record<string, string | number>[];
+  invoice_summary?: Record<string, string | number>;
+};
+
+// Yükleme durumu için tip tanımı
+type LoadingState = {
+  isLoading: boolean;
+  message: string;
+};
+
+export default function ScannerPage() {
+  // 1. Dil çevirilerini almak için useTranslations hook'unu kullan
+  const t = useTranslations('ScannerPage');
+  const router = useRouter();
+  
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [imageBase64s, setImageBase64s] = useState<string[]>([]);
+  const [loadingState, setLoadingState] = useState<LoadingState>({ isLoading: false, message: '' });
+  const [error, setError] = useState<string>('');
+
+  // ImageCapture component'inden gelen dosyaları işleyen fonksiyon
+  const handleImagesCaptured = async (files: FileList) => {
+    setImagePreviews([]);
+    setImageBase64s([]);
+    setError('');
+
+    const readFileAsBase64 = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (error) => reject(error);
+        reader.readAsDataURL(file);
+      });
+    };
+
+    try {
+      setLoadingState({ isLoading: true, message: 'Görseller hazırlanıyor...' }); // Bu metin de dile çevrilebilir
+      const base64Promises = Array.from(files).map(readFileAsBase64);
+      const allBase64s = await Promise.all(base64Promises);
+      setImagePreviews(allBase64s);
+      setImageBase64s(allBase64s);
+    } catch (err) {
+      setError(t('errorGeneric')); // Hata mesajını dil dosyasından al
+      console.error(err);
+    } finally {
+      setLoadingState({ isLoading: false, message: '' });
+    }
+  };
+
+  // Verileri birleştiren yardımcı fonksiyon
+  const mergeInvoiceData = (pages: any[]): InvoiceData | null => {
+    if (!pages || pages.length === 0) return null;
+    const validPages = pages.map(p => p.result).filter(Boolean);
+    if (validPages.length === 0) return null;
+
+    return {
+      invoice_meta: validPages[0].invoice_meta || {},
+      invoice_data: validPages.flatMap(p => p.invoice_data || []),
+      invoice_summary: validPages[validPages.length - 1].invoice_summary || {},
+    };
+  };
+
+  // Analiz butonuna basıldığında çalışan ana fonksiyon
+  const handleSubmit = async () => {
+    if (imageBase64s.length === 0) {
+      setError('Lütfen analiz için en az bir sayfa seçin.'); // Bu da çevrilebilir
+      return;
+    }
+
+    setLoadingState({ isLoading: true, message: 'Hazırlanıyor...' });
+    setError('');
+
+    try {
+      const apiPromises = imageBase64s.map((base64, index) => {
+        setLoadingState({ 
+          isLoading: true, 
+          message: t('analyzingMessage', { // Dinamik mesajı dil dosyasından al
+            current: index + 1, 
+            total: imageBase64s.length 
+          }) 
+        });
+        return fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64 }),
+        }).then(res => {
+          if (!res.ok) {
+            return res.json().then(err => Promise.reject(err));
+          }
+          return res.json();
+        });
+      });
+
+      const allPageResults = await Promise.all(apiPromises);
+      
+      setLoadingState({ isLoading: true, message: 'Sonuçlar birleştiriliyor...' }); // Çevrilebilir
+      const finalResult = mergeInvoiceData(allPageResults);
+
+      if (!finalResult) {
+          throw new Error("Analiz sonucunda geçerli veri bulunamadı."); // Çevrilebilir
+      }
+      
+      sessionStorage.setItem('analysisResult', JSON.stringify(finalResult));
+      router.push('/review');
+
+    } catch (err: any) {
+      setError(err.message || t('errorGeneric')); // Hata mesajını dil dosyasından al
+      console.error("API Error:", err);
+      setLoadingState({ isLoading: false, message: '' });
+    }
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <div className="p-4 max-w-lg mx-auto">
+      {/* PWA Test Butonu */}
+      <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded">
+        <p className="text-sm text-yellow-800">PWA Test: Sağ üst köşede "Uygulamayı Yükle" butonu görünmeli</p>
+      </div>
+      
+      {/* 2. Metinleri t() fonksiyonu ile dil dosyasından çek */}
+      <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">{t('title')}</h1>
+      
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <ImageCapture
+          onImagesCaptured={handleImagesCaptured}
+          isLoading={loadingState.isLoading}
         />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      {error && <p className="text-red-600 mt-4 text-center font-semibold bg-red-100 p-3 rounded-md">{error}</p>}
+      
+      <ImagePreviewGrid imagePreviews={imagePreviews} />
+
+      {imagePreviews.length > 0 && (
+        <div className="mt-8">
+          <button
+            onClick={handleSubmit}
+            disabled={loadingState.isLoading}
+            className="w-full bg-violet-600 text-white font-bold py-4 px-4 rounded-lg text-lg flex items-center justify-center gap-2 hover:bg-violet-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {loadingState.isLoading ? (
+              <>
+                <Loader2 className="animate-spin h-6 w-6" />
+                <span>{loadingState.message}</span>
+              </>
+            ) : (
+              // Buton metnini de dil dosyasından al
+              t('analyzeButton', { count: imagePreviews.length })
+            )}
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
     </div>
   );
 }

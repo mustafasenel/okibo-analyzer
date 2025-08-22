@@ -1,0 +1,27 @@
+{
+  "name": "Okibo Invoice Analyzer",
+  "short_name": "Okibo",
+  "description": "AI-powered invoice analysis application",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3f4f6",
+  "theme_color": "#7c3aed",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/next.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/vercel.svg",
+      "sizes": "any", 
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "lang": "tr",
+  "dir": "ltr"
+}

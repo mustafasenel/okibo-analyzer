@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Okibo Analyzer</string>
+    <string name="title_activity_main">Okibo Analyzer</string>
+    <string name="package_name">com.okibo.app</string>
+    <string name="custom_url_scheme">com.okibo.app</string>
+</resources>
