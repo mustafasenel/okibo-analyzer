@@ -14,6 +14,14 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'API anahtarı bulunamadı.' }, { status: 500 });
     }
 
+    const siteUrl = process.env.NODE_ENV === 'production' 
+        ? `https://${process.env.VERCEL_URL}` 
+        : 'http://localhost:3000';
+    
+    const siteTitle = process.env.NODE_ENV === 'production'
+        ? 'okibo-analyzer'
+        : 'okibo-analyzer-local';
+
     const payload = {
       model: "mistralai/mistral-small-3.2-24b-instruct:free", 
       max_tokens: 10000,
@@ -47,8 +55,8 @@ export async function POST(request: Request) {
       headers: {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost:3000", 
-        "X-Title": "Next.js Invoice Extractor",
+        "HTTP-Referer": siteUrl, 
+        "X-Title": siteTitle,
       },
       body: JSON.stringify(payload),
     });
