@@ -36,6 +36,67 @@ export default function ReviewPage() {
     }
   }, [router]);
 
+  const handleItemChange = (index: number, field: string, value: string | number) => {
+    if (!invoiceData || !invoiceData.invoice_data) return;
+
+    const updatedItems = [...invoiceData.invoice_data];
+    const currentItem = { ...updatedItems[index], [field]: value };
+
+    // Otomatik Miktar (Menge) hesaplaması
+    if (field === 'Kolli' || field === 'Inhalt') {
+      const kolli = parseInt(String(currentItem['Kolli'] || '0'), 10) || 0;
+      const inhalt = parseInt(String(currentItem['Inhalt'] || '0'), 10) || 0;
+      currentItem['Menge'] = kolli * inhalt;
+    }
+
+    // Otomatik Net Tutar (Netto) hesaplaması
+    // Bu, Miktar'ın otomatik güncellendiği durumları da yakalar
+    if (field === 'Kolli' || field === 'Inhalt' || field === 'Menge' || field === 'Preis') {
+      const menge = parseInt(String(currentItem['Menge'] || '0'), 10) || 0;
+      const preis = parseFloat(String(currentItem['Preis'] || '0').replace(',', '.')) || 0;
+      currentItem['Netto'] = (menge * preis).toFixed(2);
+    }
+
+    updatedItems[index] = currentItem;
+
+    setInvoiceData({
+      ...invoiceData,
+      invoice_data: updatedItems,
+    });
+  };
+
+  const handleAddItem = (index: number) => {
+    if (!invoiceData || !invoiceData.invoice_data) return;
+    
+    const newItem: Record<string, string | number> = {
+        ArtikelNumber: '-',
+        ArtikelBez: '',
+        Kolli: 0,
+        Inhalt: 0,
+        Menge: 0,
+        Preis: 0.00,
+        Netto: 0.00,
+    };
+
+    const updatedData = { ...invoiceData };
+    const updatedItems = [...updatedData.invoice_data];
+    updatedItems.splice(index + 1, 0, newItem); // Insert after the current item
+    updatedData.invoice_data = updatedItems;
+
+    setInvoiceData(updatedData);
+  };
+
+  const handleDeleteItem = (index: number) => {
+    if (!invoiceData || !invoiceData.invoice_data) return;
+
+    const updatedData = { ...invoiceData };
+    const updatedItems = [...updatedData.invoice_data];
+    updatedItems.splice(index, 1); // Remove the item at the given index
+    updatedData.invoice_data = updatedItems;
+
+    setInvoiceData(updatedData);
+  };
+
   const handleSaveToDb = async () => {
     setIsSaving(true);
     console.log("Veritabanına kaydedilecek veri:", invoiceData);
@@ -67,15 +128,20 @@ export default function ReviewPage() {
 
   // Veri yüklendikten sonra ana içeriği göster
   return (
-    <div className="p-4 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('title')}</h1>
+    <div className="max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold text-gray-900 mb-4 px-4">{t('title')}</h1>
       
       {/* 
         İçeriğin butonlar tarafından ezilmemesi için mobil cihazlarda altta boşluk bırakıyoruz.
         mb-24 -> 6rem boşluk bırakır. Bu, 4rem'lik navigasyon + 1rem'lik buton + 1rem ekstra boşluk.
       */}
       <div className="mb-24 sm:mb-8">
-        <ReviewDataTabs data={invoiceData} />
+        <ReviewDataTabs 
+          data={invoiceData}
+          onItemChange={handleItemChange}
+          onAddItem={handleAddItem}
+          onDeleteItem={handleDeleteItem}
+        />
       </div>
 
       {/* Onay/Red Butonları */}

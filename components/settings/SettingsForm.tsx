@@ -64,7 +64,7 @@ export default function SettingsForm() {
                     id="language"
                     value={selectedLanguage}
                     onChange={handleLanguageChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                    className="w-full p-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                 >
                     {locales.map((locale) => (
                         <option key={locale} value={locale}>
@@ -88,7 +88,7 @@ export default function SettingsForm() {
                             name="host"
                             value={dbConfig.host}
                             onChange={handleDbChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                            className="w-full p-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                             placeholder="localhost"
                         />
                     </div>
@@ -102,7 +102,7 @@ export default function SettingsForm() {
                             name="user"
                             value={dbConfig.user}
                             onChange={handleDbChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                            className="w-full p-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                             placeholder="root"
                         />
                     </div>
@@ -116,7 +116,7 @@ export default function SettingsForm() {
                             name="password"
                             value={dbConfig.password}
                             onChange={handleDbChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                            className="w-full p-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                         />
                     </div>
                     <div>
@@ -129,7 +129,7 @@ export default function SettingsForm() {
                             name="database"
                             value={dbConfig.database}
                             onChange={handleDbChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                            className="w-full p-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                             placeholder="invoices"
                         />
                     </div>

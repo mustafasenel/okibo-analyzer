@@ -1,6 +1,7 @@
 {
   "BottomNavBar": {
     "scan": "Scannen",
+    "review": "Prüfen",
     "history": "Verlauf",
     "settings": "Einstellungen"
   },
@@ -27,6 +28,8 @@
     "invoiceInfo": "Rechnungsinformationen",
     "products": "Produkte (Gesamt: {count})",
     "summary": "Zusammenfassung",
+    "calculatedSummary": "Berechnete Zusammenfassung",
+    "calculatedTotal": "Berechneter Gesamtbetrag",
     "productCode": "Artikel",
     "productName": "Bezeichnung",
     "amount": "Menge",
@@ -35,7 +38,14 @@
     "quantity": "Menge",
     "price": "Preis",
     "content": "Inhalt",
-    "netAmount": "Nettobetrag"
+    "netAmount": "Nettobetrag",
+    "abbreviations": {
+      "artikel": "Art-Nr",
+      "kolli": "Kol",
+      "inhalt": "Inh",
+      "menge": "Mng",
+      "preis": "Pr"
+    }
   },
   "Metadata": {
     "title": "Rechnungsanalyse-App",

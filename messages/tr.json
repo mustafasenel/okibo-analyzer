@@ -1,6 +1,7 @@
 {
   "BottomNavBar": {
     "scan": "Tarama",
+    "review": "İncele",
     "history": "Geçmiş",
     "settings": "Ayarlar"
   },
@@ -27,6 +28,8 @@
     "invoiceInfo": "Fatura Bilgileri",
     "products": "Ürünler (Toplam {count} adet)",
     "summary": "Özet",
+    "calculatedSummary": "Hesaplanan Özet",
+    "calculatedTotal": "Hesaplanan Toplam",
     "productCode": "Artikel",
     "productName": "Ürün Adı",
     "amount": "Tutar",
@@ -35,7 +38,14 @@
     "quantity": "Miktar",
     "price": "Fiyat",
     "content": "İçerik",
-    "netAmount": "Net Tutar"
+    "netAmount": "Net Tutar",
+    "abbreviations": {
+      "artikel": "Art-Nr",
+      "kolli": "Koli",
+      "inhalt": "İçrk",
+      "menge": "Mikt",
+      "preis": "Fyt"
+    }
   },
   "Metadata": {
     "title": "Fatura Analiz Uygulaması",

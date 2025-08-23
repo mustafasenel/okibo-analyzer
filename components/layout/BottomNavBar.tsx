@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ScanLine, History, Settings } from 'lucide-react';
+import { ScanLine, History, Settings, FileSearch } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 export default function BottomNavBar() {
@@ -14,6 +14,7 @@ export default function BottomNavBar() {
 
   const navItems = [
     { href: '/', label: t('scan'), icon: ScanLine },
+    { href: '/review', label: t('review'), icon: FileSearch },
     { href: '/history', label: t('history'), icon: History },
     { href: '/settings', label: t('settings'), icon: Settings },
   ];

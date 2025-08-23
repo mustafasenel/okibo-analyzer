@@ -1,6 +1,7 @@
 {
   "BottomNavBar": {
     "scan": "Scan",
+    "review": "Review",
     "history": "History",
     "settings": "Settings"
   },
@@ -27,6 +28,8 @@
     "invoiceInfo": "Invoice Information",
     "products": "Products (Total: {count})",
     "summary": "Summary",
+    "calculatedSummary": "Calculated Summary",
+    "calculatedTotal": "Calculated Total",
     "productCode": "Artikel",
     "productName": "Product Name",
     "amount": "Amount",
@@ -35,7 +38,14 @@
     "quantity": "Quantity",
     "price": "Price",
     "content": "Content",
-    "netAmount": "Net Amount"
+    "netAmount": "Net Amount",
+    "abbreviations": {
+      "artikel": "SKU",
+      "kolli": "Box",
+      "inhalt": "Cont",
+      "menge": "Qty",
+      "preis": "Price"
+    }
   },
   "Metadata": {
     "title": "Invoice Analyzer App",
