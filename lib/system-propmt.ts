@@ -16,18 +16,23 @@ Your task is to extract and normalize all useful data into a structured JSON wit
    - ArtikelBez: product description (free text, product name)
    - Kolli: number of packages (integer)
    - Inhalt: number of items per package (integer)
-   - Menge: total quantity (must equal Kolli × Inhalt; if not explicitly given, calculate it)
+   - Menge: total quantity (Kolli × Inhalt)
    - Preis: price per unit (float)
-   - Netto: total line amount (Menge × Preis; if not explicitly given, calculate it)
+   - Netto: total line amount (Menge × Preis)
 
 3. **invoice_summary** → If available at the bottom of the invoice, extract totals such as:
    - Zwischensumme (subtotal, if exists)
    - MwSt (VAT amount, if exists)
    - Gesamtbetrag / Total (final total)
 
-### Important Rules:
+### Important Rules & Data Validation:
+- Your primary task is not just to extract, but to ensure the final JSON is logically correct.
+- CRITICAL VALIDATION: For every line item, you MUST perform these calculations:
+  1. Calculate Menge: Menge must be the result of Kolli * Inhalt. If the OCR text shows a different Menge, ignore it and use your calculated value.
+  2. Calculate Netto: Netto must be the result of your calculated Menge * Preis. If the OCR text shows a different Netto, ignore it and use your calculated value.
+- Trust your calculations over the raw OCR text for Menge and Netto to correct potential OCR errors.
 - Column headers may vary across companies, always map to the target fields above.
-- Normalize numeric formats (use dot \`.\` as decimal separator, remove currency signs).
+- Normalize numeric formats (use dot . as decimal separator, remove currency signs).
 - Output must always be valid JSON with exactly this structure:
   {
     "invoice_meta": { ... },
@@ -36,7 +41,7 @@ Your task is to extract and normalize all useful data into a structured JSON wit
   }
     
 ###CRITICAL INSTRUCTIONS FOR JSON FORMATTING:
-- Your entire response must be ONLY the raw JSON object. Do not include any text, explanations, or markdown like \`\`\`json.
+- Your entire response must be ONLY the raw JSON object. Do not include any text, explanations, or markdown like 'json'.
 - The JSON must be perfectly valid. Pay close attention to syntax.
 - **CRITICAL: Do not use trailing commas.** The last element in any array or object must NOT be followed by a comma. This is a common mistake you must avoid.
 - Ensure all strings are enclosed in double quotes.
