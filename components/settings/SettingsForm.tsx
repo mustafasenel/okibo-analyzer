@@ -10,12 +10,7 @@ export default function SettingsForm() {
     const t = useTranslations('SettingsPage');
     const { locale, setLocale } = useLanguage();
     const [selectedLanguage, setSelectedLanguage] = useState(locale);
-    const [dbConfig, setDbConfig] = useState({
-        host: '',
-        user: '',
-        password: '',
-        database: ''
-    });
+    const [companyCode, setCompanyCode] = useState('');
     const [message, setMessage] = useState('');
 
     const languageNames = {
@@ -28,10 +23,10 @@ export default function SettingsForm() {
         // Dil ayarını context'ten senkronize et
         setSelectedLanguage(locale);
 
-        // DB ayarlarını yükle
-        const savedConfig = localStorage.getItem('dbConfig');
-        if (savedConfig) {
-            setDbConfig(JSON.parse(savedConfig));
+        // Firma kodunu yükle
+        const savedCode = localStorage.getItem('companyCode');
+        if (savedCode) {
+            setCompanyCode(savedCode);
         }
     }, [locale]);
 
@@ -43,18 +38,14 @@ export default function SettingsForm() {
         setTimeout(() => setMessage(''), 3000);
     };
 
-    const handleDbChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setDbConfig({ ...dbConfig, [e.target.name]: e.target.value });
-    };
-
     const handleSave = () => {
-        localStorage.setItem('dbConfig', JSON.stringify(dbConfig));
+        localStorage.setItem('companyCode', companyCode);
         setMessage(t('settingsSaved'));
         setTimeout(() => setMessage(''), 3000);
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             {/* Dil Seçici */}
             <div>
                 <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-2">
@@ -74,63 +65,22 @@ export default function SettingsForm() {
                 </select>
             </div>
 
-            {/* Veritabanı Ayarları */}
+            {/* Uygulama Ayarları */}
             <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('databaseSettings')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('appSettings')}</h3>
                 <div className="space-y-4">
                     <div>
-                        <label htmlFor="host" className="block text-sm font-medium text-gray-700 mb-2">
-                            {t('host')}
+                        <label htmlFor="companyCode" className="block text-sm font-medium text-gray-700 mb-2">
+                            {t('companyCode')}
                         </label>
                         <input
                             type="text"
-                            id="host"
-                            name="host"
-                            value={dbConfig.host}
-                            onChange={handleDbChange}
+                            id="companyCode"
+                            name="companyCode"
+                            value={companyCode}
+                            onChange={(e) => setCompanyCode(e.target.value)}
                             className="w-full p-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                            placeholder="localhost"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="user" className="block text-sm font-medium text-gray-700 mb-2">
-                            {t('username')}
-                        </label>
-                        <input
-                            type="text"
-                            id="user"
-                            name="user"
-                            value={dbConfig.user}
-                            onChange={handleDbChange}
-                            className="w-full p-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                            placeholder="root"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                            {t('password')}
-                        </label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={dbConfig.password}
-                            onChange={handleDbChange}
-                            className="w-full p-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="database" className="block text-sm font-medium text-gray-700 mb-2">
-                            {t('database')}
-                        </label>
-                        <input
-                            type="text"
-                            id="database"
-                            name="database"
-                            value={dbConfig.database}
-                            onChange={handleDbChange}
-                            className="w-full p-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                            placeholder="invoices"
+                            placeholder="ÖR: OKIBO01"
                         />
                     </div>
                 </div>

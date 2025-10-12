@@ -18,7 +18,11 @@
     "title": "Review and Confirm Data",
     "confirmButton": "Confirm & Save",
     "discardButton": "Discard",
-    "loading": "Loading analysis results..."
+    "loading": "Loading analysis results...",
+    "companyCodeTooltip": "Please set a Company Code in Settings before saving.",
+    "saveSuccessTitle": "Invoice Saved",
+    "saveSuccessDescription": "Your invoice has been successfully saved. You can continue the process from the Okibo desktop application.",
+    "saveSuccessConfirm": "OK"
   },
   "ReviewDataTabs": {
     "table": "Table",
@@ -45,6 +49,25 @@
       "inhalt": "Cont",
       "menge": "Qty",
       "preis": "Price"
+    },
+    "columns": {
+      "artikelBez": "Product Name",
+      "artikelNumber": "SKU",
+      "kolli": "Boxes",
+      "inhalt": "Content",
+      "menge": "Quantity",
+      "preis": "Price",
+      "netto": "Net",
+      "nettoCalculated": "Calc. Net",
+      "nettoOcr": "OCR Net",
+      "actions": "Actions"
+    },
+    "sheet": {
+      "title": "Invoice Image",
+      "page": "Page {current}/{total}",
+      "previous": "Previous",
+      "next": "Next",
+      "viewButton": "View Invoice"
     }
   },
   "Metadata": {
@@ -61,7 +84,9 @@
     "password": "Password",
     "database": "Database Name",
     "saveSettings": "Save Settings",
-    "settingsSaved": "Settings saved successfully!"
+    "settingsSaved": "Settings saved successfully!",
+    "companyCode": "Company Code",
+    "appSettings": "App Settings"
   },
   "PWAInstaller": {
     "installApp": "Install App"

@@ -18,7 +18,11 @@
     "title": "Daten prüfen und bestätigen",
     "confirmButton": "Speichern",
     "discardButton": "Verwerfen",
-    "loading": "Analyseergebnisse werden geladen..."
+    "loading": "Analyseergebnisse werden geladen...",
+    "companyCodeTooltip": "Bitte legen Sie vor dem Speichern einen Firmencode in den Einstellungen fest.",
+    "saveSuccessTitle": "Rechnung gespeichert",
+    "saveSuccessDescription": "Ihre Rechnung wurde erfolgreich gespeichert. Sie können den Vorgang in der Okibo-Desktop-Anwendung fortsetzen.",
+    "saveSuccessConfirm": "OK"
   },
   "ReviewDataTabs": {
     "table": "Tabelle",
@@ -45,6 +49,25 @@
       "inhalt": "Inh",
       "menge": "Mng",
       "preis": "Pr"
+    },
+    "columns": {
+      "artikelBez": "Bezeichnung",
+      "artikelNumber": "Art-Nr",
+      "kolli": "Kolli",
+      "inhalt": "Inhalt",
+      "menge": "Menge",
+      "preis": "Preis",
+      "netto": "Netto",
+      "nettoCalculated": "Netto (Ber.)",
+      "nettoOcr": "Netto (OCR)",
+      "actions": "Aktionen"
+    },
+    "sheet": {
+      "title": "Rechnungsbild",
+      "page": "Seite {current}/{total}",
+      "previous": "Zurück",
+      "next": "Weiter",
+      "viewButton": "Rechnung anzeigen"
     }
   },
   "Metadata": {
@@ -61,7 +84,9 @@
     "password": "Passwort",
     "database": "Datenbankname",
     "saveSettings": "Einstellungen speichern",
-    "settingsSaved": "Einstellungen erfolgreich gespeichert!"
+    "settingsSaved": "Einstellungen erfolgreich gespeichert!",
+    "companyCode": "Firmencode",
+    "appSettings": "App-Einstellungen"
   },
   "PWAInstaller": {
     "installApp": "App installieren"

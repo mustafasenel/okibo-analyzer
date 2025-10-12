@@ -32,7 +32,8 @@ Your task is to extract and normalize all useful data into a structured JSON wit
   2. Calculate Netto: Netto must be the result of your calculated Menge * Preis. If the OCR text shows a different Netto, ignore it and use your calculated value.
 - Trust your calculations over the raw OCR text for Menge and Netto to correct potential OCR errors.
 - Column headers may vary across companies, always map to the target fields above.
-- Normalize numeric formats (use dot . as decimal separator, remove currency signs).
+- Normalize numeric formats: use a dot . as decimal separator, remove currency signs.
+- Normalize date formats: The invoice date 'Rechnungsdatum' must always be converted to dd.MM.yyyy format (e.g., 24.10.2025).
 - Output must always be valid JSON with exactly this structure:
   {
     "invoice_meta": { ... },

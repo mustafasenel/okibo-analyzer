@@ -128,6 +128,7 @@ export default function ScannerPage() {
       }
       
       sessionStorage.setItem('analysisResult', JSON.stringify(finalResult));
+      sessionStorage.setItem('invoiceImages', JSON.stringify(imagePreviews)); // Görselleri de kaydet
       router.push('/review');
 
     } catch (err: any) {

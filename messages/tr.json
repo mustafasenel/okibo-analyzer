@@ -18,7 +18,11 @@
     "title": "Veriyi İncele ve Onayla",
     "confirmButton": "Onayla ve Kaydet",
     "discardButton": "Vazgeç",
-    "loading": "Analiz sonuçları yükleniyor..."
+    "loading": "Analiz sonuçları yükleniyor...",
+    "companyCodeTooltip": "Lütfen kaydetmeden önce Ayarlar'dan bir Firma Kodu belirleyin.",
+    "saveSuccessTitle": "Fatura Kaydedildi",
+    "saveSuccessDescription": "Faturanız başarıyla kaydedildi. Okibo masaüstü uygulamasından işleme devam edebilirsiniz.",
+    "saveSuccessConfirm": "Tamam"
   },
   "ReviewDataTabs": {
     "table": "Tablo",
@@ -45,6 +49,25 @@
       "inhalt": "İçrk",
       "menge": "Mikt",
       "preis": "Fyt"
+    },
+    "columns": {
+      "artikelBez": "Ürün Adı",
+      "artikelNumber": "Ürün Kodu",
+      "kolli": "Koli",
+      "inhalt": "İçerik",
+      "menge": "Miktar",
+      "preis": "Fiyat",
+      "netto": "Net Tutar",
+      "nettoCalculated": "Net (Hes.)",
+      "nettoOcr": "Net (OCR)",
+      "actions": "İşlemler"
+    },
+    "sheet": {
+      "title": "Fatura Görüntüsü",
+      "page": "Sayfa {current}/{total}",
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "viewButton": "Faturayı Görüntüle"
     }
   },
   "Metadata": {
@@ -61,7 +84,9 @@
     "password": "Şifre",
     "database": "Veritabanı Adı",
     "saveSettings": "Ayarları Kaydet",
-    "settingsSaved": "Ayarlar başarıyla kaydedildi!"
+    "settingsSaved": "Ayarlar başarıyla kaydedildi!",
+    "companyCode": "Firma Kodu",
+    "appSettings": "Uygulama Ayarları"
   },
   "PWAInstaller": {
     "installApp": "Uygulamayı Yükle"

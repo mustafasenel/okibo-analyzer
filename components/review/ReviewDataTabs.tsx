@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2, List, Table } from 'lucide-react';
 
 // Bu component'in beklediği prop'ların tipini tanımlıyoruz
 type InvoiceData = {
@@ -22,7 +22,9 @@ interface ReviewDataTabsProps {
 export default function ReviewDataTabs({ data, onItemChange, onAddItem, onDeleteItem }: ReviewDataTabsProps) {
   const t = useTranslations('ReviewDataTabs');
   const t_abbr = useTranslations('ReviewDataTabs.abbreviations');
+  const t_cols = useTranslations('ReviewDataTabs.columns');
   const [activeTab, setActiveTab] = useState<'table' | 'json'>('table');
+  const [layoutMode, setLayoutMode] = useState<'list' | 'table'>('list');
 
   if (!data) {
     return null;
@@ -38,8 +40,8 @@ export default function ReviewDataTabs({ data, onItemChange, onAddItem, onDelete
           const nettoValue = parseFloat(String(item.Netto || '0').replace(',', '.'));
           return acc + (isNaN(nettoValue) ? 0 : nettoValue);
         }, 0)
-        .toFixed(2)
-    : '0.00';
+        .toFixed(3)
+    : '0.000';
 
   const ocrSubtotal = data.invoice_summary?.Zwischensumme 
     ? parseFloat(String(data.invoice_summary.Zwischensumme).replace(',', '.'))
@@ -100,53 +102,130 @@ export default function ReviewDataTabs({ data, onItemChange, onAddItem, onDelete
                     {/* Minimalist Ürün Satırları Tasarımı */}
                     {hasInvoiceData && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-2 px-4">{t('products', { count: data.invoice_data!.length })}</h3>
-                        <div className="bg-white rounded-lg border shadow-sm divide-y">
-                          {data.invoice_data!.map((item, index) => (
-                            <div key={index} className="p-3 relative group">
-                              {/* Üst Satır: Ana Bilgiler */}
-                              <div className="flex items-center gap-3">
-                                <span className="font-mono text-sm text-gray-400">{index + 1}.</span>
-                                <input 
-                                  type="text"
-                                  value={String(item['ArtikelBez'] || '')}
-                                  onChange={(e) => onItemChange(index, 'ArtikelBez', e.target.value)}
-                                  className="flex-grow font-semibold text-gray-800 bg-transparent p-0 focus:outline-none focus:bg-violet-50 rounded px-1"
-                                  placeholder={t('noNameProduct')}
-                                  onFocus={(e) => setTimeout(() => e.target.select(), 0)}
-                                />
-                                <CustomCurrencyInput
-                                  value={parseFloat(String(item['Netto'] || '0'))}
-                                  onValueChange={(value) => onItemChange(index, 'Netto', value || 0)}
-                                  className="w-24 min-w-0 font-bold text-lg text-violet-600 bg-transparent p-0 focus:outline-none focus:bg-violet-50 rounded text-right pr-1"
-                                />
-                              </div>
-                              {/* Alt Satır: Detaylar */}
-                              <div className="flex items-end flex-wrap gap-x-4 gap-y-1 mt-1 pl-7 text-xs text-gray-600">
-                                <DetailInput label={t_abbr('artikel')} value={String(item['ArtikelNumber'] || '')} onChange={e => onItemChange(index, 'ArtikelNumber', e.target.value)} className="w-24 font-mono" />
-                                <DetailInput label={t_abbr('kolli')} type="text" inputMode="numeric" value={String(item['Kolli'] || '')} onChange={e => onItemChange(index, 'Kolli', e.target.value)} className="w-10" />
-                                <DetailInput label={t_abbr('inhalt')} type="text" inputMode="numeric" value={String(item['Inhalt'] || '')} onChange={e => onItemChange(index, 'Inhalt', e.target.value)} className="w-10" />
-                                <DetailInput label={t_abbr('menge')} type="text" inputMode="numeric" value={String(item['Menge'] || '')} onChange={e => onItemChange(index, 'Menge', e.target.value)} className="w-10" />
-                                <CustomCurrencyInput
-                                  asDetail
-                                  label={t_abbr('preis')}
-                                  value={parseFloat(String(item['Preis'] || '0'))}
-                                  onValueChange={(value) => onItemChange(index, 'Preis', value || 0)}
-                                  className="w-16"
-                                />
-                              </div>
-                              {/* Aksiyon Butonları (Gizli, hover'da görünür) */}
-                              <div className="absolute top-1/2 -translate-y-1/2 right-3 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => onAddItem(index)} className="p-1.5 text-green-500 bg-green-100 rounded-full hover:bg-green-200">
-                                  <PlusCircle size={18} />
+                        <div className="flex justify-between items-center mb-2 px-4">
+                            <h3 className="text-lg font-semibold text-gray-800">{t('products', { count: data.invoice_data!.length })}</h3>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => setLayoutMode('list')} className={`p-1.5 rounded-md ${layoutMode === 'list' ? 'bg-violet-100 text-violet-600' : 'text-gray-400 hover:bg-gray-100'}`}>
+                                    <List size={20} />
                                 </button>
-                                <button onClick={() => onDeleteItem(index)} className="p-1.5 text-red-500 bg-red-100 rounded-full hover:bg-red-200">
-                                  <Trash2 size={18} />
+                                <button onClick={() => setLayoutMode('table')} className={`p-1.5 rounded-md ${layoutMode === 'table' ? 'bg-violet-100 text-violet-600' : 'text-gray-400 hover:bg-gray-100'}`}>
+                                    <Table size={20} />
                                 </button>
-                              </div>
                             </div>
-                          ))}
                         </div>
+                        
+                        {layoutMode === 'list' ? (
+                            <div className="bg-white rounded-lg border shadow-sm divide-y">
+                                {/* MINIMALIST LIST VIEW (existing code) */}
+                                {data.invoice_data!.map((item, index) => (
+                                  <div key={index} className="p-3 relative group">
+                                    {/* Üst Satır: Ana Bilgiler */}
+                                    <div className="flex items-center gap-3">
+                                      <span className="font-mono text-sm text-gray-400">{index + 1}.</span>
+                                      <input 
+                                        type="text"
+                                        value={String(item['ArtikelBez'] || '')}
+                                        onChange={(e) => onItemChange(index, 'ArtikelBez', e.target.value)}
+                                        className="flex-grow font-semibold text-gray-800 bg-transparent p-0 focus:outline-none focus:bg-violet-50 rounded px-1"
+                                        placeholder={t('noNameProduct')}
+                                        onFocus={(e) => setTimeout(() => e.target.select(), 0)}
+                                      />
+                                      <CustomCurrencyInput
+                                        value={parseFloat(String(item['Netto'] || '0'))}
+                                        onValueChange={(value) => onItemChange(index, 'Netto', value || 0)}
+                                        className="w-24 min-w-0 font-bold text-lg text-violet-600 bg-transparent p-0 focus:outline-none focus:bg-violet-50 rounded text-right pr-1"
+                                      />
+                                    </div>
+                                    {/* Alt Satır: Detaylar */}
+                                    <div className="flex items-end flex-wrap gap-x-4 gap-y-1 mt-1 pl-7 text-xs text-gray-600">
+                                      <DetailInput label={t_abbr('artikel')} value={String(item['ArtikelNumber'] || '')} onChange={e => onItemChange(index, 'ArtikelNumber', e.target.value)} className="w-24 font-mono" />
+                                      <DetailInput label={t_abbr('kolli')} type="text" inputMode="numeric" value={String(item['Kolli'] || '')} onChange={e => onItemChange(index, 'Kolli', e.target.value)} className="w-10" />
+                                      <DetailInput label={t_abbr('inhalt')} type="text" inputMode="numeric" value={String(item['Inhalt'] || '')} onChange={e => onItemChange(index, 'Inhalt', e.target.value)} className="w-10" />
+                                      <DetailInput label={t_abbr('menge')} type="text" inputMode="numeric" value={String(item['Menge'] || '')} onChange={e => onItemChange(index, 'Menge', e.target.value)} className="w-10" />
+                                      <CustomCurrencyInput
+                                        asDetail
+                                        label={t_abbr('preis')}
+                                        value={parseFloat(String(item['Preis'] || '0'))}
+                                        onValueChange={(value) => onItemChange(index, 'Preis', value || 0)}
+                                        className="w-16"
+                                      />
+                                    </div>
+                                    {/* Aksiyon Butonları (Gizli, hover'da görünür) */}
+                                    <div className="absolute top-1/2 -translate-y-1/2 right-3 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button onClick={() => onAddItem(index)} className="p-1.5 text-green-500 bg-green-100 rounded-full hover:bg-green-200">
+                                        <PlusCircle size={18} />
+                                      </button>
+                                      <button onClick={() => onDeleteItem(index)} className="p-1.5 text-red-500 bg-red-100 rounded-full hover:bg-red-200">
+                                        <Trash2 size={18} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full bg-white rounded-lg border shadow-sm text-sm">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="p-3 text-left font-semibold text-gray-700">#</th>
+                                            <th className="p-3 text-left font-semibold text-gray-700">{t_cols('artikelBez')}</th>
+                                            <th className="p-3 text-left font-semibold text-gray-700">{t_cols('artikelNumber')}</th>
+                                            <th className="p-3 text-left font-semibold text-gray-700">{t_cols('kolli')}</th>
+                                            <th className="p-3 text-left font-semibold text-gray-700">{t_cols('inhalt')}</th>
+                                            <th className="p-3 text-left font-semibold text-gray-700">{t_cols('menge')}</th>
+                                            <th className="p-3 text-left font-semibold text-gray-700">{t_cols('preis')}</th>
+                                            <th className="p-3 text-left font-semibold text-gray-700">{t_cols('nettoCalculated')}</th>
+                                            <th className="p-3 text-left font-semibold text-gray-700">{t_cols('nettoOcr')}</th>
+                                            <th className="p-3 text-left font-semibold text-gray-700">{t_cols('actions')}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {data.invoice_data!.map((item, index) => {
+                                            const calculatedNettoString = String(item['Netto'] || '0.00');
+                                            const originalNettoString = String((item as any)['originalNetto'] || '0.00');
+                                            const areNettosEqual = parseFloat(calculatedNettoString.replace(',', '.')) === parseFloat(originalNettoString.replace(',', '.'));
+                                            const nettoColorClass = areNettosEqual ? 'text-green-600' : 'text-red-600';
+
+                                            return (
+                                              <tr key={index} className="text-gray-900">
+                                                  <td className="p-2 text-gray-500">{index + 1}.</td>
+                                                  <td className="p-2">
+                                                      <input type="text" value={String(item['ArtikelBez'] || '')} onChange={(e) => onItemChange(index, 'ArtikelBez', e.target.value)} className="w-32 bg-transparent p-1 focus:outline-none focus:bg-violet-50 rounded" />
+                                                  </td>
+                                                  <td className="p-2">
+                                                      <input type="text" value={String(item['ArtikelNumber'] || '')} onChange={(e) => onItemChange(index, 'ArtikelNumber', e.target.value)} className="w-24 bg-transparent p-1 focus:outline-none focus:bg-violet-50 rounded font-mono" />
+                                                  </td>
+                                                  <td className="p-2">
+                                                      <input type="text" inputMode="numeric" value={String(item['Kolli'] || '')} onChange={(e) => onItemChange(index, 'Kolli', e.target.value)} className="w-12 bg-transparent p-1 focus:outline-none focus:bg-violet-50 rounded text-right" />
+                                                  </td>
+                                                  <td className="p-2">
+                                                      <input type="text" inputMode="numeric" value={String(item['Inhalt'] || '')} onChange={(e) => onItemChange(index, 'Inhalt', e.target.value)} className="w-12 bg-transparent p-1 focus:outline-none focus:bg-violet-50 rounded text-right" />
+                                                  </td>
+                                                  <td className="p-2">
+                                                      <input type="text" inputMode="numeric" value={String(item['Menge'] || '')} onChange={(e) => onItemChange(index, 'Menge', e.target.value)} className="w-12 bg-transparent p-1 focus:outline-none focus:bg-violet-50 rounded text-right" />
+                                                  </td>
+                                                  <td className="p-2">
+                                                      <CustomCurrencyInput value={parseFloat(String(item['Preis'] || '0'))} onValueChange={(value) => onItemChange(index, 'Preis', value || 0)} className="w-20 bg-transparent p-1 focus:outline-none focus:bg-violet-50 rounded text-right" />
+                                                  </td>
+                                                  <td className="p-2">
+                                                      <CustomCurrencyInput value={parseFloat(calculatedNettoString)} onValueChange={(value) => onItemChange(index, 'Netto', value || 0)} className={`w-20 bg-transparent p-1 focus:outline-none focus:bg-violet-50 rounded text-right font-bold ${nettoColorClass}`} />
+                                                  </td>
+                                                  <td className={`p-2 font-semibold ${nettoColorClass}`}>
+                                                      {originalNettoString}
+                                                  </td>
+                                                  <td className="p-2">
+                                                      <div className="flex items-center gap-1">
+                                                          <button onClick={() => onAddItem(index)} className="p-1.5 text-green-500 hover:bg-green-100 rounded-full"><PlusCircle size={16} /></button>
+                                                          <button onClick={() => onDeleteItem(index)} className="p-1.5 text-red-500 hover:bg-red-100 rounded-full"><Trash2 size={16} /></button>
+                                                      </div>
+                                                  </td>
+                                              </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                       </div>
                     )}
                     
@@ -224,8 +303,8 @@ const CustomCurrencyInput = ({
 
   const format = (num: number) => {
     return new Intl.NumberFormat('de-DE', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3,
     }).format(num);
   };
   
@@ -236,21 +315,21 @@ const CustomCurrencyInput = ({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key >= '0' && e.key <= '9') {
       e.preventDefault();
-      const currentNum = Math.round(value * 100);
+      const currentNum = Math.round(value * 1000);
       const newNum = currentNum * 10 + parseInt(e.key, 10);
-      onValueChange(newNum / 100);
+      onValueChange(newNum / 1000);
     } else if (e.key === 'Backspace') {
       e.preventDefault();
-      const currentNum = Math.round(value * 100);
+      const currentNum = Math.round(value * 1000);
       const newNum = Math.floor(currentNum / 10);
-      onValueChange(newNum / 100);
+      onValueChange(newNum / 1000);
     } else if (e.key === 'Delete' || e.key === 'Clear') {
       e.preventDefault();
       onValueChange(0);
     }
   };
   
-  const input = <input type="text" value={displayValue} onKeyDown={handleKeyDown} onFocus={(e) => setTimeout(() => e.target.select(), 0)} className={className} />;
+  const input = <input type="text" value={displayValue} onChange={() => {}} onKeyDown={handleKeyDown} onFocus={(e) => setTimeout(() => e.target.select(), 0)} className={className} />;
 
   if (asDetail && label) {
     return (
