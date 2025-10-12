@@ -1,6 +1,34 @@
 import { system_propmt } from '@/lib/system-propmt';
 import { NextResponse } from 'next/server';
 
+// Helper function for exponential backoff
+const fetchWithRetry = async (
+    url: string, 
+    options: RequestInit, 
+    retries = 3, 
+    backoff = 1000
+): Promise<Response> => {
+    try {
+        const response = await fetch(url, options);
+
+        if (response.status === 429 && retries > 0) {
+            console.warn(`Rate limit aşıldı. ${backoff}ms sonra yeniden denenecek. Kalan deneme: ${retries - 1}`);
+            await new Promise(resolve => setTimeout(resolve, backoff));
+            return fetchWithRetry(url, options, retries - 1, backoff * 2);
+        }
+
+        return response;
+    } catch (error) {
+        if (retries > 0) {
+            console.warn(`İstek hatası. ${backoff}ms sonra yeniden denenecek. Kalan deneme: ${retries - 1}`, error);
+            await new Promise(resolve => setTimeout(resolve, backoff));
+            return fetchWithRetry(url, options, retries - 1, backoff * 2);
+        }
+        throw error;
+    }
+};
+
+
 export async function POST(request: Request) {
   try {
     const { image } = await request.json();
@@ -23,7 +51,7 @@ export async function POST(request: Request) {
         : 'okibo-analyzer-local';
 
     const payload = {
-      model: "mistralai/mistral-small-3.2-24b-instruct:free", 
+      model: "qwen/qwen2.5-vl-72b-instruct:free", 
       max_tokens: 10000,
       // Bu parametre, destekleyen modellere sadece JSON göndermesini söyler.
       response_format: { "type": "json_object" }, 
@@ -50,7 +78,7 @@ export async function POST(request: Request) {
       ],
     };
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const response = await fetchWithRetry("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
