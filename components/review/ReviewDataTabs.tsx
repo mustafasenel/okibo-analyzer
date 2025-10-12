@@ -24,7 +24,7 @@ export default function ReviewDataTabs({ data, onItemChange, onAddItem, onDelete
   const t_abbr = useTranslations('ReviewDataTabs.abbreviations');
   const t_cols = useTranslations('ReviewDataTabs.columns');
   const [activeTab, setActiveTab] = useState<'table' | 'json'>('table');
-  const [layoutMode, setLayoutMode] = useState<'list' | 'table'>('list');
+  const [layoutMode, setLayoutMode] = useState<'list' | 'table'>('table');
 
   if (!data) {
     return null;
