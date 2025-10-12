@@ -10,9 +10,10 @@
     "captureFromCamera": "Capture from Camera",
     "captureFromGallery": "Select from Gallery",
     "selectedPages": "{count} pages selected",
-    "analyzeButton": "Analyze ({count} Pages)",
-    "analyzingMessage": "Analyzing page {current}/{total}...",
-    "errorGeneric": "An error occurred. Please try again."
+    "analyzeButton": "Analyze {count, plural, one {# page} other {# pages}}",
+    "analyzingMessage": "Analyzing... ({current}/{total})",
+    "errorGeneric": "An error occurred. Please try again.",
+    "modelSelectionLabel": "Analysis Model"
   },
   "ReviewPage": {
     "title": "Review and Confirm Data",

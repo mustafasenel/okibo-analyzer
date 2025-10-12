@@ -10,9 +10,10 @@
     "captureFromCamera": "Kamera öffnen",
     "captureFromGallery": "Aus Galerie wählen",
     "selectedPages": "{count} Seiten ausgewählt",
-    "analyzeButton": "Analysieren ({count} Seiten)",
-    "analyzingMessage": "Seite {current}/{total} wird analysiert...",
-    "errorGeneric": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+    "analyzeButton": "{count, plural, one {# Seite analysieren} other {# Seiten analysieren}}",
+    "analyzingMessage": "Analysiere... ({current}/{total})",
+    "errorGeneric": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "modelSelectionLabel": "Analysemodell"
   },
   "ReviewPage": {
     "title": "Daten prüfen und bestätigen",

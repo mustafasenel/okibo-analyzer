@@ -10,9 +10,10 @@
     "captureFromCamera": "Kameradan Çek",
     "captureFromGallery": "Galeriden Seç",
     "selectedPages": "{count} sayfa seçildi",
-    "analyzeButton": "Analiz Et ({count} Sayfa)",
-    "analyzingMessage": "Sayfa {current}/{total} analiz ediliyor...",
-    "errorGeneric": "Bir hata oluştu. Lütfen tekrar deneyin."
+    "analyzeButton": "{count, plural, one {# sayfayı analiz et} other {# sayfayı analiz et}}",
+    "analyzingMessage": "Analiz ediliyor... ({current}/{total})",
+    "errorGeneric": "Bir hata oluştu. Lütfen tekrar deneyin.",
+    "modelSelectionLabel": "Analiz Modeli"
   },
   "ReviewPage": {
     "title": "Veriyi İncele ve Onayla",

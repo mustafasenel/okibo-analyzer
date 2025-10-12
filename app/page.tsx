@@ -8,6 +8,12 @@ import { Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import imageCompression from 'browser-image-compression';
 
+const MODELS = [
+  { id: 'mistralai/mistral-small-3.2-24b-instruct:free', name: 'Mistral Small (Default)' },
+  { id: 'qwen/qwen2.5-vl-72b-instruct:free', name: 'Qwen VL 72B' },
+  { id: 'meta-llama/llama-4-maverick:free', name: 'Llama 4 Maverick' },
+];
+
 // Gelen JSON verisi için tip tanımı
 type InvoiceData = {
   invoice_meta?: Record<string, string | number>;
@@ -30,6 +36,7 @@ export default function ScannerPage() {
   const [imageBase64s, setImageBase64s] = useState<string[]>([]);
   const [loadingState, setLoadingState] = useState<LoadingState>({ isLoading: false, message: '' });
   const [error, setError] = useState<string>('');
+  const [selectedModel, setSelectedModel] = useState<string>(MODELS[0].id);
 
   // ImageCapture component'inden gelen dosyaları işleyen fonksiyon
   const handleImagesCaptured = async (files: FileList) => {
@@ -109,7 +116,7 @@ export default function ScannerPage() {
         return fetch('/api/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64 }),
+          body: JSON.stringify({ image: base64, model: selectedModel }),
         }).then(res => {
           if (!res.ok) {
             return res.json().then(err => Promise.reject(err));
@@ -150,6 +157,28 @@ export default function ScannerPage() {
           isLoading={loadingState.isLoading}
         />
       </div>
+
+      {imagePreviews.length > 0 && (
+         <div className="mt-4 bg-white p-6 rounded-lg shadow-md">
+           <label htmlFor="model-select" className="block text-sm font-medium text-gray-700 mb-2">
+             {t('modelSelectionLabel')}
+           </label>
+           <select
+             id="model-select"
+             name="model"
+             value={selectedModel}
+             onChange={(e) => setSelectedModel(e.target.value)}
+             disabled={loadingState.isLoading}
+             className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-violet-500 focus:border-violet-500 sm:text-sm rounded-md disabled:bg-gray-100"
+           >
+             {MODELS.map((model) => (
+               <option key={model.id} value={model.id}>
+                 {model.name}
+               </option>
+             ))}
+           </select>
+         </div>
+       )}
 
       {error && <p className="text-red-600 mt-4 text-center font-semibold bg-red-100 p-3 rounded-md">{error}</p>}
       

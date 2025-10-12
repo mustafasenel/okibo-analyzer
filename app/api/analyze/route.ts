@@ -31,7 +31,7 @@ const fetchWithRetry = async (
 
 export async function POST(request: Request) {
   try {
-    const { image } = await request.json();
+    const { image, model } = await request.json();
 
     if (!image) {
       return NextResponse.json({ error: 'Görsel verisi bulunamadı.' }, { status: 400 });
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
         : 'okibo-analyzer-local';
 
     const payload = {
-      model: "qwen/qwen2.5-vl-72b-instruct:free", 
+      model: model || "mistralai/mistral-small-3.2-24b-instruct:free", 
       max_tokens: 10000,
       // Bu parametre, destekleyen modellere sadece JSON göndermesini söyler.
       response_format: { "type": "json_object" }, 
