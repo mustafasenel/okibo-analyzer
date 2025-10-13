@@ -7,6 +7,7 @@ import ImagePreviewGrid from '@/components/scanner/ImagePreviewGrid';
 import { Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import imageCompression from 'browser-image-compression';
+import { checkAndIncrementUsage } from '@/app/review/actions';
 
 const MODELS = [
   { id: 'mistralai/mistral-small-3.2-24b-instruct:free', name: 'Mistral Small (Default)' },
@@ -101,10 +102,22 @@ export default function ScannerPage() {
       return;
     }
 
-    setLoadingState({ isLoading: true, message: 'Hazırlanıyor...' });
+    setLoadingState({ isLoading: true, message: 'Kontrol ediliyor...' });
     setError('');
 
     try {
+      // 1. Check company code and usage limit before analysis
+      const companyCode = localStorage.getItem('companyCode');
+      if (!companyCode) {
+        throw new Error("Firma kodu ayarlanmamış. Lütfen ayarlardan kontrol edin.");
+      }
+
+      const limitCheckResult = await checkAndIncrementUsage(companyCode);
+      if (!limitCheckResult.success) {
+        throw new Error(limitCheckResult.message);
+      }
+
+      // 2. If limit check is successful, proceed with analysis
       const apiPromises = imageBase64s.map((base64, index) => {
         setLoadingState({ 
           isLoading: true, 
@@ -140,7 +153,7 @@ export default function ScannerPage() {
 
     } catch (err: any) {
       setError(err.message || t('errorGeneric')); // Hata mesajını dil dosyasından al
-      console.error("API Error:", err);
+      console.error("Error during submit:", err);
       setLoadingState({ isLoading: false, message: '' });
     }
   };

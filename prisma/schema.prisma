@@ -15,18 +15,36 @@ datasource db {
 
 model Invoice {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  companyCode     String   @map("company_code")
+  companyCode     String
+  createdAt       DateTime @default(now())
+  invoiceMeta     Json
+  invoiceData     Json
+  invoiceSummary  Json
   status          Status   @default(PENDING)
-  createdAt       DateTime @default(now()) @map("created_at")
-  invoiceMeta     Json     @map("invoice_meta")
-  invoiceData     Json     @map("invoice_data")
-  invoiceSummary  Json     @map("invoice_summary")
 
-  @@index([companyCode])
-  @@map("invoices")
+  // Relation to Company
+  company         Company  @relation(fields: [companyCode], references: [code])
 }
 
 enum Status {
   PENDING
   COMPLETED
+}
+
+model Company {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  code              String    @unique
+  monthlyScanLimit  Int       @default(100)
+  currentScanCount  Int       @default(0)
+  scanCountResetAt  DateTime  @default(now())
+
+  invoices          Invoice[]
+}
+
+model Admin {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
 }

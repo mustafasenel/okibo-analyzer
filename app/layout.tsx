@@ -5,6 +5,8 @@ import { getMessages } from 'next-intl/server';
 import BottomNavBar from '@/components/layout/BottomNavBar';
 import { LanguageProvider } from '@/components/providers/LanguageProvider';
 import { timeZone } from '@/i18n';
+import { NextAuthProvider } from '@/components/providers/NextAuthProvider';
+import MainContent from '@/components/layout/MainContent';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -60,12 +62,13 @@ export default async function RootLayout({
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={`${inter.className} bg-gray-100`}>
-        <LanguageProvider initialMessages={messages} timeZone={timeZone}>
-          <main className="pb-20">
-            {children}
-          </main>
-          <BottomNavBar />
-        </LanguageProvider>
+        <NextAuthProvider>
+          <LanguageProvider initialMessages={messages} timeZone={timeZone}>
+            <MainContent>
+              {children}
+            </MainContent>
+          </LanguageProvider>
+        </NextAuthProvider>
       </body>
     </html>
   );

@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useLanguage } from '@/components/providers/LanguageProvider';
+import Link from 'next/link';
+import { LogIn } from 'lucide-react';
 
 const locales = ['tr', 'en', 'de'];
 
@@ -45,7 +47,7 @@ export default function SettingsForm() {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 relative">
             {/* Dil Seçici */}
             <div>
                 <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-2">
@@ -98,6 +100,12 @@ export default function SettingsForm() {
                     {message}
                 </p>
             )}
+
+            <div className="absolute bottom-0 right-0">
+                <Link href="/admin/login" className="inline-flex items-center p-2 text-xs text-gray-500 hover:text-gray-800">
+                    <LogIn className="h-4 w-4" />
+                </Link>
+            </div>
         </div>
     );
 }
