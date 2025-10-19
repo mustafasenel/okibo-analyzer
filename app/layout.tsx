@@ -61,7 +61,7 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" href="/next.svg" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={`${inter.className} bg-gray-100 h-screen overflow-hidden`}>
+      <body className={`${inter.className} bg-gray-100`}>
         <NextAuthProvider>
           <LanguageProvider initialMessages={messages} timeZone={timeZone}>
             <MainContent>

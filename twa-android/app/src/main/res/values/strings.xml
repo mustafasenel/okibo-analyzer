@@ -25,15 +25,15 @@
     <string-array name="display_override">
     
       
-        <item>immersive</item>
-      
-    
-      
         <item>standalone</item>
       
     
       
         <item>minimal-ui</item>
+      
+    
+      
+        <item>browser</item>
       
     
     </string-array>

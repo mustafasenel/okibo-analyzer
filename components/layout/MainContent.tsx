@@ -8,8 +8,8 @@ export default function MainContent({ children }: { children: React.ReactNode })
   const isAdminRoute = pathname.startsWith('/admin');
 
   return (
-    <div className="h-screen flex flex-col">
-      <main className={`flex-1 overflow-y-auto ${!isAdminRoute ? 'pb-20' : ''}`}>
+    <div className="min-h-screen flex flex-col">
+      <main className={`flex-1 ${!isAdminRoute ? 'pb-20' : ''}`}>
         {children}
       </main>
       {!isAdminRoute && (

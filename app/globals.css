@@ -129,53 +129,42 @@ input[type=number] {
   * {
     @apply border-border outline-ring/50;
   }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow-x: hidden;
+  }
   body {
     @apply bg-background text-foreground;
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    height: 100dvh; /* Dynamic viewport height for mobile */
-    overflow-x: hidden;
-  }
-  html {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    height: 100dvh;
-    overflow-x: hidden;
   }
   #__next {
-    height: 100vh;
-    height: 100dvh;
+    height: 100%;
     display: flex;
     flex-direction: column;
   }
 }
 
-/* TWA specific styles */
-@media (display-mode: fullscreen) {
-  body {
-    height: 100vh;
-    height: 100dvh;
+/* Standalone mode styles */
+@media (display-mode: standalone) {
+  html, body {
+    height: 100%;
     margin: 0;
     padding: 0;
   }
   #__next {
-    height: 100vh;
-    height: 100dvh;
+    height: 100%;
   }
 }
 
-/* Hide URL bar on mobile */
+/* Mobile specific */
 @media (max-width: 768px) {
-  body {
-    height: 100vh;
-    height: 100dvh;
+  html, body {
+    height: 100%;
     margin: 0;
     padding: 0;
   }
   #__next {
-    height: 100vh;
-    height: 100dvh;
+    height: 100%;
   }
 }
