@@ -55,7 +55,9 @@ export function SectionCards({ totalCompanies, totalScansThisMonth, totalInvoice
           </CardContent>
           <CardFooter>
             <CardAction>
-                <Link href={item.url} className="text-sm font-medium text-primary hover:underline">
+                <Link
+                  href={item.url}
+                  className="text-sm font-medium text-primary hover:underline">
                     {item.action}
                 </Link>
             </CardAction>
@@ -63,5 +65,5 @@ export function SectionCards({ totalCompanies, totalScansThisMonth, totalInvoice
         </Card>
       ))}
     </div>
-  )
+  );
 }

@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from "react";
-import { Prisma } from "@prisma/client";
+import { Company } from "@prisma/client";
 import { DataTable } from "@/components/admin/data-table";
 import { columns } from "./columns";
 import { SectionCards } from "@/components/admin/section-cards";
 import { ChartAreaInteractive } from "@/components/admin/chart-area-interactive";
 import { NewCompanyModal } from "@/components/admin/NewCompanyModal";
 
-type CompanyWithData = Prisma.Company;
+type CompanyWithData = Company;
 type DailyScanData = { date: string; scans: number };
 
 interface DashboardClientProps {

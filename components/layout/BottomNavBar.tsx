@@ -26,7 +26,11 @@ export default function BottomNavBar() {
           // Aktif link kontrolünü dilden bağımsız yap
           const isActive = cleanPathname === item.href;
           return (
-            <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center w-full h-full text-sm">
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex flex-col items-center justify-center w-full h-full text-sm"
+            >
               <item.icon className={`h-6 w-6 mb-1 transition-colors ${isActive ? 'text-violet-600' : 'text-gray-500'}`} />
               <span className={`transition-colors ${isActive ? 'font-bold text-violet-600' : 'text-gray-600'}`}>{item.label}</span>
             </Link>

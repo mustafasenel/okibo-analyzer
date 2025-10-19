@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import Link from 'next/link';
 import { LogIn } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const locales = ['tr', 'en', 'de'];
 
@@ -50,23 +51,22 @@ export default function SettingsForm() {
         <div className="space-y-8 relative">
             {/* Dil Seçici */}
             <div>
-                <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('language')}
                 </label>
-                <select
-                    id="language"
-                    value={selectedLanguage}
-                    onChange={handleLanguageChange}
-                    className="w-full p-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                >
-                    {locales.map((locale) => (
-                        <option key={locale} value={locale}>
-                            {languageNames[locale as keyof typeof languageNames]}
-                        </option>
-                    ))}
-                </select>
+                <Select value={selectedLanguage} onValueChange={handleLanguageChange}>
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Dil seçin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {locales.map((locale) => (
+                            <SelectItem key={locale} value={locale}>
+                                {languageNames[locale as keyof typeof languageNames]}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
-
             {/* Uygulama Ayarları */}
             <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">{t('appSettings')}</h3>
@@ -87,22 +87,21 @@ export default function SettingsForm() {
                     </div>
                 </div>
             </div>
-
             <button 
                 onClick={handleSave} 
                 className="w-full bg-violet-600 text-white font-bold py-3 rounded-lg hover:bg-violet-700 transition-colors"
             >
                 {t('saveSettings')}
             </button>
-            
             {message && (
                 <p className="text-green-600 mt-4 text-center font-medium bg-green-50 p-3 rounded-lg">
                     {message}
                 </p>
             )}
-
             <div className="absolute bottom-0 right-0">
-                <Link href="/admin/login" className="inline-flex items-center p-2 text-xs text-gray-500 hover:text-gray-800">
+                <Link
+                    href="/admin/login"
+                    className="inline-flex items-center p-2 text-xs text-gray-500 hover:text-gray-800">
                     <LogIn className="h-4 w-4" />
                 </Link>
             </div>

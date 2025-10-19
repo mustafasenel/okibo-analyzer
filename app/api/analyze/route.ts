@@ -28,114 +28,118 @@ const fetchWithRetry = async (
     }
 };
 
-
-export async function POST(request: Request) {
-  try {
-    const { image, model } = await request.json();
-
-    if (!image) {
-      return NextResponse.json({ error: 'Görsel verisi bulunamadı.' }, { status: 400 });
-    }
-
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) {
-        return NextResponse.json({ error: 'API anahtarı bulunamadı.' }, { status: 500 });
-    }
-
-    const siteUrl = process.env.NODE_ENV === 'production' 
-        ? `https://${process.env.VERCEL_URL}` 
-        : 'http://localhost:3000';
-    
-    const siteTitle = process.env.NODE_ENV === 'production'
-        ? 'okibo-analyzer'
-        : 'okibo-analyzer-local';
-
-    const payload = {
-      model: model || "mistralai/mistral-small-3.2-24b-instruct:free", 
-      max_tokens: 10000,
-      // Bu parametre, destekleyen modellere sadece JSON göndermesini söyler.
-      response_format: { "type": "json_object" }, 
-      messages: [
-        {
-          role: "system",
-          content: system_propmt, // Harici dosyadan prompt'u kullanıyoruz
-        },
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: "Bu görseldeki faturayı analiz et ve talimatlara uygun şekilde JSON olarak ver.",
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: image, 
-              },
-            },
-          ],
-        },
-      ],
-    };
-
-    const response = await fetchWithRetry("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": siteUrl, 
-        "X-Title": siteTitle,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        console.error("OpenRouter API Hatası:", errorData);
-        return NextResponse.json({ error: `API Hatası: ${response.statusText}`, details: errorData }, { status: response.status });
-    }
-
-    const data = await response.json();
-    const rawContent = data.choices[0]?.message?.content;
-
-    if (!rawContent) {
-        return NextResponse.json({ error: "API'den geçerli bir cevap alınamadı." }, { status: 500 });
-    }
-
-    // --- BURASI EN ÖNEMLİ KISIM: JSON AYIKLAMA VE PARSE ETME ---
- try {
-        const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+// Function to parse the AI's response safely
+const parseJsonResponse = (jsonString: string) => {
+    try {
+        const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
 
         if (!jsonMatch || !jsonMatch[0]) {
-            return NextResponse.json({ error: "API cevabında geçerli bir JSON bloğu bulunamadı.", rawData: rawContent }, { status: 500 });
+            return null;
         }
 
-        const jsonString = jsonMatch[0];
+        const extractedJson = jsonMatch[0];
         
         // Temizlenmiş JSON string'ini JavaScript nesnesine çevir
-        const parsedJson = JSON.parse(jsonString);
+        const parsedJson = JSON.parse(extractedJson);
 
-        return NextResponse.json({ result: parsedJson });
-
-    } catch (e: any) { // <-- DEĞİŞİKLİK 1: e'nin tipini 'any' yapıyoruz
-        // --- DEĞİŞİKLİK 2: HATAYI VE BOZUK VERİYİ KONSOLA YAZDIRIYORUZ ---
+        return parsedJson;
+    } catch (error) {
         console.error("----------- JSON PARSE HATASI -----------");
-        console.error("Hata Mesajı:", e.message);
+        if (error instanceof Error) {
+            console.error("Hata Mesajı:", error.message);
+        } else {
+            console.error("Beklenmedik Hata Tipi:", error);
+        }
         console.error("----------- BOZUK JSON VERİSİ -----------");
-        // Hatanın olduğu yeri daha kolay bulmak için rawContent'i yazdırıyoruz
-        console.log(rawContent); 
+        console.log(jsonString); 
         console.error("-----------------------------------------");
-
-        // Frontend'e daha detaylı bir hata mesajı gönderiyoruz
-        return NextResponse.json({ 
-            error: "API'den gelen veri JSON formatında değil. Lütfen terminal loglarını kontrol edin.", 
-            rawData: rawContent 
-        }, { status: 500 });
+        return null;
     }
-    // --- JSON İŞLEME KISMININ SONU ---
+};
 
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Sunucuda bir hata oluştu.' }, { status: 500 });
-  }
+export async function POST(req: Request) {
+    try {
+        const formData = await req.formData();
+        const image = formData.get("image") as File | null; // Expect a single image
+        const model = formData.get("model") as string || 'mistralai/mistral-small-3.2-24b-instruct:free';
+
+        if (!image) {
+            return new Response(JSON.stringify({ error: "No image provided" }), { status: 400 });
+        }
+
+        const arrayBuffer = await image.arrayBuffer();
+        const base64Image = Buffer.from(arrayBuffer).toString("base64");
+        
+        const payload = {
+            model: model, 
+            max_tokens: 10000,
+            response_format: { "type": "json_object" }, 
+            messages: [
+                {
+                    role: "system",
+                    content: system_propmt,
+                },
+                {
+                    role: "user",
+                    content: [
+                        {
+                            type: "text",
+                            text: "Bu görseldeki faturayı analiz et ve talimatlara uygun şekilde JSON olarak ver.",
+                        },
+                        {
+                            type: "image_url",
+                            image_url: {
+                                url: `data:image/jpeg;base64,${base64Image}`, 
+                            },
+                        },
+                    ],
+                },
+            ],
+        };
+
+        const response = await fetchWithRetry("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                "Content-Type": "application/json",
+                "HTTP-Referer": process.env.NODE_ENV === 'production' 
+                    ? `https://${process.env.VERCEL_URL}` 
+                    : 'http://localhost:3000', 
+                "X-Title": process.env.NODE_ENV === 'production'
+                    ? 'okibo-analyzer'
+                    : 'okibo-analyzer-local',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("OpenRouter API Error:", errorText);
+            return new Response(JSON.stringify({ error: `API request failed with status ${response.status}: ${errorText}` }), { status: 500 });
+        }
+
+        const jsonResponse = await response.json();
+        const content = jsonResponse.choices[0]?.message?.content;
+        
+        console.log("🔍 Raw AI Response:");
+        console.log(content);
+        
+        const parsedContent = parseJsonResponse(content);
+        
+        console.log("🔍 Parsed Content:");
+        console.log(JSON.stringify(parsedContent, null, 2));
+        
+        if (!parsedContent) {
+            return new Response(JSON.stringify({ error: "Failed to parse AI response" }), { status: 500 });
+        }
+        
+        // Return the full parsed content for the single image
+        return new Response(JSON.stringify(parsedContent), {
+            headers: { "Content-Type": "application/json" },
+        });
+
+    } catch (error) {
+        console.error("Error processing request:", error);
+        return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500 });
+    }
 }

@@ -5,25 +5,56 @@
     "history": "Geçmiş",
     "settings": "Ayarlar"
   },
-  "ScannerPage": {
-    "title": "Fatura Tara",
-    "captureFromCamera": "Kameradan Çek",
-    "captureFromGallery": "Galeriden Seç",
-    "selectedPages": "{count} sayfa seçildi",
-    "analyzeButton": "{count, plural, one {# sayfayı analiz et} other {# sayfayı analiz et}}",
-    "analyzingMessage": "Analiz ediliyor... ({current}/{total})",
-    "errorGeneric": "Bir hata oluştu. Lütfen tekrar deneyin.",
-    "modelSelectionLabel": "Analiz Modeli"
+  "HomePage": {
+    "title": "Fatura Analizi",
+    "modelSelectionLabel": "Analiz Modeli Seçin",
+    "analyzeButton": "{count, plural, one {# Sayfayı Analiz Et} other {# Sayfayı Analiz Et}}",
+    "analyzingMessage": "Analiz ediliyor ({current}/{total})...",
+    "errorGeneric": "Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.",
+    "errorNoImages": "Lütfen analiz için en az bir sayfa seçin.",
+    "errorApi": "API'den bir hata döndü. Lütfen daha sonra tekrar deneyin.",
+    "errorNoResults": "Analizden geçerli bir sonuç alınamadı."
+  },
+  "ImageCapture": {
+    "uploadButton": "Dosya Yükle",
+    "cameraButton": "Kamerayı Aç",
+    "infoText": "Faturanızın tüm sayfalarını seçin."
   },
   "ReviewPage": {
     "title": "Veriyi İncele ve Onayla",
     "confirmButton": "Onayla ve Kaydet",
     "discardButton": "Vazgeç",
+    "saving": "Kaydediliyor...",
     "loading": "Analiz sonuçları yükleniyor...",
     "companyCodeTooltip": "Lütfen kaydetmeden önce Ayarlar'dan bir Firma Kodu belirleyin.",
     "saveSuccessTitle": "Fatura Kaydedildi",
     "saveSuccessDescription": "Faturanız başarıyla kaydedildi. Okibo masaüstü uygulamasından işleme devam edebilirsiniz.",
-    "saveSuccessConfirm": "Tamam"
+    "saveSuccessConfirm": "Anladım",
+    "editTitle": "Fatura Düzenle",
+    "updateButton": "Güncelle",
+    "updateSuccessMessage": "Fatura başarıyla güncellendi."
+  },
+  "HistoryPage": {
+    "title": "Fatura Geçmişi",
+    "noInvoices": "Henüz kaydedilmiş fatura bulunmuyor.",
+    "loading": "Faturalar yükleniyor...",
+    "invoiceNumber": "Fatura No",
+    "company": "Firma",
+    "date": "Tarih",
+    "status": "Durum",
+    "total": "Toplam",
+    "actions": "İşlemler",
+    "view": "Görüntüle",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "confirmDelete": "Bu faturayı silmek istediğinizden emin misiniz?",
+    "deleteSuccess": "Fatura başarıyla silindi.",
+    "updateSuccess": "Fatura başarıyla güncellendi.",
+    "editTitle": "Fatura Düzenle",
+    "updateButton": "Güncelle",
+    "updateSuccessMessage": "Fatura başarıyla güncellendi.",
+    "cancel": "İptal",
+    "deleteConfirm": "Sil"
   },
   "ReviewDataTabs": {
     "table": "Tablo",
@@ -69,6 +100,10 @@
       "previous": "Önceki",
       "next": "Sonraki",
       "viewButton": "Faturayı Görüntüle"
+    },
+    "invoiceItemsTitle": "Fatura Kalemleri",
+    "pagination": {
+      "page": "Sayfa {current} / {total}"
     }
   },
   "Metadata": {

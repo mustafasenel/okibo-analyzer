@@ -1,6 +1,6 @@
 "use client"
 
-import { Prisma } from "@prisma/client"
+import { Company } from "@prisma/client"
 import { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal } from "lucide-react"
 
@@ -16,8 +16,6 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { EditCompanyModal } from "@/components/admin/EditCompanyModal"
 import { DeleteCompanyModal } from "@/components/admin/DeleteCompanyModal"
-
-type Company = Prisma.Company
 
 export const columns: ColumnDef<Company>[] = [
   {

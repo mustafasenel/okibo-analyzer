@@ -19,11 +19,37 @@
     "title": "Daten prüfen und bestätigen",
     "confirmButton": "Speichern",
     "discardButton": "Verwerfen",
+    "saving": "Speichern...",
     "loading": "Analyseergebnisse werden geladen...",
     "companyCodeTooltip": "Bitte legen Sie vor dem Speichern einen Firmencode in den Einstellungen fest.",
     "saveSuccessTitle": "Rechnung gespeichert",
     "saveSuccessDescription": "Ihre Rechnung wurde erfolgreich gespeichert. Sie können den Vorgang in der Okibo-Desktop-Anwendung fortsetzen.",
-    "saveSuccessConfirm": "OK"
+    "saveSuccessConfirm": "Verstanden",
+    "editTitle": "Rechnung bearbeiten",
+    "updateButton": "Aktualisieren",
+    "updateSuccessMessage": "Rechnung erfolgreich aktualisiert."
+  },
+  "HistoryPage": {
+    "title": "Rechnungsverlauf",
+    "noInvoices": "Noch keine gespeicherten Rechnungen.",
+    "loading": "Rechnungen werden geladen...",
+    "invoiceNumber": "Rechnungs-Nr",
+    "company": "Firma",
+    "date": "Datum",
+    "status": "Status",
+    "total": "Gesamt",
+    "actions": "Aktionen",
+    "view": "Anzeigen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "confirmDelete": "Sind Sie sicher, dass Sie diese Rechnung löschen möchten?",
+    "deleteSuccess": "Rechnung erfolgreich gelöscht.",
+    "updateSuccess": "Rechnung erfolgreich aktualisiert.",
+    "editTitle": "Rechnung bearbeiten",
+    "updateButton": "Aktualisieren",
+    "updateSuccessMessage": "Rechnung erfolgreich aktualisiert.",
+    "cancel": "Abbrechen",
+    "deleteConfirm": "Löschen"
   },
   "ReviewDataTabs": {
     "table": "Tabelle",
@@ -69,6 +95,10 @@
       "previous": "Zurück",
       "next": "Weiter",
       "viewButton": "Rechnung anzeigen"
+    },
+    "invoiceItemsTitle": "Rechnungspositionen",
+    "pagination": {
+      "page": "Seite {current} von {total}"
     }
   },
   "Metadata": {

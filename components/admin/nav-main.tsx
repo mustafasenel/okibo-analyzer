@@ -27,7 +27,7 @@ export function NavMain({ items, className }: NavMainProps) {
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <Link href={item.url} legacyBehavior passHref>
+              <Link href={item.url}>
                 <SidebarMenuButton tooltip={item.title}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>

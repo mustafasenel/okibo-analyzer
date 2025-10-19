@@ -3,15 +3,25 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ImageCapture from '@/components/scanner/ImageCapture';
-import ImagePreviewGrid from '@/components/scanner/ImagePreviewGrid';
+import { ImagePreviewGrid } from '@/components/scanner/ImagePreviewGrid';
 import { Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import imageCompression from 'browser-image-compression';
-import { checkAndIncrementUsage } from '@/app/review/actions';
+import { checkUsageLimit, incrementScanCount } from '@/app/review/actions';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+type ImageFileStatus = 'pending' | 'processing' | 'completed' | 'error';
+
+interface ImageFileWithStatus {
+    file: File;
+    id: string;
+    preview: string;
+    status: ImageFileStatus;
+}
 
 const MODELS = [
   { id: 'mistralai/mistral-small-3.2-24b-instruct:free', name: 'Mistral Small (Default)' },
-  { id: 'qwen/qwen2.5-vl-72b-instruct:free', name: 'Qwen VL 72B' },
+  { id: 'qwen/qwen2.5-vl-72b-instruct:free', name: 'Qwen 2.5VL 72B' },
   { id: 'meta-llama/llama-4-maverick:free', name: 'Llama 4 Maverick' },
 ];
 
@@ -28,194 +38,252 @@ type LoadingState = {
   message: string;
 };
 
-export default function ScannerPage() {
-  // 1. Dil çevirilerini almak için useTranslations hook'unu kullan
-  const t = useTranslations('ScannerPage');
-  const router = useRouter();
-  
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [imageBase64s, setImageBase64s] = useState<string[]>([]);
-  const [loadingState, setLoadingState] = useState<LoadingState>({ isLoading: false, message: '' });
-  const [error, setError] = useState<string>('');
-  const [selectedModel, setSelectedModel] = useState<string>(MODELS[0].id);
+export default function Home() {
+    const t = useTranslations('HomePage');
+    const router = useRouter();
+    
+    const [imageFiles, setImageFiles] = useState<ImageFileWithStatus[]>([]);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [analysisMessage, setAnalysisMessage] = useState('');
+    const [error, setError] = useState<string>('');
+    const [selectedModel, setSelectedModel] = useState<string>(MODELS[0].id);
 
-  // ImageCapture component'inden gelen dosyaları işleyen fonksiyon
-  const handleImagesCaptured = async (files: FileList) => {
-    setImagePreviews([]);
-    setImageBase64s([]);
-    setError('');
-
-    const readFileAsBase64 = (file: File): Promise<string> => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = (error) => reject(error);
-        reader.readAsDataURL(file);
-      });
+    // ImageCapture component'inden gelen dosyaları işleyen fonksiyon
+    const handleFilesChange = (files: FileList | null) => {
+      if (files) {
+        const newFiles = Array.from(files).map(file => ({
+          file,
+          id: `${file.name}-${file.lastModified}`,
+          preview: URL.createObjectURL(file),
+          status: 'pending' as ImageFileStatus,
+        }));
+        setImageFiles(prevFiles => [...prevFiles, ...newFiles]);
+      }
     };
 
-    try {
-      setLoadingState({ isLoading: true, message: 'Görseller hazırlanıyor...' }); // Bu metin de dile çevrilebilir
-      
-      const compressionOptions = {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1920,
-        useWebWorker: true,
-      };
-
-      const compressedFilesPromises = Array.from(files).map(file => {
-        return imageCompression(file, compressionOptions);
-      });
-
-      const compressedFiles = await Promise.all(compressedFilesPromises);
-
-      const base64Promises = compressedFiles.map(readFileAsBase64);
-      const allBase64s = await Promise.all(base64Promises);
-      
-      setImagePreviews(allBase64s);
-      setImageBase64s(allBase64s);
-    } catch (err) {
-      setError(t('errorGeneric')); // Hata mesajını dil dosyasından al
-      console.error(err);
-    } finally {
-      setLoadingState({ isLoading: false, message: '' });
-    }
-  };
-
-  // Verileri birleştiren yardımcı fonksiyon
-  const mergeInvoiceData = (pages: any[]): InvoiceData | null => {
-    if (!pages || pages.length === 0) return null;
-    const validPages = pages.map(p => p.result).filter(Boolean);
-    if (validPages.length === 0) return null;
-
-    return {
-      invoice_meta: validPages[0].invoice_meta || {},
-      invoice_data: validPages.flatMap(p => p.invoice_data || []),
-      invoice_summary: validPages[validPages.length - 1].invoice_summary || {},
+    const handleRemoveImage = (idToRemove: string) => {
+      setImageFiles(prevFiles => prevFiles.filter(image => image.id !== idToRemove));
     };
-  };
 
-  // Analiz butonuna basıldığında çalışan ana fonksiyon
-  const handleSubmit = async () => {
-    if (imageBase64s.length === 0) {
-      setError('Lütfen analiz için en az bir sayfa seçin.'); // Bu da çevrilebilir
-      return;
-    }
+    const updateImageStatus = (id: string, status: ImageFileStatus) => {
+      setImageFiles(prevFiles =>
+        prevFiles.map(image =>
+          image.id === id ? { ...image, status } : image
+        )
+      );
+    };
 
-    setLoadingState({ isLoading: true, message: 'Kontrol ediliyor...' });
-    setError('');
+    const handleRetryImage = async (id: string) => {
+        const imageFile = imageFiles.find(f => f.id === id);
+        if (!imageFile) return;
 
-    try {
-      // 1. Check company code and usage limit before analysis
-      const companyCode = localStorage.getItem('companyCode');
-      if (!companyCode) {
-        throw new Error("Firma kodu ayarlanmamış. Lütfen ayarlardan kontrol edin.");
-      }
+        updateImageStatus(id, 'processing');
+        
+        try {
+            const formData = new FormData();
+            formData.append('image', imageFile.file);
+            formData.append('model', selectedModel);
 
-      const limitCheckResult = await checkAndIncrementUsage(companyCode);
-      if (!limitCheckResult.success) {
-        throw new Error(limitCheckResult.message);
-      }
+            const response = await fetch('/api/analyze', {
+              method: 'POST',
+              body: formData,
+            });
 
-      // 2. If limit check is successful, proceed with analysis
-      const apiPromises = imageBase64s.map((base64, index) => {
-        setLoadingState({ 
-          isLoading: true, 
-          message: t('analyzingMessage', { // Dinamik mesajı dil dosyasından al
-            current: index + 1, 
-            total: imageBase64s.length 
-          }) 
-        });
-        return fetch('/api/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64, model: selectedModel }),
-        }).then(res => {
-          if (!res.ok) {
-            return res.json().then(err => Promise.reject(err));
-          }
-          return res.json();
-        });
-      });
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || t('errorApi'));
+            }
+            
+            updateImageStatus(id, 'completed');
+        } catch (err: any) {
+            console.error("Retry error:", err);
+            updateImageStatus(id, 'error');
+        }
+    };
 
-      const allPageResults = await Promise.all(apiPromises);
-      
-      setLoadingState({ isLoading: true, message: 'Sonuçlar birleştiriliyor...' }); // Çevrilebilir
-      const finalResult = mergeInvoiceData(allPageResults);
+    // Analiz butonuna basıldığında çalışan ana fonksiyon
+    const handleSubmit = async () => {
+        if (imageFiles.length === 0) {
+            setError(t('errorNoImages'));
+            return;
+        }
+        setError('');
+        setIsAnalyzing(true);
+        setAnalysisMessage(t('analyzingMessage', { current: 1, total: imageFiles.length }));
 
-      if (!finalResult) {
-          throw new Error("Analiz sonucunda geçerli veri bulunamadı."); // Çevrilebilir
-      }
-      
-      sessionStorage.setItem('analysisResult', JSON.stringify(finalResult));
-      sessionStorage.setItem('invoiceImages', JSON.stringify(imagePreviews)); // Görselleri de kaydet
-      router.push('/review');
+        try {
+            // 1. Check company code and usage limit before analysis
+            const companyCode = localStorage.getItem('companyCode');
+            if (!companyCode) {
+              throw new Error("Firma kodu ayarlanmamış. Lütfen ayarlardan kontrol edin.");
+            }
 
-    } catch (err: any) {
-      setError(err.message || t('errorGeneric')); // Hata mesajını dil dosyasından al
-      console.error("Error during submit:", err);
-      setLoadingState({ isLoading: false, message: '' });
-    }
-  };
+            const limitCheckResult = await checkUsageLimit(companyCode, imageFiles.length);
+            if (!limitCheckResult.success) {
+              throw new Error(limitCheckResult.message);
+            }
 
-  return (
-    <div className="p-4 max-w-lg mx-auto">
-      
-      {/* 2. Metinleri t() fonksiyonu ile dil dosyasından çek */}
-      <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">{t('title')}</h1>
-      
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <ImageCapture
-          onImagesCaptured={handleImagesCaptured}
-          isLoading={loadingState.isLoading}
-        />
-      </div>
+            // 2. If limit check is successful, proceed with analysis
+            const allResults: any[] = [];
+            for (let i = 0; i < imageFiles.length; i++) {
+                const imageFile = imageFiles[i];
+                setAnalysisMessage(t('analyzingMessage', { current: i + 1, total: imageFiles.length }));
+                updateImageStatus(imageFile.id, 'processing');
+                
+                const formData = new FormData();
+                formData.append('image', imageFile.file);
+                formData.append('model', selectedModel);
 
-      {imagePreviews.length > 0 && (
-         <div className="mt-4 bg-white p-6 rounded-lg shadow-md">
-           <label htmlFor="model-select" className="block text-sm font-medium text-gray-700 mb-2">
-             {t('modelSelectionLabel')}
-           </label>
-           <select
-             id="model-select"
-             name="model"
-             value={selectedModel}
-             onChange={(e) => setSelectedModel(e.target.value)}
-             disabled={loadingState.isLoading}
-             className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-violet-500 focus:border-violet-500 sm:text-sm rounded-md disabled:bg-gray-100"
-           >
-             {MODELS.map((model) => (
-               <option key={model.id} value={model.id}>
-                 {model.name}
-               </option>
-             ))}
-           </select>
-         </div>
-       )}
+                try {
+                    const response = await fetch('/api/analyze', {
+                      method: 'POST',
+                      body: formData,
+                    });
 
-      {error && <p className="text-red-600 mt-4 text-center font-semibold bg-red-100 p-3 rounded-md">{error}</p>}
-      
-      <ImagePreviewGrid imagePreviews={imagePreviews} />
+                    if (!response.ok) {
+                      const errorData = await response.json();
+                      console.error(`Error processing image ${imageFile.id}:`, errorData.error);
+                      updateImageStatus(imageFile.id, 'error');
+                      continue; // Skip this image and continue with the next one
+                    }
+                    const result = await response.json();
+                    console.log(`📊 Image ${i + 1} API Response:`, result);
+                    allResults.push(result);
+                    updateImageStatus(imageFile.id, 'completed');
+                } catch (err) {
+                    console.error(`Network error processing image ${imageFile.id}:`, err);
+                    updateImageStatus(imageFile.id, 'error');
+                    continue; // Skip this image and continue with the next one
+                }
+            }
 
-      {imagePreviews.length > 0 && (
-        <div className="mt-8">
-          <button
-            onClick={handleSubmit}
-            disabled={loadingState.isLoading}
-            className="w-full bg-violet-600 text-white font-bold py-4 px-4 rounded-lg text-lg flex items-center justify-center gap-2 hover:bg-violet-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300"
-          >
-            {loadingState.isLoading ? (
-              <>
-                <Loader2 className="animate-spin h-6 w-6" />
-                <span>{loadingState.message}</span>
-              </>
-            ) : (
-              // Buton metnini de dil dosyasından al
-              t('analyzeButton', { count: imagePreviews.length })
+            // --- AGGREGATION AND NAVIGATION ---
+            if (allResults.length === 0) {
+              throw new Error(t('errorNoResults'));
+            }
+
+            // API'den dönen veri snake_case formatında, camelCase'e çeviriyoruz
+            const finalMeta = allResults[0]?.invoice_meta || {};
+            
+            // Summary'yi son sayfadan al (genellikle orada olur)
+            const finalSummary = allResults[allResults.length - 1]?.invoice_summary || null;
+            const finalPaginatedData = allResults.map((result, index) => ({
+                page: index + 1,
+                items: (result.invoice_data || []).map((item: any) => ({
+                    ...item,
+                    originalNetto: item.Netto // Preserve original Netto for comparison
+                })),
+            }));
+
+            const finalData = {
+                invoiceMeta: finalMeta,
+                invoiceData: finalPaginatedData,
+                invoiceSummary: finalSummary,
+            };
+
+            console.log("🔍 Final Data for Review Page:");
+            console.log("invoiceMeta:", finalMeta);
+            console.log("invoiceSummary:", finalSummary);
+            console.log("invoiceData length:", finalPaginatedData.length);
+
+            sessionStorage.setItem('analysisResult', JSON.stringify(finalData));
+            
+            // Görselleri Base64'e çevir ve sessionStorage'a kaydet
+            const imageBase64Strings: string[] = [];
+            for (let i = 0; i < imageFiles.length; i++) {
+                try {
+                    const response = await fetch(imageFiles[i].preview);
+                    const blob = await response.blob();
+                    const base64 = await new Promise<string>((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result as string);
+                        reader.onerror = (error) => reject(error);
+                        reader.readAsDataURL(blob);
+                    });
+                    imageBase64Strings.push(base64);
+                } catch (error) {
+                    console.error(`Görsel ${i + 1} Base64'e çevrilirken hata:`, error);
+                }
+            }
+            
+            sessionStorage.setItem('invoiceImages', JSON.stringify(imageBase64Strings));
+            
+            // Yeni tarama için editing mode'u temizle
+            sessionStorage.removeItem('editingInvoiceId');
+            
+            // Increment scan count after successful analysis
+            await incrementScanCount(companyCode, imageFiles.length);
+            
+            router.push('/review');
+
+        } catch (err: any) {
+            setError(err.message || t('errorGeneric')); // Hata mesajını dil dosyasından al
+            console.error("Error during submit:", err);
+            // Mark any remaining processing files as error
+            imageFiles.forEach(file => {
+                if (file.status === 'processing') {
+                    updateImageStatus(file.id, 'error');
+                }
+            });
+        } finally {
+            setIsAnalyzing(false);
+            setAnalysisMessage('');
+        }
+    };
+
+    return (
+        <div className="p-4 max-w-lg mx-auto">
+            <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">{t('title')}</h1>
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <ImageCapture onFilesChange={handleFilesChange} disabled={isAnalyzing} />
+            </div>
+            {imageFiles.length > 0 && (
+                <div className="mt-4 bg-white p-6 rounded-lg shadow-md">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('modelSelectionLabel')}
+                    </label>
+                    <Select value={selectedModel} onValueChange={setSelectedModel} disabled={isAnalyzing}>
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Model seçin" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {MODELS.map((model) => (
+                                <SelectItem key={model.id} value={model.id}>
+                                    {model.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             )}
-          </button>
+            {error && <p className="text-red-600 mt-4 text-center font-semibold bg-red-100 p-3 rounded-md">{error}</p>}
+            {imageFiles.length > 0 && (
+                <ImagePreviewGrid 
+                    images={imageFiles}
+                    onRemove={handleRemoveImage}
+                    onRetry={handleRetryImage}
+                    disabled={isAnalyzing}
+                />
+            )}
+            {imageFiles.length > 0 && (
+                <div className="mt-8">
+                    <button
+                        onClick={handleSubmit}
+                        disabled={isAnalyzing}
+                        className="w-full bg-violet-600 text-white font-bold py-4 px-4 rounded-lg text-lg flex items-center justify-center gap-2 hover:bg-violet-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300"
+                    >
+                        {isAnalyzing ? (
+                            <>
+                                <Loader2 className="animate-spin h-6 w-6" />
+                                <span>{analysisMessage}</span>
+                            </>
+                        ) : (
+                            // Buton metnini de dil dosyasından al
+                            (t('analyzeButton', { count: imageFiles.length }))
+                        )}
+                    </button>
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 }

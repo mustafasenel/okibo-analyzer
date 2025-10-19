@@ -71,5 +71,5 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

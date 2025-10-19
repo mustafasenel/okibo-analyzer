@@ -1,62 +1,84 @@
 'use client';
 import { useState } from 'react';
 import Image from 'next/image';
-import { X } from 'lucide-react';
+import { X, Loader2, CheckCircle2, AlertCircle, RotateCcw } from 'lucide-react';
 
-interface ImagePreviewGridProps {
-  imagePreviews: string[];
+type ImageFileStatus = 'pending' | 'processing' | 'completed' | 'error';
+
+interface ImageFileWithStatus {
+    id: string;
+    preview: string;
+    status: ImageFileStatus;
 }
 
-export default function ImagePreviewGrid({ imagePreviews }: ImagePreviewGridProps) {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+interface ImagePreviewGridProps {
+    images: ImageFileWithStatus[];
+    onRemove: (id: string) => void;
+    onRetry?: (id: string) => void;
+    disabled: boolean;
+}
 
-  if (imagePreviews.length === 0) return null;
+const StatusIndicator = ({ status }: { status: ImageFileStatus }) => {
+    switch (status) {
+        case 'processing':
+            return (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <Loader2 className="animate-spin h-8 w-8 text-white" />
+                </div>
+            );
+        case 'completed':
+            return (
+                <div className="absolute inset-0 bg-green-700 bg-opacity-60 flex items-center justify-center">
+                    <CheckCircle2 className="h-8 w-8 text-white" />
+                </div>
+            );
+        case 'error':
+            return (
+                <div className="absolute inset-0 bg-red-700 bg-opacity-60 flex items-center justify-center">
+                    <AlertCircle className="h-8 w-8 text-white" />
+                </div>
+            );
+        case 'pending':
+        default:
+            return null;
+    }
+};
 
-  return (
-    <div className="mt-6">
-      <h3 className="font-semibold text-lg text-gray-800 mb-3">Seçilen Sayfalar ({imagePreviews.length})</h3>
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-        {imagePreviews.map((src, index) => (
-          <div 
-            key={index} 
-            className="relative aspect-[3/4] rounded-md overflow-hidden border cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => setSelectedImage(src)}
-          >
-            <Image
-              src={src}
-              alt={`Yüklenen sayfa ${index + 1}`}
-              layout="fill"
-              objectFit="cover"
-            />
-          </div>
-        ))}
-      </div>
-
-      {selectedImage && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedImage(null)}
-        >
-          <button 
-            className="absolute top-4 right-4 text-white z-60"
-            onClick={() => setSelectedImage(null)}
-          >
-            <X size={32} />
-          </button>
-          
-          <div 
-            className="relative w-full h-full max-w-4xl max-h-[90vh]"
-            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking on image
-          >
-            <Image
-              src={selectedImage}
-              alt="Tam ekran fatura görüntüsü"
-              layout="fill"
-              objectFit="contain"
-            />
-          </div>
+export function ImagePreviewGrid({ images, onRemove, onRetry, disabled }: ImagePreviewGridProps) {
+    return (
+        <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+            {images.map((image) => (
+                <div key={image.id} className="relative aspect-square group">
+                    <Image
+                        src={image.preview}
+                        alt="Preview"
+                        fill
+                        className="object-cover rounded-lg"
+                    />
+                    <StatusIndicator status={image.status} />
+                    
+                    {/* Remove button */}
+                    {!disabled && (
+                         <button
+                            onClick={() => onRemove(image.id)}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                         >
+                            <X size={16} />
+                        </button>
+                    )}
+                    
+                    {/* Retry button for error status */}
+                    {image.status === 'error' && onRetry && !disabled && (
+                        <button
+                            onClick={() => onRetry(image.id)}
+                            className="absolute bottom-1 right-1 bg-blue-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Tekrar Dene"
+                        >
+                            <RotateCcw size={16} />
+                        </button>
+                    )}
+                </div>
+            ))}
         </div>
-      )}
-    </div>
-  );
+    );
 }
