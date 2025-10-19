@@ -15,7 +15,7 @@ interface Invoice {
   invoiceMeta: any;
   invoiceData: any[];
   invoiceSummary: any;
-  status: 'PENDING' | 'COMPLETED';
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED';
   company: {
     name: string;
     code: string;
@@ -103,6 +103,8 @@ export default function HistoryPage() {
     switch (status) {
       case 'PENDING':
         return <Badge variant="secondary">Beklemede</Badge>;
+      case 'PROCESSING':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">İşleniyor</Badge>;
       case 'COMPLETED':
         return <Badge variant="default">Tamamlandı</Badge>;
       default:
@@ -122,7 +124,7 @@ export default function HistoryPage() {
   return (
     <div className="max-w-4xl mx-auto p-4 pb-24">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{t('title')}</h1>
       </div>
 
       {invoices.length === 0 ? (
@@ -134,59 +136,60 @@ export default function HistoryPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {invoices.map((invoice) => (
             <Card key={invoice.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Building2 className="h-5 w-5 text-gray-500" />
-                      {invoice.company.name}
+              <CardHeader className="pb-3 px-4 sm:px-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-base sm:text-lg flex items-center gap-2 truncate">
+                      <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 flex-shrink-0" />
+                      <span className="truncate">{invoice.company.name}</span>
                     </CardTitle>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 text-xs sm:text-sm text-gray-600">
                       <div className="flex items-center gap-1">
-                        <FileText className="h-4 w-4" />
-                        <span>{invoice.invoiceMeta?.Rechnungsnummer || 'N/A'}</span>
+                        <FileText className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                        <span className="truncate">{invoice.invoiceMeta?.Rechnungsnummer || 'N/A'}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>{formatDate(invoice.createdAt)}</span>
+                        <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                        <span className="truncate">{formatDate(invoice.createdAt)}</span>
                       </div>
-                      <div>
+                      <div className="flex-shrink-0">
                         {getStatusBadge(invoice.status)}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleViewInvoice(invoice)}
+                      className="text-xs sm:text-sm px-2 sm:px-3"
                     >
-                      <Eye className="h-4 w-4 mr-1" />
-                      {t('view')}
+                      <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                      <span className="hidden sm:inline">{t('view')}</span>
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeleteInvoice(invoice.id)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-red-600 hover:text-red-700 px-2 sm:px-3"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="text-sm text-gray-600">
+              <CardContent className="pt-0 px-4 sm:px-6">
+                <div className="text-xs sm:text-sm text-gray-600 space-y-1">
                   <div className="flex justify-between">
                     <span>Toplam Tutar:</span>
                     <span className="font-semibold">
-                      {invoice.invoiceSummary?.Gesamtbetrag || 'N/A'}€
+                      {invoice.invoiceSummary?.total_gross || invoice.invoiceSummary?.Gesamtbetrag || 'N/A'}€
                     </span>
                   </div>
-                  <div className="flex justify-between mt-1">
+                  <div className="flex justify-between">
                     <span>Sayfa Sayısı:</span>
                     <span className="font-semibold">
                       {invoice.invoiceData?.length || 0} sayfa
