@@ -1,0 +1,375 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<!--
+3    Copyright 2019 Google Inc. All Rights Reserved.
+4
+5     Licensed under the Apache License, Version 2.0 (the "License");
+6     you may not use this file except in compliance with the License.
+7     You may obtain a copy of the License at
+8
+9         http://www.apache.org/licenses/LICENSE-2.0
+10
+11     Unless required by applicable law or agreed to in writing, software
+12     distributed under the License is distributed on an "AS IS" BASIS,
+13     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+14     See the License for the specific language governing permissions and
+15     limitations under the License.
+16-->
+17<!--
+18 The "package" attribute is rewritten by the Gradle build with the value of applicationId.
+19     It is still required here, as it is used to derive paths, for instance when referring
+20     to an Activity by ".MyActivity" instead of the full name. If more Activities are added to the
+21     application, the package attribute will need to reflect the correct path in order to use
+22     the abbreviated format.
+23-->
+24<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+25    package="app.vercel.okibo_analyzer.twa"
+26    android:versionCode="8"
+27    android:versionName="8" >
+28
+29    <uses-sdk
+30        android:minSdkVersion="21"
+31        android:targetSdkVersion="35" />
+32
+33    <uses-permission android:name="android.permission.INTERNET" />
+33-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:26:9-70
+33-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:26:26-68
+34    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+34-->[com.google.androidbrowserhelper:locationdelegation:1.1.2] /Users/senel/.gradle/caches/8.11.1/transforms/6215e13210b05cc5715af15b5940fb9f/transformed/locationdelegation-1.1.2/AndroidManifest.xml:7:5-79
+34-->[com.google.androidbrowserhelper:locationdelegation:1.1.2] /Users/senel/.gradle/caches/8.11.1/transforms/6215e13210b05cc5715af15b5940fb9f/transformed/locationdelegation-1.1.2/AndroidManifest.xml:7:22-76
+35    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+35-->[com.google.androidbrowserhelper:locationdelegation:1.1.2] /Users/senel/.gradle/caches/8.11.1/transforms/6215e13210b05cc5715af15b5940fb9f/transformed/locationdelegation-1.1.2/AndroidManifest.xml:8:5-81
+35-->[com.google.androidbrowserhelper:locationdelegation:1.1.2] /Users/senel/.gradle/caches/8.11.1/transforms/6215e13210b05cc5715af15b5940fb9f/transformed/locationdelegation-1.1.2/AndroidManifest.xml:8:22-78
+36
+37    <queries>
+37-->[com.google.androidbrowserhelper:androidbrowserhelper:2.6.2] /Users/senel/.gradle/caches/8.11.1/transforms/5053e02be90783e54992393be394bb70/transformed/androidbrowserhelper-2.6.2/AndroidManifest.xml:22:5-30:15
+38        <intent>
+38-->[com.google.androidbrowserhelper:androidbrowserhelper:2.6.2] /Users/senel/.gradle/caches/8.11.1/transforms/5053e02be90783e54992393be394bb70/transformed/androidbrowserhelper-2.6.2/AndroidManifest.xml:23:9-29:18
+39            <action android:name="android.intent.action.VIEW" />
+39-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:137:17-68
+39-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:137:25-66
+40
+41            <category android:name="android.intent.category.BROWSABLE" />
+41-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:139:17-77
+41-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:139:27-75
+42
+43            <data android:scheme="https" />
+43-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:140:17-143:19
+43-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:140:23-45
+44        </intent>
+45    </queries>
+46
+47    <permission
+47-->[androidx.core:core:1.13.0] /Users/senel/.gradle/caches/8.11.1/transforms/a5429f7b20c607b890f08b5283ad4ec0/transformed/core-1.13.0/AndroidManifest.xml:22:5-24:47
+48        android:name="app.vercel.okibo_analyzer.twa.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+48-->[androidx.core:core:1.13.0] /Users/senel/.gradle/caches/8.11.1/transforms/a5429f7b20c607b890f08b5283ad4ec0/transformed/core-1.13.0/AndroidManifest.xml:23:9-81
+49        android:protectionLevel="signature" />
+49-->[androidx.core:core:1.13.0] /Users/senel/.gradle/caches/8.11.1/transforms/a5429f7b20c607b890f08b5283ad4ec0/transformed/core-1.13.0/AndroidManifest.xml:24:9-44
+50
+51    <uses-permission android:name="app.vercel.okibo_analyzer.twa.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+51-->[androidx.core:core:1.13.0] /Users/senel/.gradle/caches/8.11.1/transforms/a5429f7b20c607b890f08b5283ad4ec0/transformed/core-1.13.0/AndroidManifest.xml:26:5-97
+51-->[androidx.core:core:1.13.0] /Users/senel/.gradle/caches/8.11.1/transforms/a5429f7b20c607b890f08b5283ad4ec0/transformed/core-1.13.0/AndroidManifest.xml:26:22-94
+52
+53    <application
+53-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:35:5-185:19
+54        android:name="app.vercel.okibo_analyzer.twa.Application"
+54-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:36:9-35
+55        android:allowBackup="true"
+55-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:37:9-35
+56        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+56-->[androidx.core:core:1.13.0] /Users/senel/.gradle/caches/8.11.1/transforms/a5429f7b20c607b890f08b5283ad4ec0/transformed/core-1.13.0/AndroidManifest.xml:28:18-86
+57        android:extractNativeLibs="true"
+58        android:icon="@mipmap/ic_launcher"
+58-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:38:9-43
+59        android:label="@string/appName"
+59-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:39:9-40
+60        android:supportsRtl="true"
+60-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:41:9-35
+61        android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+61-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:42:9-68
+62        <meta-data
+62-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:44:9-46:58
+63            android:name="asset_statements"
+63-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:45:13-44
+64            android:resource="@string/assetStatements" />
+64-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:46:13-55
+65        <meta-data
+65-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:49:13-51:58
+66            android:name="web_manifest_url"
+66-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:50:17-48
+67            android:value="@string/webManifestUrl" />
+67-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:51:17-55
+68        <meta-data
+68-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:54:9-56:52
+69            android:name="twa_generator"
+69-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:55:13-41
+70            android:value="@string/generatorApp" />
+70-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:56:13-49
+71
+72        <activity
+72-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:64:9-149:20
+73            android:name="app.vercel.okibo_analyzer.twa.LauncherActivity"
+73-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:64:19-50
+74            android:alwaysRetainTaskState="true"
+74-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:65:13-49
+75            android:exported="true"
+75-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:67:13-36
+76            android:label="@string/launcherName" >
+76-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:66:13-49
+77            <meta-data
+77-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:68:13-69:53
+78                android:name="android.support.customtabs.trusted.DEFAULT_URL"
+78-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:68:24-85
+79                android:value="@string/launchUrl" />
+79-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:69:17-50
+80            <meta-data
+80-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:71:13-73:58
+81                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
+81-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:72:17-83
+82                android:resource="@color/colorPrimary" />
+82-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:73:17-55
+83            <meta-data
+83-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:77:13-79:62
+84                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR_DARK"
+84-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:78:17-88
+85                android:resource="@color/colorPrimaryDark" />
+85-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:79:17-59
+86            <meta-data
+86-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:81:13-83:61
+87                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
+87-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:82:17-87
+88                android:resource="@color/navigationColor" />
+88-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:83:17-58
+89            <meta-data
+89-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:85:13-87:65
+90                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR_DARK"
+90-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:86:17-92
+91                android:resource="@color/navigationColorDark" />
+91-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:87:17-62
+92            <meta-data
+92-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:89:13-91:68
+93                android:name="androix.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR"
+93-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:90:17-84
+94                android:resource="@color/navigationDividerColor" />
+94-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:91:17-65
+95            <meta-data
+95-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:93:13-95:72
+96                android:name="androix.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR_DARK"
+96-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:94:17-89
+97                android:resource="@color/navigationDividerColorDark" />
+97-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:95:17-69
+98            <meta-data
+98-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:97:13-98:54
+99                android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
+99-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:97:24-95
+100                android:resource="@drawable/splash" />
+100-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:98:17-52
+101            <meta-data
+101-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:100:13-101:60
+102                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
+102-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:100:24-104
+103                android:resource="@color/backgroundColor" />
+103-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:101:17-58
+104            <meta-data
+104-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:103:13-104:71
+105                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
+105-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:103:24-105
+106                android:value="@integer/splashScreenFadeOutDuration" />
+106-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:104:17-69
+107            <meta-data
+107-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:106:13-107:60
+108                android:name="android.support.customtabs.trusted.FILE_PROVIDER_AUTHORITY"
+108-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:106:24-97
+109                android:value="@string/providerAuthority" />
+109-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:107:17-58
+110            <meta-data
+110-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:109:13-97
+111                android:name="android.app.shortcuts"
+111-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:109:24-60
+112                android:resource="@xml/shortcuts" />
+112-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:109:61-94
+113            <meta-data
+113-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:111:13-112:56
+114                android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
+114-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:111:24-91
+115                android:value="@string/fallbackType" />
+115-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:112:17-53
+116            <meta-data
+116-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:118:13-119:54
+117                android:name="android.support.customtabs.trusted.SCREEN_ORIENTATION"
+117-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:118:24-92
+118                android:value="@string/orientation" />
+118-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:119:17-52
+119            <meta-data
+119-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:124:17-126:66
+120                android:name="android.support.customtabs.trusted.DISPLAY_OVERRIDE"
+120-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:125:21-87
+121                android:resource="@array/display_override" />
+121-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:126:21-63
+122
+123            <intent-filter>
+123-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:131:13-134:29
+124                <action android:name="android.intent.action.MAIN" />
+124-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:132:17-69
+124-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:132:25-66
+125
+126                <category android:name="android.intent.category.LAUNCHER" />
+126-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:133:17-77
+126-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:133:27-74
+127            </intent-filter>
+128            <intent-filter android:autoVerify="true" >
+128-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:136:13-144:29
+128-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:136:28-53
+129                <action android:name="android.intent.action.VIEW" />
+129-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:137:17-68
+129-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:137:25-66
+130
+131                <category android:name="android.intent.category.DEFAULT" />
+131-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:138:17-76
+131-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:138:27-73
+132                <category android:name="android.intent.category.BROWSABLE" />
+132-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:139:17-77
+132-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:139:27-75
+133
+134                <data
+134-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:140:17-143:19
+135                    android:host="@string/hostName"
+135-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:141:21-52
+136                    android:scheme="https" />
+136-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:140:23-45
+137            </intent-filter>
+138        </activity>
+139        <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity" />
+139-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:151:9-90
+139-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:151:19-87
+140        <activity
+140-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:153:9-154:62
+141            android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
+141-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:153:19-97
+142            android:configChanges="orientation|screenSize" />
+142-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:154:13-59
+143
+144        <provider
+144-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:156:9-164:20
+145            android:name="androidx.core.content.FileProvider"
+145-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:157:13-62
+146            android:authorities="@string/providerAuthority"
+146-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:158:13-60
+147            android:exported="false"
+147-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:160:13-37
+148            android:grantUriPermissions="true" >
+148-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:159:13-47
+149            <meta-data
+149-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:161:13-163:53
+150                android:name="android.support.FILE_PROVIDER_PATHS"
+150-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:162:17-67
+151                android:resource="@xml/filepaths" />
+151-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:163:17-50
+152        </provider>
+153
+154        <service
+154-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:166:9-177:19
+155            android:name="app.vercel.okibo_analyzer.twa.DelegationService"
+155-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:167:13-46
+156            android:enabled="@bool/enableNotification"
+156-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:168:13-55
+157            android:exported="@bool/enableNotification" >
+157-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:169:13-56
+158            <intent-filter>
+158-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:173:13-176:29
+159                <action android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_SERVICE" />
+159-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:174:17-105
+159-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:174:25-103
+160
+161                <category android:name="android.intent.category.DEFAULT" />
+161-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:138:17-76
+161-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:138:27-73
+162            </intent-filter>
+163        </service>
+164
+165        <activity android:name="com.google.androidbrowserhelper.locationdelegation.PermissionRequestActivity" />
+165-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:182:13-183:89
+165-->/Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:182:23-123
+166        <activity
+166-->[com.google.android.gms:play-services-base:18.1.0] /Users/senel/.gradle/caches/8.11.1/transforms/02e37f92c71ffadabef41ae6f5feca22/transformed/play-services-base-18.1.0/AndroidManifest.xml:20:9-22:45
+167            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+167-->[com.google.android.gms:play-services-base:18.1.0] /Users/senel/.gradle/caches/8.11.1/transforms/02e37f92c71ffadabef41ae6f5feca22/transformed/play-services-base-18.1.0/AndroidManifest.xml:20:19-85
+168            android:exported="false"
+168-->[com.google.android.gms:play-services-base:18.1.0] /Users/senel/.gradle/caches/8.11.1/transforms/02e37f92c71ffadabef41ae6f5feca22/transformed/play-services-base-18.1.0/AndroidManifest.xml:22:19-43
+169            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+169-->[com.google.android.gms:play-services-base:18.1.0] /Users/senel/.gradle/caches/8.11.1/transforms/02e37f92c71ffadabef41ae6f5feca22/transformed/play-services-base-18.1.0/AndroidManifest.xml:21:19-78
+170
+171        <meta-data
+171-->[com.google.android.gms:play-services-basement:18.1.0] /Users/senel/.gradle/caches/8.11.1/transforms/d176d6696a4772b4ce2a6021c61f9202/transformed/play-services-basement-18.1.0/AndroidManifest.xml:21:9-23:69
+172            android:name="com.google.android.gms.version"
+172-->[com.google.android.gms:play-services-basement:18.1.0] /Users/senel/.gradle/caches/8.11.1/transforms/d176d6696a4772b4ce2a6021c61f9202/transformed/play-services-basement-18.1.0/AndroidManifest.xml:22:13-58
+173            android:value="@integer/google_play_services_version" />
+173-->[com.google.android.gms:play-services-basement:18.1.0] /Users/senel/.gradle/caches/8.11.1/transforms/d176d6696a4772b4ce2a6021c61f9202/transformed/play-services-basement-18.1.0/AndroidManifest.xml:23:13-66
+174
+175        <provider
+175-->[androidx.emoji2:emoji2:1.3.0] /Users/senel/.gradle/caches/8.11.1/transforms/5cb7738f5242d8c4e38c8ffa2b265b31/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+176            android:name="androidx.startup.InitializationProvider"
+176-->[androidx.emoji2:emoji2:1.3.0] /Users/senel/.gradle/caches/8.11.1/transforms/5cb7738f5242d8c4e38c8ffa2b265b31/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+177            android:authorities="app.vercel.okibo_analyzer.twa.androidx-startup"
+177-->[androidx.emoji2:emoji2:1.3.0] /Users/senel/.gradle/caches/8.11.1/transforms/5cb7738f5242d8c4e38c8ffa2b265b31/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+178            android:exported="false" >
+178-->[androidx.emoji2:emoji2:1.3.0] /Users/senel/.gradle/caches/8.11.1/transforms/5cb7738f5242d8c4e38c8ffa2b265b31/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+179            <meta-data
+179-->[androidx.emoji2:emoji2:1.3.0] /Users/senel/.gradle/caches/8.11.1/transforms/5cb7738f5242d8c4e38c8ffa2b265b31/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+180                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+180-->[androidx.emoji2:emoji2:1.3.0] /Users/senel/.gradle/caches/8.11.1/transforms/5cb7738f5242d8c4e38c8ffa2b265b31/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+181                android:value="androidx.startup" />
+181-->[androidx.emoji2:emoji2:1.3.0] /Users/senel/.gradle/caches/8.11.1/transforms/5cb7738f5242d8c4e38c8ffa2b265b31/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+182            <meta-data
+182-->[androidx.lifecycle:lifecycle-process:2.6.2] /Users/senel/.gradle/caches/8.11.1/transforms/4bc52031417e9743197e36b704fe409f/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:29:13-31:52
+183                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+183-->[androidx.lifecycle:lifecycle-process:2.6.2] /Users/senel/.gradle/caches/8.11.1/transforms/4bc52031417e9743197e36b704fe409f/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:30:17-78
+184                android:value="androidx.startup" />
+184-->[androidx.lifecycle:lifecycle-process:2.6.2] /Users/senel/.gradle/caches/8.11.1/transforms/4bc52031417e9743197e36b704fe409f/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:31:17-49
+185            <meta-data
+185-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+186                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+186-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+187                android:value="androidx.startup" />
+187-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+188        </provider>
+189
+190        <receiver
+190-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+191            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+191-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+192            android:directBootAware="false"
+192-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+193            android:enabled="true"
+193-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+194            android:exported="true"
+194-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+195            android:permission="android.permission.DUMP" >
+195-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+196            <intent-filter>
+196-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+197                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+197-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+197-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+198            </intent-filter>
+199            <intent-filter>
+199-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+200                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+200-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+200-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+201            </intent-filter>
+202            <intent-filter>
+202-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+203                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+203-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+203-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+204            </intent-filter>
+205            <intent-filter>
+205-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+206                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+206-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+206-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/senel/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+207            </intent-filter>
+208        </receiver>
+209    </application>
+210
+211</manifest>
