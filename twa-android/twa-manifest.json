@@ -15,18 +15,25 @@
   "startUrl": "/",
   "iconUrl": "https://okibo-analyzer.vercel.app/icons/icon-512x512.png",
   "maskableIconUrl": "https://okibo-analyzer.vercel.app/icons/icon-512x512.png",
-  "splashScreenFadeOutDuration": 300,
+  "splashScreenFadeOutDuration": 200,
   "signingKey": {
     "path": "/Users/senel/Documents/okibo-analyzer/android.keystore",
     "alias": "android"
   },
-  "appVersionName": "4",
-  "appVersionCode": 4,
+  "appVersionName": "5",
+  "appVersionCode": 5,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://okibo-analyzer.vercel.app/manifest.json",
   "fallbackType": "webview",
-  "features": {},
+  "features": {
+    "locationDelegation": {
+      "enabled": true
+    },
+    "fileHandling": {
+      "enabled": true
+    }
+  },
   "alphaDependencies": {
     "enabled": false
   },
@@ -42,6 +49,6 @@
   "protocolHandlers": [],
   "fileHandlers": [],
   "launchHandlerClientMode": "",
-  "displayOverride": [],
-  "appVersion": "4"
+  "displayOverride": ["fullscreen", "standalone", "minimal-ui"],
+  "appVersion": "5"
 }
