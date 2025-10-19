@@ -23,8 +23,8 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="app.vercel.okibo_analyzer.twa"
-    android:versionCode="4"
-    android:versionName="4" >
+    android:versionCode="6"
+    android:versionName="6" >
 
     <uses-sdk
         android:minSdkVersion="21"
@@ -32,6 +32,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <queries>
         <intent>
@@ -118,6 +120,9 @@
             <meta-data
                 android:name="android.support.customtabs.trusted.SCREEN_ORIENTATION"
                 android:value="@string/orientation" />
+            <meta-data
+                android:name="android.support.customtabs.trusted.DISPLAY_OVERRIDE"
+                android:resource="@array/display_override" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -166,6 +171,15 @@
         </service>
 
         <activity android:name="com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity" />
+        <activity android:name="com.google.androidbrowserhelper.locationdelegation.PermissionRequestActivity" />
+        <activity
+            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"

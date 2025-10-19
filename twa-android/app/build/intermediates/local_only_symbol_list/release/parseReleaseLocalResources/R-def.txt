@@ -1,5 +1,6 @@
 R_DEF: Internal format may change without notice
 local
+array display_override
 bool enableNotification
 bool enableSiteSettingsShortcut
 color backgroundColor

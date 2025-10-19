@@ -126,6 +126,10 @@
             
 
             
+                <meta-data
+                    android:name="android.support.customtabs.trusted.DISPLAY_OVERRIDE"
+                    android:resource="@array/display_override" />
+            
 
             
 
@@ -185,6 +189,9 @@
             <activity android:name="com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity" />
         
 
+        
+            <activity android:name=
+        "com.google.androidbrowserhelper.locationdelegation.PermissionRequestActivity"/>
         
     </application>
 </manifest>

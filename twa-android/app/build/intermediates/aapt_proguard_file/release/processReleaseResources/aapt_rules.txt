@@ -5,6 +5,8 @@
 -keep class app.vercel.okibo_analyzer.twa.Application { <init>(); }
 -keep class app.vercel.okibo_analyzer.twa.DelegationService { <init>(); }
 -keep class app.vercel.okibo_analyzer.twa.LauncherActivity { <init>(); }
+-keep class com.google.android.gms.common.api.GoogleApiActivity { <init>(); }
+-keep class com.google.androidbrowserhelper.locationdelegation.PermissionRequestActivity { <init>(); }
 -keep class com.google.androidbrowserhelper.trusted.FocusActivity { <init>(); }
 -keep class com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity { <init>(); }
 -keep class com.google.androidbrowserhelper.trusted.WebViewFallbackActivity { <init>(); }

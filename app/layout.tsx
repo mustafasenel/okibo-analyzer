@@ -53,7 +53,7 @@ export default async function RootLayout({
   return (
     <html suppressHydrationWarning>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         <meta name="theme-color" content="#7c3aed" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -61,7 +61,7 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" href="/next.svg" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={`${inter.className} bg-gray-100`}>
+      <body className={`${inter.className} bg-gray-100 h-screen overflow-hidden`}>
         <NextAuthProvider>
           <LanguageProvider initialMessages={messages} timeZone={timeZone}>
             <MainContent>

@@ -131,5 +131,51 @@ input[type=number] {
   }
   body {
     @apply bg-background text-foreground;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+    overflow-x: hidden;
+  }
+  html {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    height: 100dvh;
+    overflow-x: hidden;
+  }
+  #__next {
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* TWA specific styles */
+@media (display-mode: fullscreen) {
+  body {
+    height: 100vh;
+    height: 100dvh;
+    margin: 0;
+    padding: 0;
+  }
+  #__next {
+    height: 100vh;
+    height: 100dvh;
+  }
+}
+
+/* Hide URL bar on mobile */
+@media (max-width: 768px) {
+  body {
+    height: 100vh;
+    height: 100dvh;
+    margin: 0;
+    padding: 0;
+  }
+  #__next {
+    height: 100vh;
+    height: 100dvh;
   }
 }
