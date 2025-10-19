@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string-array name="additional_trusted_origins">
+    
+      <item>https://https://okibo-analyzer.vercel.app</item>
+    
+    </string-array>
     <string-array name="display_override">
     
       
@@ -35,6 +40,14 @@
             \"site\": \"https://okibo-analyzer.vercel.app\"
         }
     }]
+    
+      ,[{
+          \"relation\": [\"delegate_permission/common.handle_all_urls\"],
+          \"target\": {
+              \"namespace\": \"web\",
+              \"site\": \"https://https://okibo-analyzer.vercel.app\"
+          }
+      }]        
     
   </string>
     <string name="fallbackType" translatable="false">webview</string>

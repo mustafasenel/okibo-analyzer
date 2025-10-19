@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:22:1-186:12
-INJECTED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:22:1-186:12
-INJECTED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:22:1-186:12
-INJECTED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:22:1-186:12
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:22:1-198:12
+INJECTED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:22:1-198:12
+INJECTED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:22:1-198:12
+INJECTED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:22:1-198:12
 MERGED from [com.google.androidbrowserhelper:locationdelegation:1.1.2] /Users/senel/.gradle/caches/8.11.1/transforms/6215e13210b05cc5715af15b5940fb9f/transformed/locationdelegation-1.1.2/AndroidManifest.xml:2:1-14:12
 MERGED from [com.google.androidbrowserhelper:androidbrowserhelper:2.6.2] /Users/senel/.gradle/caches/8.11.1/transforms/5053e02be90783e54992393be394bb70/transformed/androidbrowserhelper-2.6.2/AndroidManifest.xml:17:1-32:12
 MERGED from [com.google.android.gms:play-services-location:21.0.1] /Users/senel/.gradle/caches/8.11.1/transforms/fc152f6c05f0a8e42a641aef39f03e09/transformed/play-services-location-21.0.1/AndroidManifest.xml:2:1-9:12
@@ -54,8 +54,8 @@ ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/Androi
 	android:name
 		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:26:26-68
 application
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:35:5-185:19
-INJECTED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:35:5-185:19
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:35:5-197:19
+INJECTED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:35:5-197:19
 MERGED from [com.google.androidbrowserhelper:locationdelegation:1.1.2] /Users/senel/.gradle/caches/8.11.1/transforms/6215e13210b05cc5715af15b5940fb9f/transformed/locationdelegation-1.1.2/AndroidManifest.xml:10:5-12:19
 MERGED from [com.google.androidbrowserhelper:locationdelegation:1.1.2] /Users/senel/.gradle/caches/8.11.1/transforms/6215e13210b05cc5715af15b5940fb9f/transformed/locationdelegation-1.1.2/AndroidManifest.xml:10:5-12:19
 MERGED from [com.google.android.gms:play-services-location:21.0.1] /Users/senel/.gradle/caches/8.11.1/transforms/fc152f6c05f0a8e42a641aef39f03e09/transformed/play-services-location-21.0.1/AndroidManifest.xml:7:5-20
@@ -113,7 +113,7 @@ ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/Androi
 	android:name
 		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:55:13-41
 activity#app.vercel.okibo_analyzer.twa.LauncherActivity
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:64:9-149:20
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:64:9-161:20
 	android:label
 		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:66:13-49
 	android:exported
@@ -206,90 +206,100 @@ ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/Androi
 		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:119:17-52
 	android:name
 		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:118:24-92
+meta-data#android.support.customtabs.trusted.ADDITIONAL_TRUSTED_ORIGINS
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:122:17-124:76
+	android:resource
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:124:21-73
+	android:name
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:123:21-97
 meta-data#android.support.customtabs.trusted.DISPLAY_OVERRIDE
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:124:17-126:66
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:128:17-130:66
 	android:resource
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:126:21-63
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:130:21-63
 	android:name
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:125:21-87
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:129:21-87
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:131:13-134:29
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:135:13-138:29
 action#android.intent.action.MAIN
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:132:17-69
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:136:17-69
 	android:name
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:132:25-66
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:136:25-66
 category#android.intent.category.LAUNCHER
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:133:17-77
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:137:17-77
 	android:name
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:133:27-74
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:137:27-74
 intent-filter#action:name:android.intent.action.VIEW+category:name:android.intent.category.BROWSABLE+category:name:android.intent.category.DEFAULT+data:host:@string/hostName+data:scheme:https
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:136:13-144:29
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:140:13-148:29
 	android:autoVerify
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:136:28-53
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:140:28-53
 action#android.intent.action.VIEW
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:137:17-68
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:141:17-68
 	android:name
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:137:25-66
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:141:25-66
 category#android.intent.category.DEFAULT
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:138:17-76
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:142:17-76
 	android:name
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:138:27-73
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:142:27-73
 category#android.intent.category.BROWSABLE
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:139:17-77
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:143:17-77
 	android:name
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:139:27-75
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:143:27-75
 data
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:140:17-143:19
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:144:17-147:19
 	android:host
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:141:21-52
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:145:21-52
 	android:scheme
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:140:23-45
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:144:23-45
+intent-filter#action:name:android.intent.action.VIEW+category:name:android.intent.category.BROWSABLE+category:name:android.intent.category.DEFAULT+data:host:https://okibo-analyzer.vercel.app+data:scheme:https
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:151:17-157:33
+	android:autoVerify
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:151:32-57
 activity#com.google.androidbrowserhelper.trusted.FocusActivity
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:151:9-90
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:163:9-90
 	android:name
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:151:19-87
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:163:19-87
 activity#com.google.androidbrowserhelper.trusted.WebViewFallbackActivity
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:153:9-154:62
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:165:9-166:62
 	android:configChanges
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:154:13-59
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:166:13-59
 	android:name
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:153:19-97
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:165:19-97
 provider#androidx.core.content.FileProvider
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:156:9-164:20
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:168:9-176:20
 	android:grantUriPermissions
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:159:13-47
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:171:13-47
 	android:authorities
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:158:13-60
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:170:13-60
 	android:exported
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:160:13-37
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:172:13-37
 	android:name
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:157:13-62
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:169:13-62
 meta-data#android.support.FILE_PROVIDER_PATHS
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:161:13-163:53
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:173:13-175:53
 	android:resource
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:163:17-50
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:175:17-50
 	android:name
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:162:17-67
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:174:17-67
 service#app.vercel.okibo_analyzer.twa.DelegationService
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:166:9-177:19
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:178:9-189:19
 	android:enabled
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:168:13-55
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:180:13-55
 	android:exported
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:169:13-56
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:181:13-56
 	android:name
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:167:13-46
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:179:13-46
 intent-filter#action:name:android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_SERVICE+category:name:android.intent.category.DEFAULT
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:173:13-176:29
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:185:13-188:29
 action#android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_SERVICE
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:174:17-105
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:186:17-105
 	android:name
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:174:25-103
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:186:25-103
 activity#com.google.androidbrowserhelper.locationdelegation.PermissionRequestActivity
-ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:182:13-183:89
+ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:194:13-195:89
 MERGED from [com.google.androidbrowserhelper:locationdelegation:1.1.2] /Users/senel/.gradle/caches/8.11.1/transforms/6215e13210b05cc5715af15b5940fb9f/transformed/locationdelegation-1.1.2/AndroidManifest.xml:11:9-113
 MERGED from [com.google.androidbrowserhelper:locationdelegation:1.1.2] /Users/senel/.gradle/caches/8.11.1/transforms/6215e13210b05cc5715af15b5940fb9f/transformed/locationdelegation-1.1.2/AndroidManifest.xml:11:9-113
 	android:name
-		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:182:23-123
+		ADDED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml:194:23-123
 uses-sdk
 INJECTED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /Users/senel/Documents/okibo-analyzer/twa-android/app/src/main/AndroidManifest.xml

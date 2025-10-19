@@ -16,6 +16,12 @@
 -->
 <resources>
   
+    <string-array name="additional_trusted_origins">
+    
+      <item>https://https://okibo-analyzer.vercel.app</item>
+    
+    </string-array>
+  
 
   <!--
     The "fullscreen" and "fullscreen-sticky" TWA manifest values correspond to "immersive" and "sticky-immersive"
@@ -53,6 +59,14 @@
             \"site\": \"https://okibo-analyzer.vercel.app\"
         }
     }]
+    
+      ,[{
+          \"relation\": [\"delegate_permission/common.handle_all_urls\"],
+          \"target\": {
+              \"namespace\": \"web\",
+              \"site\": \"https://https://okibo-analyzer.vercel.app\"
+          }
+      }]        
     
   </string>  
 </resources>

@@ -23,8 +23,8 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="app.vercel.okibo_analyzer.twa"
-    android:versionCode="8"
-    android:versionName="8" >
+    android:versionCode="9"
+    android:versionName="9" >
 
     <uses-sdk
         android:minSdkVersion="21"
@@ -117,6 +117,9 @@
                 android:name="android.support.customtabs.trusted.SCREEN_ORIENTATION"
                 android:value="@string/orientation" />
             <meta-data
+                android:name="android.support.customtabs.trusted.ADDITIONAL_TRUSTED_ORIGINS"
+                android:resource="@array/additional_trusted_origins" />
+            <meta-data
                 android:name="android.support.customtabs.trusted.DISPLAY_OVERRIDE"
                 android:resource="@array/display_override" />
 
@@ -133,6 +136,16 @@
 
                 <data
                     android:host="@string/hostName"
+                    android:scheme="https" />
+            </intent-filter>
+            <intent-filter android:autoVerify="true" >
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="https://okibo-analyzer.vercel.app"
                     android:scheme="https" />
             </intent-filter>
         </activity>

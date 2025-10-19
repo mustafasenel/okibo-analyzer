@@ -3,6 +3,7 @@
   "target": {
     "namespace": "android_app",
     "package_name": "app.vercel.okibo_analyzer.twa",
-    "sha256_cert_fingerprints": ["SHA256_FINGERPRINT_HERE"]
+    "sha256_cert_fingerprints": ["51:A9:03:17:DB:40:EE:33:34:70:10:8A:1E:C8:4F:80:2A:AC:EE:92:6F:BE:51:F1:06:B2:80:6E:02:D4:CB:AA"]
   }
 }]
+
