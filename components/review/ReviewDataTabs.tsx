@@ -297,47 +297,47 @@ export default function ReviewDataTabs({ invoiceMeta, invoiceSummary, invoiceDat
                       <div>
                           <h3 className="text-lg font-semibold text-gray-800 mb-2 px-4">{t('summary')}</h3>
                            <div className="bg-white p-4 rounded-lg border shadow-sm">
-                              {/* Yeni detaylı format */}
                               {invoiceSummary && invoiceSummary !== null && Object.keys(invoiceSummary).length > 0 ? (
                                   <>
-                                      {invoiceSummary.vat_7_net !== undefined && (
+                                      {/* KDV %7 - Opsiyonel */}
+                                      {invoiceSummary.vat_7 !== undefined && (
                                           <div className="flex justify-between py-1.5 border-b">
-                                              <span className="font-medium text-gray-600">KDV %7 (Net):</span>
-                                              <span className="font-bold text-gray-800">{Number(invoiceSummary.vat_7_net).toFixed(3)}€</span>
-                                          </div>
-                                      )}
-                                      {invoiceSummary.vat_7_gross !== undefined && (
-                                          <div className="flex justify-between py-1.5 border-b">
-                                              <span className="font-medium text-gray-600">KDV %7 (Brüt):</span>
-                                              <span className="font-bold text-gray-800">{Number(invoiceSummary.vat_7_gross).toFixed(3)}€</span>
-                                          </div>
-                                      )}
-                                      {invoiceSummary.vat_19_net !== undefined && (
-                                          <div className="flex justify-between py-1.5 border-b">
-                                              <span className="font-medium text-gray-600">KDV %19 (Net):</span>
-                                              <span className="font-bold text-gray-800">{Number(invoiceSummary.vat_19_net).toFixed(3)}€</span>
-                                          </div>
-                                      )}
-                                      {invoiceSummary.vat_19_gross !== undefined && (
-                                          <div className="flex justify-between py-1.5 border-b">
-                                              <span className="font-medium text-gray-600">KDV %19 (Brüt):</span>
-                                              <span className="font-bold text-gray-800">{Number(invoiceSummary.vat_19_gross).toFixed(3)}€</span>
-                                          </div>
-                                      )}
-                                      {invoiceSummary.total_net !== undefined && (
-                                          <div className="flex justify-between py-1.5 border-b">
-                                              <span className="font-medium text-gray-600">Genel Toplam (Net):</span>
-                                              <span className={`font-bold ${colorClass}`}>{Number(invoiceSummary.total_net).toFixed(3)}€</span>
-                                          </div>
-                                      )}
-                                      {invoiceSummary.total_gross !== undefined && (
-                                          <div className="flex justify-between py-1.5 border-b last:border-b-0">
-                                              <span className="font-medium text-gray-600">Genel Toplam (Brüt):</span>
-                                              <span className={`font-bold ${colorClass}`}>{Number(invoiceSummary.total_gross).toFixed(3)}€</span>
+                                              <span className="font-medium text-gray-600">KDV %7:</span>
+                                              <span className="font-bold text-gray-800">{Number(invoiceSummary.vat_7).toFixed(3)}€</span>
                                           </div>
                                       )}
                                       
-
+                                      {/* KDV %19 - Opsiyonel */}
+                                      {invoiceSummary.vat_19 !== undefined && (
+                                          <div className="flex justify-between py-1.5 border-b">
+                                              <span className="font-medium text-gray-600">KDV %19:</span>
+                                              <span className="font-bold text-gray-800">{Number(invoiceSummary.vat_19).toFixed(3)}€</span>
+                                          </div>
+                                      )}
+                                      
+                                      {/* Toplam KDV - Zorunlu */}
+                                      {invoiceSummary.total_vat !== undefined && (
+                                          <div className="flex justify-between py-1.5 border-b">
+                                              <span className="font-medium text-gray-600">Toplam KDV:</span>
+                                              <span className="font-bold text-gray-800">{Number(invoiceSummary.total_vat).toFixed(3)}€</span>
+                                          </div>
+                                      )}
+                                      
+                                      {/* Toplam Net - Zorunlu */}
+                                      {invoiceSummary.total_net !== undefined && (
+                                          <div className="flex justify-between py-1.5 border-b">
+                                              <span className="font-medium text-gray-600">Toplam Net Tutar:</span>
+                                              <span className="font-bold text-gray-800">{Number(invoiceSummary.total_net).toFixed(3)}€</span>
+                                          </div>
+                                      )}
+                                      
+                                      {/* Toplam Brüt - Zorunlu */}
+                                      {invoiceSummary.total_gross !== undefined && (
+                                          <div className="flex justify-between py-1.5">
+                                              <span className="font-medium text-gray-600">Toplam Brüt Tutar:</span>
+                                              <span className="font-bold text-gray-800">{Number(invoiceSummary.total_gross).toFixed(3)}€</span>
+                                          </div>
+                                      )}
                                   </>
                               ) : (
                                   <div className="text-center py-4 text-gray-500">

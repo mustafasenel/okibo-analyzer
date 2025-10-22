@@ -21,34 +21,32 @@ Your task is to extract and normalize all useful data into a structured JSON wit
    - Netto: total line amount (Menge × Preis)
    - MwSt: VAT rate for this line item (typically 7 or 19, as integer) - ONLY include if explicitly present in the invoice table. Do not add this field if the invoice does not have a VAT column.
 
-3. invoice_summary: Extract detailed financial totals from the invoice footer (if available). This section may not be present on all pages, especially on first pages of multi-page invoices. If NO financial totals are found at all, return null for this entire section.
+3. invoice_summary: Extract financial totals from the invoice footer. This section may not be present on all pages, especially on first pages of multi-page invoices. It will typically be found on the LAST page of the invoice. If NO financial totals are found at all, return null for this entire section.
    
-   When financial totals ARE found, you MUST perform accurate calculations and logical deductions:
+   When financial totals ARE found, you MUST extract and calculate these fields:
+   
+   REQUIRED FIELDS (must always be present or calculated):
+   - total_vat: Total VAT amount (Gesamte MwSt / Gesamt-Steuer) - REQUIRED
+   - total_net: Total net amount before VAT (Gesamtbetrag netto / Zwischensumme) - REQUIRED
+   - total_gross: Final total gross amount including VAT (Gesamtbetrag brutto / Endbetrag) - REQUIRED
+   
+   OPTIONAL FIELDS (only include if explicitly present):
+   - vat_7: 7% VAT amount (7% MwSt) - OPTIONAL, only if this rate is used
+   - vat_19: 19% VAT amount (19% MwSt) - OPTIONAL, only if this rate is used
    
    CRITICAL CALCULATION RULES:
-   - If you see a total net amount (Gesamtbetrag netto) and a total gross amount (Gesamtbetrag brutto), calculate the VAT amounts correctly
-   - For 7% VAT: vat_7_net = (total_gross - total_net) / 1.07, vat_7_gross = total_gross - total_net
-   - For 19% VAT: vat_19_net = (total_gross - total_net) / 1.19, vat_19_gross = total_gross - total_net
-   - If you see separate VAT lines (e.g., "7% MwSt: 160,99"), use those exact values
-   - If you see "Zwischensumme" (subtotal), this is the base amount before VAT
-   - Always verify: total_net + vat_7_gross + vat_19_gross = total_gross
+   - If you see total_net and total_gross, calculate: total_vat = total_gross - total_net
+   - If you see vat_7 and vat_19, calculate: total_vat = vat_7 + vat_19
+   - If you see total_vat and total_net, calculate: total_gross = total_net + total_vat
+   - Always verify the equation: total_net + total_vat = total_gross
+   - If explicit VAT rate lines are shown (e.g., "7% MwSt: 160,99" or "19% MwSt: 450,00"), include vat_7 and/or vat_19
+   - If no separate VAT rates are shown, DO NOT include vat_7 or vat_19 in the output
    
-   Extract and calculate these fields:
-   - vat_7_net: 7% VAT net amount (7% MwSt netto) - calculate if not explicitly shown
-   - vat_7_gross: 7% VAT gross amount (7% MwSt brutto) - calculate if not explicitly shown  
-   - vat_19_net: 19% VAT net amount (19% MwSt netto) - calculate if not explicitly shown
-   - vat_19_gross: 19% VAT gross amount (19% MwSt brutto) - calculate if not explicitly shown
-   - total_net: Final total net amount (Gesamtbetrag netto) - if present
-   - total_gross: Final total gross amount (Gesamtbetrag brutto) - if present
-   
-   Important: Perform mathematical verification. If the numbers don't add up, recalculate based on the most reliable values (usually the final totals).
-   
-   CALCULATION METHOD:
-   - Find the total net amount and total gross amount from the invoice footer
-   - Calculate VAT amount = total_gross - total_net
-   - Determine VAT rate by checking if the calculated VAT amount matches 7% or 19% of the net amount
-   - If 7% VAT: vat_7_net = VAT_amount / 1.07, vat_7_gross = VAT_amount
-   - If 19% VAT: vat_19_net = VAT_amount / 1.19, vat_19_gross = VAT_amount
+   CALCULATION PRIORITY:
+   1. First, look for explicit total amounts in the invoice footer
+   2. If total_net and total_gross are found, calculate total_vat
+   3. If separate VAT rates (7%, 19%) are explicitly shown, extract them as vat_7 and vat_19
+   4. Always perform mathematical verification to ensure accuracy
 
 ### Important Rules & Data Validation:
 - Your primary task is not just to extract, but to ensure the final JSON is logically correct.
@@ -66,12 +64,11 @@ Your task is to extract and normalize all useful data into a structured JSON wit
     "invoice_meta": { ... },
     "invoice_data": [ ... ],
     "invoice_summary": { 
-      "vat_7_net": number,
-      "vat_7_gross": number,
-      "vat_19_net": number,
-      "vat_19_gross": number,
-      "total_net": number,
-      "total_gross": number
+      "vat_7": number (optional),
+      "vat_19": number (optional),
+      "total_vat": number (required),
+      "total_net": number (required),
+      "total_gross": number (required)
     } or null
   }
     
