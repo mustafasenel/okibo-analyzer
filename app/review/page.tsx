@@ -194,7 +194,7 @@ export default function ReviewPage() {
                     invoiceMeta,
                     invoiceData,
                     invoiceSummary,
-                    images: imageBase64Strings
+                    images: [] // Görsel göndermeyi geçici olarak devre dışı bırak
                 });
 
                 if (result.success) {
@@ -209,7 +209,7 @@ export default function ReviewPage() {
                     invoiceMeta,
                     invoiceData,
                     invoiceSummary,
-                    images: imageBase64Strings
+                    images: [] // Görsel göndermeyi geçici olarak devre dışı bırak
                 }, companyCode);
 
                 if (result.success) {
