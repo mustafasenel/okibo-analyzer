@@ -22,7 +22,23 @@ async function getStats() {
         }
         return sum;
     }, 0);
-    return { totalCompanies, totalInvoices, totalScansThisMonth };
+    
+    // Bugünkü tarama sayısını hesapla
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+    
+    const totalScansToday = await prisma.invoice.count({
+        where: {
+            createdAt: {
+                gte: startOfToday,
+                lte: endOfToday
+            }
+        }
+    });
+    
+    return { totalCompanies, totalInvoices, totalScansThisMonth, totalScansToday };
 }
 
 async function getDailyScanData() {

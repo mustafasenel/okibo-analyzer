@@ -17,6 +17,7 @@ interface DashboardClientProps {
         totalCompanies: number;
         totalInvoices: number;
         totalScansThisMonth: number;
+        totalScansToday: number;
     };
     dailyScanData: DailyScanData[];
 }
@@ -35,6 +36,7 @@ export function DashboardClient({ companies, stats, dailyScanData }: DashboardCl
                 totalCompanies={stats.totalCompanies}
                 totalInvoices={stats.totalInvoices}
                 totalScansThisMonth={stats.totalScansThisMonth}
+                totalScansToday={stats.totalScansToday}
             />
             <ChartAreaInteractive data={dailyScanData} />
             <div className="flex items-center justify-between">

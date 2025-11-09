@@ -68,7 +68,7 @@ export async function updateInvoice(invoiceId: string, invoicePayload: InvoicePa
       data: {
         invoiceMeta: invoicePayload.invoiceMeta,
         invoiceData: invoicePayload.invoiceData,
-        invoiceSummary: invoicePayload.invoiceSummary,
+        invoiceSummary: invoicePayload.invoiceSummary || {},
         status: 'COMPLETED'
       }
     });
@@ -155,7 +155,7 @@ export async function saveInvoice(invoicePayload: InvoicePayload, companyCode: s
                 },
                 invoiceMeta: invoicePayload.invoiceMeta,
                 invoiceData: invoicePayload.invoiceData, // This is now the paginated data
-                invoiceSummary: invoicePayload.invoiceSummary,
+                invoiceSummary: invoicePayload.invoiceSummary || {},
                 status: 'PENDING'
             }
         });

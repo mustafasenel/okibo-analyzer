@@ -12,10 +12,11 @@ import {
 interface SectionCardsProps {
   totalCompanies: number;
   totalScansThisMonth: number;
+  totalScansToday: number;
   totalInvoices: number;
 }
 
-export function SectionCards({ totalCompanies, totalScansThisMonth, totalInvoices }: SectionCardsProps) {
+export function SectionCards({ totalCompanies, totalScansThisMonth, totalScansToday, totalInvoices }: SectionCardsProps) {
   const data = [
     {
       title: "Toplam Firma",
@@ -23,6 +24,13 @@ export function SectionCards({ totalCompanies, totalScansThisMonth, totalInvoice
       icon: IconUsers,
       action: "Tüm firmaları gör",
       url: "/admin/dashboard",
+    },
+    {
+      title: "Bugünkü Taramalar",
+      value: totalScansToday,
+      icon: IconTrendingUp,
+      action: "Detayları incele",
+      url: "#",
     },
     {
       title: "Bu Ayki Taramalar",
@@ -38,10 +46,9 @@ export function SectionCards({ totalCompanies, totalScansThisMonth, totalInvoice
       action: "Faturalara git",
       url: "#",
     },
-    // Diğer kartlar buraya eklenebilir
   ]
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {data.map((item) => (
         <Card key={item.title}>
           <CardHeader>
