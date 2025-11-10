@@ -2,110 +2,77 @@
 
 import { PrismaClient } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
-import sharp from 'sharp';
+import { v2 as cloudinary } from 'cloudinary';
 
 // Prisma client instance
 const prisma = new PrismaClient();
 
-// Görsel sıkıştırma fonksiyonu (File'dan)
-async function compressImage(file: File): Promise<Buffer> {
-  try {
-    const buffer = Buffer.from(await file.arrayBuffer());
-    
-    // Sharp ile sıkıştırma
-    const compressedBuffer = await sharp(buffer)
-      .jpeg({ 
-        quality: 70, // %70 kalite (varsayılan %80)
-        progressive: true // Progressive JPEG
-      })
-      .resize(1200, 1600, { // Maksimum boyut sınırı
-        fit: 'inside',
-        withoutEnlargement: true
-      })
-      .toBuffer();
-    
-    console.log(`📸 Görsel sıkıştırıldı: ${(buffer.length / 1024).toFixed(1)}KB → ${(compressedBuffer.length / 1024).toFixed(1)}KB`);
-    
-    return compressedBuffer;
-  } catch (error) {
-    console.error('Görsel sıkıştırma hatası:', error);
-    // Hata durumunda orijinal buffer'ı döndür
-    return Buffer.from(await file.arrayBuffer());
-  }
+// Cloudinary yapılandırması
+// CLOUDINARY_URL ortam değişkeni varsa, SDK yapılandırmayı otomatik olarak yapar.
+cloudinary.config();
+
+// Tipler
+interface UploadedImageInfo {
+    publicId: string;
+    url: string;
+    originalName: string;
 }
 
-// Görsel sıkıştırma fonksiyonu (Buffer'dan)
-async function compressImageFromBuffer(buffer: Buffer): Promise<Buffer> {
-  try {
-    // Sharp ile sıkıştırma
-    const compressedBuffer = await sharp(buffer)
-      .jpeg({ 
-        quality: 70, // %70 kalite (varsayılan %80)
-        progressive: true // Progressive JPEG
-      })
-      .resize(1200, 1600, { // Maksimum boyut sınırı
-        fit: 'inside',
-        withoutEnlargement: true
-      })
-      .toBuffer();
-    
-    console.log(`📸 Görsel sıkıştırıldı: ${(buffer.length / 1024).toFixed(1)}KB → ${(compressedBuffer.length / 1024).toFixed(1)}KB`);
-    
-    return compressedBuffer;
-  } catch (error) {
-    console.error('Görsel sıkıştırma hatası:', error);
-    // Hata durumunda orijinal buffer'ı döndür
-    return buffer;
-  }
+interface InvoicePayload {
+    invoiceMeta: any;
+    invoiceData: any;
+    invoiceSummary: any;
+    images?: UploadedImageInfo[];
 }
 
 export async function updateInvoice(invoiceId: string, invoicePayload: InvoicePayload) {
   try {
+    // 1. Faturanın ana verilerini güncelle
     const updatedInvoice = await prisma.invoice.update({
-      where: {
-        id: invoiceId
-      },
+      where: { id: invoiceId },
       data: {
         invoiceMeta: invoicePayload.invoiceMeta,
         invoiceData: invoicePayload.invoiceData,
         invoiceSummary: invoicePayload.invoiceSummary || {},
-        status: 'COMPLETED'
-      }
+        status: 'COMPLETED',
+      },
     });
 
-    // Görselleri güncelle (eski görselleri sil, yenilerini ekle)
-    if (invoicePayload.images && invoicePayload.images.length > 0) {
-      // Eski görselleri sil
-      await prisma.invoiceImage.deleteMany({
-        where: { invoiceId: invoiceId }
+    // 2. Görsel yönetimi
+    if (invoicePayload.images) {
+      // Mevcut görselleri veritabanından çek (sadece publicId'leri al)
+      const oldImages = await prisma.invoiceImage.findMany({
+        where: { invoiceId: invoiceId },
+        select: { publicId: true }, // Sadece publicId'yi seçerek tip güvenliğini artır
       });
 
-      // Yeni görselleri ekle
-      for (let i = 0; i < invoicePayload.images.length; i++) {
-        const base64String = invoicePayload.images[i];
-        
-        // Base64 string'i Buffer'a çevir
-        const base64Data = base64String.split(',')[1]; // "data:image/jpeg;base64," kısmını çıkar
-        const buffer = Buffer.from(base64Data, 'base64');
-        
-        // Görseli sıkıştır
-        const compressedBuffer = await compressImageFromBuffer(buffer);
-        
-        if (!prisma.invoiceImage) {
-          throw new Error('InvoiceImage modeli bulunamadı!');
+      // Eski görselleri Cloudinary'den ve veritabanından sil
+      if (oldImages.length > 0) {
+        const publicIdsToDelete = oldImages.map((img) => img.publicId);
+        console.log(`☁️ Cloudinary'den silinecek görseller:`, publicIdsToDelete);
+        if (publicIdsToDelete.length > 0) {
+          await cloudinary.api.delete_resources(publicIdsToDelete);
         }
-        
-        await prisma.invoiceImage.create({
-          data: {
-            invoiceId: invoiceId,
-            filename: `${invoiceId}_page_${i + 1}_${Date.now()}.jpg`,
-            originalName: `invoice_page_${i + 1}.jpg`,
-            mimeType: 'image/jpeg', // Sıkıştırılmış görsel her zaman JPEG
-            size: compressedBuffer.length, // Sıkıştırılmış boyut
-            data: compressedBuffer,
-            pageNumber: i + 1,
-          }
+        await prisma.invoiceImage.deleteMany({
+          where: { invoiceId: invoiceId },
         });
+        console.log('🗑️ Eski görseller veritabanından silindi.');
+      }
+
+      // Yeni görselleri veritabanına ekle
+      if (invoicePayload.images.length > 0) {
+        const newImagesData = invoicePayload.images.map((image, index) => ({
+          invoiceId: invoiceId,
+          publicId: image.publicId,
+          url: image.url,
+          originalName: image.originalName,
+          pageNumber: index + 1,
+        }));
+
+        await prisma.invoiceImage.createMany({
+          data: newImagesData,
+        });
+        console.log(`✨ ${newImagesData.length} yeni görsel veritabanına eklendi.`);
       }
     }
 
@@ -117,104 +84,43 @@ export async function updateInvoice(invoiceId: string, invoicePayload: InvoicePa
   }
 }
 
-interface InvoicePayload {
-    invoiceMeta: any;
-    invoiceData: any;
-    invoiceSummary: any;
-    images?: string[]; // Base64 strings
-}
-
 export async function saveInvoice(invoicePayload: InvoicePayload, companyCode: string) {
     try {
-        console.log('🔍 saveInvoice başlatılıyor...');
-        console.log('📊 invoicePayload:', {
-            hasImages: !!invoicePayload.images,
-            imageCount: invoicePayload.images?.length || 0,
-            hasMeta: !!invoicePayload.invoiceMeta,
-            hasData: !!invoicePayload.invoiceData,
-            hasSummary: !!invoicePayload.invoiceSummary
-        });
-        
         const company = await prisma.company.findUnique({
-            where: { code: companyCode }
+            where: { code: companyCode },
         });
 
         if (!company) {
-            return { success: false, error: "Geçersiz firma kodu." };
+            return { success: false, error: 'Geçersiz firma kodu.' };
         }
 
-        console.log('✅ Firma bulundu:', company.name);
-
-        console.log('📄 Invoice oluşturuluyor...');
+        // Faturayı oluştur
         const invoice = await prisma.invoice.create({
             data: {
                 company: {
-                    connect: {
-                        id: company.id
-                    }
+                    connect: { id: company.id },
                 },
                 invoiceMeta: invoicePayload.invoiceMeta,
-                invoiceData: invoicePayload.invoiceData, // This is now the paginated data
+                invoiceData: invoicePayload.invoiceData,
                 invoiceSummary: invoicePayload.invoiceSummary || {},
-                status: 'PENDING'
-            }
+                status: 'PENDING',
+            },
         });
-        console.log('✅ Invoice oluşturuldu:', invoice.id);
 
-        // Görselleri kaydet
+        // Görselleri veritabanına kaydet
         if (invoicePayload.images && invoicePayload.images.length > 0) {
-            console.log(`🖼️ ${invoicePayload.images.length} görsel kaydediliyor...`);
-            for (let i = 0; i < invoicePayload.images.length; i++) {
-                try {
-                    const base64String = invoicePayload.images[i];
-                    console.log(`📸 Görsel ${i + 1} işleniyor...`);
-                    console.log(`📊 Base64 string uzunluğu: ${base64String.length}`);
-                    
-                    // Base64 string'i Buffer'a çevir
-                    const base64Data = base64String.split(',')[1]; // "data:image/jpeg;base64," kısmını çıkar
-                    console.log(`📊 Base64 data uzunluğu: ${base64Data.length}`);
-                    
-                    const buffer = Buffer.from(base64Data, 'base64');
-                    console.log(`📊 Buffer uzunluğu: ${buffer.length} bytes`);
-                    
-                    // Görseli sıkıştır
-                    console.log(`📸 Görsel ${i + 1} sıkıştırılıyor...`);
-                    let compressedBuffer;
-                    try {
-                        compressedBuffer = await compressImageFromBuffer(buffer);
-                        console.log(`✅ Görsel ${i + 1} sıkıştırıldı`);
-                    } catch (compressError) {
-                        console.error(`❌ Görsel ${i + 1} sıkıştırma hatası:`, compressError);
-                        console.log(`📸 Görsel ${i + 1} sıkıştırılmadan kaydediliyor...`);
-                        compressedBuffer = buffer; // Sıkıştırma başarısız olursa orijinal buffer'ı kullan
-                    }
-                    
-                    console.log(`💾 Görsel ${i + 1} veritabanına kaydediliyor...`);
-                    console.log('🔍 prisma.invoiceImage:', typeof prisma.invoiceImage);
-                    console.log('🔍 prisma.invoiceImage.create:', typeof prisma.invoiceImage?.create);
-                    
-                    if (!prisma.invoiceImage) {
-                        throw new Error('InvoiceImage modeli bulunamadı!');
-                    }
-                    
-                    await prisma.invoiceImage.create({
-                        data: {
-                            invoiceId: invoice.id,
-                            filename: `${invoice.id}_page_${i + 1}_${Date.now()}.jpg`,
-                            originalName: `invoice_page_${i + 1}.jpg`,
-                            mimeType: 'image/jpeg', // Sıkıştırılmış görsel her zaman JPEG
-                            size: compressedBuffer.length, // Sıkıştırılmış boyut
-                            data: compressedBuffer,
-                            pageNumber: i + 1,
-                        }
-                    });
-                    console.log(`✅ Görsel ${i + 1} kaydedildi`);
-                } catch (error) {
-                    console.error(`❌ Görsel ${i + 1} kaydedilirken hata:`, error);
-                }
-            }
-        } else {
-            console.log('ℹ️ Kaydedilecek görsel yok');
+            const imagesData = invoicePayload.images.map((image, index) => ({
+                invoiceId: invoice.id,
+                publicId: image.publicId,
+                url: image.url,
+                originalName: image.originalName,
+                pageNumber: index + 1,
+            }));
+
+            await prisma.invoiceImage.createMany({
+                data: imagesData,
+            });
+            console.log(`🖼️ ${imagesData.length} görsel referansı veritabanına kaydedildi.`);
         }
 
         revalidatePath('/admin/dashboard');
@@ -223,11 +129,6 @@ export async function saveInvoice(invoicePayload: InvoicePayload, companyCode: s
         return { success: true };
     } catch (error: any) {
         console.error('❌ saveInvoice hatası:', error);
-        console.error('❌ Hata detayı:', {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
-        });
         return { success: false, error: error.message || 'Bilinmeyen hata' };
     }
 }

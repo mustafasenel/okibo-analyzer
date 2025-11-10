@@ -13,7 +13,11 @@
     "errorGeneric": "Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.",
     "errorNoImages": "Lütfen analiz için en az bir sayfa seçin.",
     "errorApi": "API'den bir hata döndü. Lütfen daha sonra tekrar deneyin.",
-    "errorNoResults": "Analizden geçerli bir sonuç alınamadı."
+    "errorNoResults": "Analizden geçerli bir sonuç alınamadı.",
+    "aggregatingResults": "Sonuçlar birleştiriliyor...",
+    "uploadingImages": "Görseller yükleniyor...",
+    "errorAnalysisFailed": "Bazı sayfalar analiz edilemedi. Lütfen sorunlu sayfaları yeniden yükleyip tekrar deneyin.",
+    "errorUploadFailed": "Görsellerin tamamı yüklenemedi. Lütfen tekrar deneyin."
   },
   "ImageCapture": {
     "uploadButton": "Dosya Yükle",

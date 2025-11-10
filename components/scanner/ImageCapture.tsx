@@ -12,20 +12,23 @@ interface ImageCaptureProps {
 export default function ImageCapture({ onFilesChange, disabled }: ImageCaptureProps) {
   const t = useTranslations('ImageCapture');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       onFilesChange(event.target.files);
+      // Reset the input value to allow selecting the same file again
+      event.target.value = '';
     }
   };
 
-  const triggerFileSelect = () => {
-    fileInputRef.current?.click();
-  };
+  const triggerFileSelect = () => fileInputRef.current?.click();
+  const triggerCamera = () => cameraInputRef.current?.click();
 
   return (
     <div>
       <div className="flex flex-col sm:flex-row gap-4">
+        {/* File Upload Button */}
         <button
           onClick={triggerFileSelect}
           disabled={disabled}
@@ -35,19 +38,9 @@ export default function ImageCapture({ onFilesChange, disabled }: ImageCapturePr
           <span className="font-semibold">{t('uploadButton')}</span>
         </button>
 
-        {/* Hidden file input */}
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileSelect}
-          className="hidden"
-          multiple
-          accept="image/*"
-        />
-
-        {/* Camera capture button (for mobile) */}
+        {/* Camera Capture Button */}
         <button
-          onClick={triggerFileSelect}
+          onClick={triggerCamera}
           disabled={disabled}
           className="flex-1 flex items-center justify-center gap-3 p-4 bg-violet-600 text-white rounded-lg font-semibold hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -55,6 +48,26 @@ export default function ImageCapture({ onFilesChange, disabled }: ImageCapturePr
           <span>{t('cameraButton')}</span>
         </button>
       </div>
+
+      {/* Hidden Inputs */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+        className="hidden"
+        multiple
+        accept="image/*"
+      />
+      <input
+        type="file"
+        ref={cameraInputRef}
+        onChange={handleFileSelect}
+        className="hidden"
+        multiple
+        accept="image/*"
+        capture="environment"
+      />
+
       <p className="text-xs text-gray-500 mt-3 text-center">{t('infoText')}</p>
     </div>
   );

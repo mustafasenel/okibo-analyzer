@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Image from 'next/image';
-import { X, Loader2, CheckCircle2, AlertCircle, RotateCcw } from 'lucide-react';
+import { X, Loader2, CheckCircle2, AlertCircle, Camera, Search } from 'lucide-react';
 
 type ImageFileStatus = 'pending' | 'processing' | 'completed' | 'error';
 
@@ -14,28 +14,31 @@ interface ImageFileWithStatus {
 interface ImagePreviewGridProps {
     images: ImageFileWithStatus[];
     onRemove: (id: string) => void;
-    onRetry?: (id: string) => void;
+    onReplace: (id: string) => void; // Görseli yerinde değiştirmek için
+    onPreview: (id: string) => void; // Görseli büyütmek için
     disabled: boolean;
 }
 
 const StatusIndicator = ({ status }: { status: ImageFileStatus }) => {
+    const commonClasses = "absolute bottom-2 right-2 rounded-full p-1.5 text-white shadow-lg";
+
     switch (status) {
         case 'processing':
             return (
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <Loader2 className="animate-spin h-8 w-8 text-white" />
+                <div className={`${commonClasses} bg-gray-600`}>
+                    <Loader2 className="animate-spin h-5 w-5" />
                 </div>
             );
         case 'completed':
             return (
-                <div className="absolute inset-0 bg-green-700 bg-opacity-60 flex items-center justify-center">
-                    <CheckCircle2 className="h-8 w-8 text-white" />
+                <div className={`${commonClasses} bg-green-600`}>
+                    <CheckCircle2 className="h-5 w-5" />
                 </div>
             );
         case 'error':
             return (
-                <div className="absolute inset-0 bg-red-700 bg-opacity-60 flex items-center justify-center">
-                    <AlertCircle className="h-8 w-8 text-white" />
+                <div className={`${commonClasses} bg-red-600`}>
+                    <AlertCircle className="h-5 w-5" />
                 </div>
             );
         case 'pending':
@@ -44,38 +47,42 @@ const StatusIndicator = ({ status }: { status: ImageFileStatus }) => {
     }
 };
 
-export function ImagePreviewGrid({ images, onRemove, onRetry, disabled }: ImagePreviewGridProps) {
+export function ImagePreviewGrid({ images, onRemove, onReplace, onPreview, disabled }: ImagePreviewGridProps) {
     return (
-        <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
-            {images.map((image) => (
-                <div key={image.id} className="relative aspect-square group">
-                    <Image
-                        src={image.preview}
-                        alt="Preview"
-                        fill
-                        className="object-cover rounded-lg"
-                    />
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {images.map((image, index) => (
+                <div key={image.id} className="relative aspect-[2/3] group shadow-md rounded-lg overflow-hidden">
+                    <div className="w-full h-full cursor-pointer" onClick={() => !disabled && onPreview(image.id)}>
+                        <Image
+                            src={image.preview}
+                            alt={`Invoice page ${index + 1}`}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center">
+                            <Search className="h-10 w-10 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                    </div>
                     <StatusIndicator status={image.status} />
                     
-                    {/* Remove button */}
+                    {/* Top-right controls container */}
                     {!disabled && (
-                         <button
-                            onClick={() => onRemove(image.id)}
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                         >
-                            <X size={16} />
-                        </button>
-                    )}
-                    
-                    {/* Retry button for error status */}
-                    {image.status === 'error' && onRetry && !disabled && (
-                        <button
-                            onClick={() => onRetry(image.id)}
-                            className="absolute bottom-1 right-1 bg-blue-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                            title="Tekrar Dene"
-                        >
-                            <RotateCcw size={16} />
-                        </button>
+                        <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <button
+                                onClick={() => onRemove(image.id)}
+                                className="bg-red-600 bg-opacity-80 text-white rounded-full p-1.5 hover:bg-opacity-100"
+                                title="Görseli Sil"
+                            >
+                                <X size={16} />
+                            </button>
+                            <button
+                                onClick={() => onReplace(image.id)}
+                                className="bg-blue-600 bg-opacity-80 text-white rounded-full p-1.5 hover:bg-opacity-100"
+                                title="Görseli Değiştir"
+                            >
+                                <Camera size={16} />
+                            </button>
+                        </div>
                     )}
                 </div>
             ))}

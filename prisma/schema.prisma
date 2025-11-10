@@ -56,14 +56,12 @@ model Admin {
 model InvoiceImage {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   invoiceId   String   @db.ObjectId
-  filename    String
+  publicId    String   // Cloudinary public ID
+  url         String   // Cloudinary URL
   originalName String
-  mimeType    String
-  size        Int
-  data        Bytes    // Base64 encoded image data
   pageNumber  Int      @default(1)
   createdAt   DateTime @default(now())
-  
+
   // Relation to Invoice
   invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 }
