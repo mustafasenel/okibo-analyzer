@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'; // Shadcn Button
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCw, Loader2 } from 'lucide-react';
 
 interface ImageSheetProps {
-  images: string[];
+  images: string[]; // Bu, URL'lerin bir dizisidir
   open: boolean;
   onOpenChange: (open: boolean) => void;
   invoiceId?: string; // Veritabanından görsel çekmek için
@@ -17,37 +17,40 @@ interface ImageSheetProps {
 export default function ImageSheet({ images, open, onOpenChange, invoiceId }: ImageSheetProps) {
   const t = useTranslations('ReviewDataTabs.sheet');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [dbImages, setDbImages] = useState<string[]>([]);
-  const [isLoadingImages, setIsLoadingImages] = useState(false);
   const [displayImages, setDisplayImages] = useState<string[]>(images);
+  const [isLoadingImages, setIsLoadingImages] = useState(false);
 
-  // Veritabanından görselleri çek
+  // open durumu değiştiğinde görselleri ayarla
   useEffect(() => {
-    if (invoiceId && open) {
-      setIsLoadingImages(true);
-      fetch(`/api/invoices/images?invoiceId=${invoiceId}`)
-        .then(response => response.json())
-        .then(data => {
-          if (data.success && data.images) {
-            // Buffer'ları Base64 data URL'lerine çevir
-            const base64Images = data.images.map((img: any) => {
-              // Server'dan gelen data zaten Base64 string olarak geliyor
-              return `data:${img.mimeType};base64,${img.data}`;
-            });
-            setDbImages(base64Images);
-            setDisplayImages(base64Images);
-          }
-        })
-        .catch(error => {
-          console.error('Görseller yüklenirken hata:', error);
-          setDisplayImages(images); // Fallback olarak sessionStorage'daki görselleri kullan
-        })
-        .finally(() => {
-          setIsLoadingImages(false);
-        });
-    } else {
+    // Düzenleme modunda değilsek veya 'open' false ise, prop'tan gelen görselleri kullan
+    if (!invoiceId || !open) {
       setDisplayImages(images);
+      return;
     }
+
+    // Düzenleme modundaysak ve sheet açıldıysa, API'den taze veri çek
+    setIsLoadingImages(true);
+    fetch(`/api/invoices/images?invoiceId=${invoiceId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.images) {
+          // Gelen veri: { publicId, url, ... }[]
+          // Biz sadece URL'leri alıyoruz: string[]
+          const imageUrls = data.images.map((img: { url: string }) => img.url);
+          setDisplayImages(imageUrls);
+        } else {
+          // API'den veri gelmezse, prop'taki görselleri kullan (fallback)
+          setDisplayImages(images);
+        }
+      })
+      .catch(error => {
+        console.error('Görseller yüklenirken hata:', error);
+        setDisplayImages(images); // Hata durumunda da prop'taki görselleri kullan
+      })
+      .finally(() => {
+        setIsLoadingImages(false);
+      });
+
   }, [invoiceId, open, images]);
 
   const goToPrevious = () => {

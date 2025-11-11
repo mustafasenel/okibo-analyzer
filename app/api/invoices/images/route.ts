@@ -16,23 +16,14 @@ export async function GET(request: NextRequest) {
       orderBy: { pageNumber: 'asc' },
       select: {
         id: true,
-        filename: true,
+        publicId: true,
+        url: true,
         originalName: true,
-        mimeType: true,
-        size: true,
         pageNumber: true,
-        createdAt: true,
-        data: true, // Buffer'ı da döndür
       }
     });
 
-    // Buffer'ları Base64 string'e çevir
-    const imagesWithBase64 = images.map(img => ({
-      ...img,
-      data: Buffer.from(img.data).toString('base64')
-    }));
-
-    return NextResponse.json({ success: true, images: imagesWithBase64 });
+    return NextResponse.json({ success: true, images: images });
 
   } catch (error) {
     console.error('Error retrieving invoice images:', error);
