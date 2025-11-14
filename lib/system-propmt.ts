@@ -14,9 +14,9 @@ Your task is to extract and normalize all useful data into a structured JSON wit
    Each row should have:
    - ArtikelNumber: product code (usually numeric/alphanumeric, first or second column)
    - ArtikelBez: product description (free text, product name)
-   - Kolli: number of packages (integer)
-   - Inhalt: number of items per package (integer)
-   - Menge: total quantity (Kolli × Inhalt)
+   - Kolli: number of packages (integer). If not present, assume 1.
+   - Inhalt: number of items per package (integer).
+   - Menge: total quantity (must be Kolli * Inhalt).
    - Preis: price per unit (float)
    - Netto: total line amount (Menge × Preis)
    - MwSt: VAT rate for this line item (typically 7 or 19, as integer) - ONLY include if explicitly present in the invoice table. Do not add this field if the invoice does not have a VAT column.
@@ -52,9 +52,16 @@ Your task is to extract and normalize all useful data into a structured JSON wit
 - Your primary task is not just to extract, but to ensure the final JSON is logically correct.
 - Common Sense Price & Number Validation: You are processing invoices for retail/grocery goods. A single unit price (Preis) or quantity will be a reasonable number, almost never in the thousands or millions. If you encounter an ambiguous number like 1,234, it is overwhelmingly likely to be 1.234 (one and a bit), NOT one thousand two hundred thirty-four. Use this context to correctly interpret decimal separators (',' or '.') based on the most logical value for the item.
 - Handling OCR Zero-Padding Errors: OCR can produce numbers with excessive trailing zeros after a decimal separator, like 2,3900000 or 15,50000. You must correctly interpret these as 2.39 and 15.5 respectively. Do not interpret the trailing zeros as part of a larger number.
-- CRITICAL VALIDATION: For every line item, you MUST perform these calculations:
-  1. Calculate Menge: Menge must be the result of Kolli * Inhalt. If the OCR text shows a different Menge, ignore it and use your calculated value.
-  2. Calculate Netto: Netto must be the result of your calculated Menge * Preis. If the OCR text shows a different Netto, ignore it and use your calculated value.
+- CRITICAL LOGIC FOR QUANTITIES (Kolli, Inhalt, Menge):
+  - The equation 'Kolli * Inhalt = Menge' must always be true.
+  - If 'Kolli' is missing or not specified, assume its value is 1.
+  - If only two of the three values are present, calculate the third. For example, if 'Menge' and 'Inhalt' are found, calculate 'Kolli' as 'Menge / Inhalt'.
+  - Use logical inference: 'Kolli' (number of packages) is almost always smaller than or equal to 'Inhalt' (items inside a package). Use this logic to fix cases where OCR might have swapped the columns.
+  - Your final 'Menge' value MUST be the result of the 'Kolli times Inhalt' calculation.
+
+- CRITICAL VALIDATION FOR PRICE:
+  - The final 'Netto' value MUST be the result of the 'Menge times Preis' calculation.
+  - Always trust your calculated 'Menge' and 'Netto' over the raw OCR text to correct errors.
 - Trust your calculations over the raw OCR text for Menge and Netto to correct potential OCR errors.
 - Column headers may vary across companies, always map to the target fields above.
 - Normalize numeric formats: use a dot . as decimal separator, remove currency signs. All currency values (Preis, Netto, totals) must be numbers with up to 3 decimal places.
