@@ -186,9 +186,36 @@ export default function Home() {
         setAnalysisMessage(t('aggregatingResults'));
         const finalMeta = allResults[0]?.invoice_meta || {};
         const finalSummary = allResults[allResults.length - 1]?.invoice_summary || null;
+        
+        // Yardımcı fonksiyon: Fatura satırını normalize et
+        const normalizeInvoiceItem = (item: any) => {
+            let { Kolli, Inhalt, Menge, Preis, Netto, ...rest } = item;
+            
+            // 1. Kolli-Inhalt tutarlılık kontrolü
+            // Kural: Kolli (koli sayısı) her zaman Inhalt'tan (koli içindeki adet) küçük olmalı
+            if (Kolli && Inhalt && Kolli > Inhalt) {
+                console.warn(`Kolli-Inhalt swap detected for item ${item.ArtikelNumber}: Kolli=${Kolli}, Inhalt=${Inhalt}`);
+                [Kolli, Inhalt] = [Inhalt, Kolli]; // Yer değiştir
+            }
+            
+            // 2. Netto hesaplama ve doğrulama
+            const originalNetto = Netto; // OCR'dan okunan değer
+            const calculatedNetto = Menge && Preis ? parseFloat((Menge * Preis).toFixed(2)) : Netto;
+            
+            return {
+                ...rest,
+                Kolli,
+                Inhalt,
+                Menge,
+                Preis,
+                Netto: calculatedNetto, // Hesaplanan değer
+                originalNetto, // OCR'dan okunan orijinal değer
+            };
+        };
+        
         const finalPaginatedData = allResults.map((result, index) => ({
             page: index + 1,
-            items: (result.invoice_data || []).map((item: any) => ({ ...item, originalNetto: item.Netto })),
+            items: (result.invoice_data || []).map(normalizeInvoiceItem),
         }));
 
         const finalData = { invoiceMeta: finalMeta, invoiceData: finalPaginatedData, invoiceSummary: finalSummary };
