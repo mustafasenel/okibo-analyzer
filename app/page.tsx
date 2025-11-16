@@ -199,7 +199,7 @@ export default function Home() {
             }
             
             // 2. Netto hesaplama ve doğrulama
-            const originalNetto = Netto; // OCR'dan okunan değer
+            const ocrNetto = Netto; // OCR'dan okunan değer
             const calculatedNetto = Menge && Preis ? parseFloat((Menge * Preis).toFixed(2)) : Netto;
             
             return {
@@ -208,8 +208,8 @@ export default function Home() {
                 Inhalt,
                 Menge,
                 Preis,
-                Netto: calculatedNetto, // Hesaplanan değer
-                originalNetto, // OCR'dan okunan orijinal değer
+                Netto: ocrNetto, // OCR'dan okunan orijinal değer
+                originalNetto: calculatedNetto, // Hesaplanan değer
             };
         };
         
