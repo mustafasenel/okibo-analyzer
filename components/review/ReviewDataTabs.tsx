@@ -113,8 +113,8 @@ export default function ReviewDataTabs({ invoiceMeta, invoiceSummary, invoiceDat
                       {/* Minimalist Ürün Satırları Tasarımı */}
                       {hasInvoiceData && (
                         <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-x-2">
-                                <CardTitle className="truncate">{t('invoiceItemsTitle')}</CardTitle>
+                            <CardHeader className="flex flex-row items-center justify-between space-x-2 p-2 sm:p-6">
+                                <CardTitle className="truncate text-sm sm:text-base">{t('invoiceItemsTitle')}</CardTitle>
                                 <div className="flex flex-shrink-0 items-center gap-2">
                                     {/* Pagination Controls */}
                                     <div className="flex items-center gap-2 text-sm font-medium">
@@ -162,12 +162,12 @@ export default function ReviewDataTabs({ invoiceMeta, invoiceSummary, invoiceDat
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-0 sm:p-6">
                                 {layoutMode === 'list' ? (
                                     <div className="bg-white rounded-lg border shadow-sm divide-y">
                                         {/* MINIMALIST LIST VIEW (existing code) */}
                                         {invoiceData.map((item, index) => (
-                                          <div key={index} className="p-3 relative group">
+                                          <div key={index} className="p-2 sm:p-3 relative group">
                                             {/* Üst Satır: Ana Bilgiler */}
                                             <div className="flex items-center gap-3">
                                               <span className="font-mono text-sm text-gray-400">{index + 1}.</span>
@@ -186,7 +186,7 @@ export default function ReviewDataTabs({ invoiceMeta, invoiceSummary, invoiceDat
                                               />
                                             </div>
                                             {/* Alt Satır: Detaylar */}
-                                            <div className="flex items-end flex-wrap gap-x-4 gap-y-1 mt-1 pl-7 text-xs text-gray-600">
+                                            <div className="flex items-end flex-wrap gap-x-2 sm:gap-x-4 gap-y-1 mt-1 pl-5 sm:pl-7 text-xs text-gray-600">
                                               <DetailInput label={t_abbr('artikel')} value={String(item['ArtikelNumber'] || '')} onChange={e => handleFieldChange(index, 'ArtikelNumber', e.target.value)} className="w-24 font-mono" />
                                               <DetailInput label={t_abbr('kolli')} type="text" inputMode="numeric" value={String(item['Kolli'] || '')} onChange={e => handleFieldChange(index, 'Kolli', e.target.value)} className="w-10" />
                                               <DetailInput label={t_abbr('inhalt')} type="text" inputMode="numeric" value={String(item['Inhalt'] || '')} onChange={e => handleFieldChange(index, 'Inhalt', e.target.value)} className="w-10" />
@@ -216,20 +216,20 @@ export default function ReviewDataTabs({ invoiceMeta, invoiceSummary, invoiceDat
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto">
-                                        <table className="min-w-full bg-white rounded-lg border shadow-sm text-sm">
+                                        <table className="min-w-full bg-white rounded-lg border shadow-sm text-xs sm:text-sm">
                                             <thead className="bg-gray-50">
                                                 <tr>
-                                                    <th className="p-3 text-left font-semibold text-gray-700">#</th>
-                                                    <th className="p-3 text-left font-semibold text-gray-700">{t_cols('artikelBez')}</th>
-                                                    <th className="p-3 text-left font-semibold text-gray-700">{t_cols('artikelNumber')}</th>
-                                                    <th className="p-3 text-left font-semibold text-gray-700">{t_cols('kolli')}</th>
-                                                    <th className="p-3 text-left font-semibold text-gray-700">{t_cols('inhalt')}</th>
-                                                    <th className="p-3 text-left font-semibold text-gray-700">{t_cols('menge')}</th>
-                                                    <th className="p-3 text-left font-semibold text-gray-700">{t_cols('preis')}</th>
-                                                    {hasVatData && <th className="p-3 text-left font-semibold text-gray-700">KDV %</th>}
-                                                    <th className="p-3 text-left font-semibold text-gray-700">{t_cols('nettoCalculated')}</th>
-                                                    <th className="p-3 text-left font-semibold text-gray-700">{t_cols('nettoOcr')}</th>
-                                                    <th className="p-3 text-left font-semibold text-gray-700">{t_cols('actions')}</th>
+                                                    <th className="p-1 sm:p-3 text-left font-semibold text-gray-700">#</th>
+                                                    <th className="p-1 sm:p-3 text-left font-semibold text-gray-700">{t_cols('artikelBez')}</th>
+                                                    <th className="p-1 sm:p-3 text-left font-semibold text-gray-700">{t_cols('artikelNumber')}</th>
+                                                    <th className="p-1 sm:p-3 text-left font-semibold text-gray-700">{t_cols('kolli')}</th>
+                                                    <th className="p-1 sm:p-3 text-left font-semibold text-gray-700">{t_cols('inhalt')}</th>
+                                                    <th className="p-1 sm:p-3 text-left font-semibold text-gray-700">{t_cols('menge')}</th>
+                                                    <th className="p-1 sm:p-3 text-left font-semibold text-gray-700">{t_cols('preis')}</th>
+                                                    {hasVatData && <th className="p-1 sm:p-3 text-left font-semibold text-gray-700">KDV %</th>}
+                                                    <th className="p-1 sm:p-3 text-left font-semibold text-gray-700">{t_cols('nettoCalculated')}</th>
+                                                    <th className="p-1 sm:p-3 text-left font-semibold text-gray-700">{t_cols('nettoOcr')}</th>
+                                                    <th className="p-1 sm:p-3 text-left font-semibold text-gray-700">{t_cols('actions')}</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y">
@@ -246,37 +246,37 @@ export default function ReviewDataTabs({ invoiceMeta, invoiceSummary, invoiceDat
 
                                                     return (
                                                       <tr key={index} className="text-gray-900">
-                                                          <td className="p-2 text-gray-500">{index + 1}.</td>
-                                                          <td className="p-2">
+                                                          <td className="p-1 sm:p-2 text-gray-500">{index + 1}.</td>
+                                                          <td className="p-1 sm:p-2">
                                                               <input type="text" value={String(item['ArtikelBez'] || '')} onChange={(e) => handleFieldChange(index, 'ArtikelBez', e.target.value)} className="w-32 bg-transparent p-1 focus:outline-none focus:bg-violet-50 rounded" />
                                                           </td>
-                                                          <td className="p-2">
-                                                              <input type="text" value={String(item['ArtikelNumber'] || '')} onChange={(e) => handleFieldChange(index, 'ArtikelNumber', e.target.value)} className="w-24 bg-transparent p-1 focus:outline-none focus:bg-violet-50 rounded font-mono" />
+                                                          <td className="p-1 sm:p-2">
+                                                              <input type="text" value={String(item['ArtikelNumber'] || '')} onChange={(e) => handleFieldChange(index, 'ArtikelNumber', e.target.value)} className="w-20 sm:w-24 bg-transparent p-0.5 sm:p-1 focus:outline-none focus:bg-violet-50 rounded font-mono text-xs sm:text-sm" />
                                                           </td>
-                                                          <td className="p-2">
-                                                              <input type="text" inputMode="numeric" value={String(item['Kolli'] || '')} onChange={(e) => handleFieldChange(index, 'Kolli', e.target.value)} className="w-12 bg-transparent p-1 focus:outline-none focus:bg-violet-50 rounded text-right" />
+                                                          <td className="p-1 sm:p-2">
+                                                              <input type="text" inputMode="numeric" value={String(item['Kolli'] || '')} onChange={(e) => handleFieldChange(index, 'Kolli', e.target.value)} className="w-10 sm:w-12 bg-transparent p-0.5 sm:p-1 focus:outline-none focus:bg-violet-50 rounded text-right text-xs sm:text-sm" />
                                                           </td>
-                                                          <td className="p-2">
-                                                              <input type="text" inputMode="numeric" value={String(item['Inhalt'] || '')} onChange={(e) => handleFieldChange(index, 'Inhalt', e.target.value)} className="w-12 bg-transparent p-1 focus:outline-none focus:bg-violet-50 rounded text-right" />
+                                                          <td className="p-1 sm:p-2">
+                                                              <input type="text" inputMode="numeric" value={String(item['Inhalt'] || '')} onChange={(e) => handleFieldChange(index, 'Inhalt', e.target.value)} className="w-10 sm:w-12 bg-transparent p-0.5 sm:p-1 focus:outline-none focus:bg-violet-50 rounded text-right text-xs sm:text-sm" />
                                                           </td>
-                                                          <td className="p-2">
-                                                              <input type="text" inputMode="numeric" value={String(item['Menge'] || '')} onChange={(e) => handleFieldChange(index, 'Menge', e.target.value)} className="w-12 bg-transparent p-1 focus:outline-none focus:bg-violet-50 rounded text-right" />
+                                                          <td className="p-1 sm:p-2">
+                                                              <input type="text" inputMode="numeric" value={String(item['Menge'] || '')} onChange={(e) => handleFieldChange(index, 'Menge', e.target.value)} className="w-10 sm:w-12 bg-transparent p-0.5 sm:p-1 focus:outline-none focus:bg-violet-50 rounded text-right text-xs sm:text-sm" />
                                                           </td>
-                                                          <td className="p-2">
+                                                          <td className="p-1 sm:p-2">
                                                               <CustomCurrencyInput value={parseFloat(String(item['Preis'] || '0'))} onValueChange={(value) => handleFieldChange(index, 'Preis', value || 0)} className="w-20 bg-transparent p-1 focus:outline-none focus:bg-violet-50 rounded text-right" />
                                                           </td>
                                                           {hasVatData && (
-                                                              <td className="p-2">
-                                                                  <input type="text" inputMode="numeric" value={String(item['MwSt'] || '')} onChange={(e) => handleFieldChange(index, 'MwSt', e.target.value)} className="w-12 bg-transparent p-1 focus:outline-none focus:bg-violet-50 rounded text-right" />
+                                                              <td className="p-1 sm:p-2">
+                                                                  <input type="text" inputMode="numeric" value={String(item['MwSt'] || '')} onChange={(e) => handleFieldChange(index, 'MwSt', e.target.value)} className="w-10 sm:w-12 bg-transparent p-0.5 sm:p-1 focus:outline-none focus:bg-violet-50 rounded text-right text-xs sm:text-sm" />
                                                               </td>
                                                           )}
-                                                          <td className="p-2">
-                                                              <CustomCurrencyInput value={calculatedNetto} onValueChange={(value) => handleFieldChange(index, 'Netto', value || 0)} className={`w-20 bg-transparent p-1 focus:outline-none focus:bg-violet-50 rounded text-right font-bold ${nettoColorClass}`} />
+                                                          <td className="p-1 sm:p-2">
+                                                              <CustomCurrencyInput value={calculatedNetto} onValueChange={(value) => handleFieldChange(index, 'Netto', value || 0)} className={`w-16 sm:w-20 bg-transparent p-0.5 sm:p-1 focus:outline-none focus:bg-violet-50 rounded text-right font-bold text-xs sm:text-sm ${nettoColorClass}`} />
                                                           </td>
-                                                          <td className={`p-2 font-semibold ${nettoColorClass}`}>
+                                                          <td className={`p-1 sm:p-2 font-semibold text-xs sm:text-sm ${nettoColorClass}`}>
                                                               {originalNettoString}
                                                           </td>
-                                                          <td className="p-2">
+                                                          <td className="p-1 sm:p-2">
                                                               <div className="flex items-center gap-1">
                                                                   <button onClick={() => onAddItem(index)} className="p-1.5 text-green-500 hover:bg-green-100 rounded-full"><PlusCircle size={16} /></button>
                                                                   <button onClick={() => onDeleteItem(index)} className="p-1.5 text-red-500 hover:bg-red-100 rounded-full"><Trash2 size={16} /></button>

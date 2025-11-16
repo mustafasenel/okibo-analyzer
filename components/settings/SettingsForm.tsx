@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import Link from 'next/link';
-import { LogIn } from 'lucide-react';
+import { LogIn, Building2, TrendingUp, Calendar } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const locales = ['tr', 'en', 'de'];
@@ -15,6 +15,8 @@ export default function SettingsForm() {
     const [selectedLanguage, setSelectedLanguage] = useState(locale);
     const [companyCode, setCompanyCode] = useState('');
     const [message, setMessage] = useState('');
+    const [companyStats, setCompanyStats] = useState<any>(null);
+    const [isLoadingStats, setIsLoadingStats] = useState(false);
 
     const languageNames = {
         tr: 'Türkçe',
@@ -30,11 +32,35 @@ export default function SettingsForm() {
         const savedCode = localStorage.getItem('companyCode');
         if (savedCode) {
             setCompanyCode(savedCode);
+            fetchCompanyStats(savedCode);
         }
     }, [locale]);
 
-    const handleLanguageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newLanguage = e.target.value;
+    const fetchCompanyStats = async (code: string) => {
+        if (!code) {
+            setCompanyStats(null);
+            return;
+        }
+        
+        setIsLoadingStats(true);
+        try {
+            const response = await fetch(`/api/company/stats?code=${code}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                setCompanyStats(data.company);
+            } else {
+                setCompanyStats(null);
+            }
+        } catch (error) {
+            console.error('Error fetching company stats:', error);
+            setCompanyStats(null);
+        } finally {
+            setIsLoadingStats(false);
+        }
+    };
+
+    const handleLanguageChange = async (newLanguage: string) => {
         setSelectedLanguage(newLanguage);
         setMessage(t('languageChanged'));
         await setLocale(newLanguage);
@@ -44,6 +70,7 @@ export default function SettingsForm() {
     const handleSave = () => {
         localStorage.setItem('companyCode', companyCode);
         setMessage(t('settingsSaved'));
+        fetchCompanyStats(companyCode);
         setTimeout(() => setMessage(''), 3000);
     };
 
@@ -87,6 +114,79 @@ export default function SettingsForm() {
                     </div>
                 </div>
             </div>
+
+            {/* Firma İstatistikleri */}
+            {companyStats && (
+                <div className="bg-gradient-to-br from-violet-50 to-purple-50 p-6 rounded-xl border border-violet-200 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Building2 className="h-5 w-5 text-violet-600" />
+                        <h3 className="text-lg font-semibold text-gray-900">{companyStats.name}</h3>
+                    </div>
+                    
+                    <div className="space-y-4">
+                        {/* Kullanım İstatistiği */}
+                        <div className="bg-white p-4 rounded-lg">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <TrendingUp className="h-4 w-4 text-violet-600" />
+                                    <span className="text-sm font-medium text-gray-700">Aylık Kullanım</span>
+                                </div>
+                                <span className="text-sm font-bold text-gray-900">
+                                    {companyStats.currentMonthUsage} / {companyStats.monthlyLimit}
+                                </span>
+                            </div>
+                            
+                            {/* İlerleme Çubuğu */}
+                            <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                                <div 
+                                    className={`h-2.5 rounded-full transition-all duration-500 ${
+                                        companyStats.usagePercentage >= 90 
+                                            ? 'bg-red-600' 
+                                            : companyStats.usagePercentage >= 70 
+                                            ? 'bg-yellow-500' 
+                                            : 'bg-green-500'
+                                    }`}
+                                    style={{ width: `${Math.min(companyStats.usagePercentage, 100)}%` }}
+                                />
+                            </div>
+                            
+                            <div className="flex items-center justify-between mt-2">
+                                <span className="text-xs text-gray-500">
+                                    Kalan: {companyStats.remainingScans} tarama
+                                </span>
+                                <span className={`text-xs font-semibold ${
+                                    companyStats.usagePercentage >= 90 
+                                        ? 'text-red-600' 
+                                        : companyStats.usagePercentage >= 70 
+                                        ? 'text-yellow-600' 
+                                        : 'text-green-600'
+                                }`}>
+                                    %{companyStats.usagePercentage}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        {/* Son Sıfırlama Tarihi */}
+                        {companyStats.lastResetDate && (
+                            <div className="flex items-center gap-2 text-xs text-gray-600">
+                                <Calendar className="h-3.5 w-3.5" />
+                                <span>
+                                    Son sıfırlama: {new Date(companyStats.lastResetDate).toLocaleDateString('tr-TR')}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {isLoadingStats && (
+                <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+                    <div className="h-8 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-2 bg-gray-200 rounded"></div>
+                </div>
+            )}
+
             <button 
                 onClick={handleSave} 
                 className="w-full bg-violet-600 text-white font-bold py-3 rounded-lg hover:bg-violet-700 transition-colors"
