@@ -45,3 +45,6 @@ next-env.d.ts
 # Android local SDK path + build railway apk
 twa-android/local.properties
 twa-android/app-release-railway-*.apk
+
+# Bubblewrap TWA build klasörü (KEYSTORE + apk içerir — commit ETME)
+twa-build/

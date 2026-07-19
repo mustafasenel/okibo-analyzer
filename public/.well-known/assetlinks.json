@@ -2,8 +2,7 @@
   "relation": ["delegate_permission/common.handle_all_urls"],
   "target": {
     "namespace": "android_app",
-    "package_name": "app.vercel.okibo_analyzer.twa",
-    "sha256_cert_fingerprints": ["51:A9:03:17:DB:40:EE:33:34:70:10:8A:1E:C8:4F:80:2A:AC:EE:92:6F:BE:51:F1:06:B2:80:6E:02:D4:CB:AA"]
+    "package_name": "app.railway.up.okibo_analyzer.twa",
+    "sha256_cert_fingerprints": ["4B:61:10:49:62:F3:6B:ED:6D:30:E9:EA:11:45:5C:67:B9:B5:67:64:A8:F3:10:E2:66:30:9C:49:26:7A:77:27"]
   }
 }]
-
