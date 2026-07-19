@@ -41,3 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 /lib/generated/prisma
+
+# Android local SDK path + build railway apk
+twa-android/local.properties
+twa-android/app-release-railway-*.apk
