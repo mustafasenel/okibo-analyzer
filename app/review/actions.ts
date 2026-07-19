@@ -25,74 +25,23 @@ interface InvoicePayload {
     images?: UploadedImageInfo[];
 }
 
-export async function updateInvoice(invoiceId: string, invoicePayload: InvoicePayload) {
-  try {
-    // 1. Faturanın ana verilerini güncelle
-    const updatedInvoice = await prisma.invoice.update({
-      where: { id: invoiceId },
-      data: {
-        invoiceMeta: invoicePayload.invoiceMeta,
-        invoiceData: invoicePayload.invoiceData,
-        invoiceSummary: invoicePayload.invoiceSummary || {},
-        status: 'COMPLETED',
-      },
-    });
-
-    // 2. Görsel yönetimi
-    if (invoicePayload.images) {
-      // Mevcut görselleri veritabanından çek (sadece publicId'leri al)
-      const oldImages = await prisma.invoiceImage.findMany({
-        where: { invoiceId: invoiceId },
-        select: { publicId: true }, // Sadece publicId'yi seçerek tip güvenliğini artır
-      });
-
-      // Eski görselleri Cloudinary'den ve veritabanından sil
-      if (oldImages.length > 0) {
-        const publicIdsToDelete = oldImages.map((img) => img.publicId);
-        console.log(`☁️ Cloudinary'den silinecek görseller:`, publicIdsToDelete);
-        if (publicIdsToDelete.length > 0) {
-          await cloudinary.api.delete_resources(publicIdsToDelete);
-        }
-        await prisma.invoiceImage.deleteMany({
-          where: { invoiceId: invoiceId },
-        });
-        console.log('🗑️ Eski görseller veritabanından silindi.');
-      }
-
-      // Yeni görselleri veritabanına ekle
-      if (invoicePayload.images.length > 0) {
-        const newImagesData = invoicePayload.images.map((image, index) => ({
-          invoiceId: invoiceId,
-          publicId: image.publicId,
-          url: image.url,
-          originalName: image.originalName,
-          pageNumber: index + 1,
-        }));
-
-        await prisma.invoiceImage.createMany({
-          data: newImagesData,
-        });
-        console.log(`✨ ${newImagesData.length} yeni görsel veritabanına eklendi.`);
-      }
-    }
-
-    revalidatePath('/history');
-    return { success: true, invoice: updatedInvoice };
-  } catch (error) {
-    console.error('Error updating invoice:', error);
-    return { success: false, error: 'Failed to update invoice' };
-  }
-}
-
 export async function saveInvoice(invoicePayload: InvoicePayload, companyCode: string) {
     try {
         const company = await prisma.company.findUnique({
             where: { code: companyCode },
+            include: { model: true },
         });
 
         if (!company) {
             return { success: false, error: 'Geçersiz firma kodu.' };
         }
+
+        // Denetim: hangi model kullanıldı ve kaç kredi tüketildi (sayfa × çarpan)
+        const multiplier = company.model?.creditMultiplier && company.model.creditMultiplier > 0
+            ? company.model.creditMultiplier
+            : 1;
+        const pageCount = Array.isArray(invoicePayload.invoiceData) ? invoicePayload.invoiceData.length : 0;
+        const creditsCost = Math.max(1, pageCount) * multiplier;
 
         // Faturayı oluştur
         const invoice = await prisma.invoice.create({
@@ -104,6 +53,8 @@ export async function saveInvoice(invoicePayload: InvoicePayload, companyCode: s
                 invoiceData: invoicePayload.invoiceData,
                 invoiceSummary: invoicePayload.invoiceSummary || {},
                 status: 'PENDING',
+                modelUsed: company.model?.openrouterId ?? null,
+                creditsCost,
             },
         });
 
@@ -133,7 +84,32 @@ export async function saveInvoice(invoicePayload: InvoicePayload, companyCode: s
     }
 }
 
-export async function checkUsageLimit(companyCode: string, scanCount: number = 1): Promise<{ success: boolean; message: string }> {
+// Kredi maliyeti = tarama (görsel) sayısı × modelin kredi çarpanı.
+// Company'ye atanmış model yoksa çarpan 1 kabul edilir.
+function resolveMultiplier(model: { creditMultiplier: number } | null): number {
+    return model?.creditMultiplier && model.creditMultiplier > 0 ? model.creditMultiplier : 1;
+}
+
+// Aylık kredi kotasının yeni aya girildiyse sıfırlanması gereken durumu uygular.
+// Güncellenmiş usedCredits değerini döndürür.
+async function resetCreditsIfNewMonth(
+    companyCode: string,
+    resetAt: Date,
+    usedCredits: number
+): Promise<number> {
+    const now = new Date();
+    const resetDate = new Date(resetAt);
+    if (now.getMonth() !== resetDate.getMonth() || now.getFullYear() !== resetDate.getFullYear()) {
+        await prisma.company.update({
+            where: { code: companyCode },
+            data: { usedCredits: 0, creditResetAt: now },
+        });
+        return 0;
+    }
+    return usedCredits;
+}
+
+export async function checkUsageLimit(companyCode: string, scanCount: number = 1): Promise<{ success: boolean; message: string; cost?: number }> {
     if (!companyCode) {
         return { success: false, message: "Firma kodu ayarlanmamış. Lütfen ayarlardan kontrol edin." };
     }
@@ -141,38 +117,33 @@ export async function checkUsageLimit(companyCode: string, scanCount: number = 1
     try {
         const company = await prisma.company.findUnique({
             where: { code: companyCode },
+            include: { model: true },
         });
 
         if (!company) {
             return { success: false, message: "Geçersiz firma kodu. Lütfen ayarları kontrol edin." };
         }
 
-        // Check if the scan count needs to be reset
-        const now = new Date();
-        const resetDate = new Date(company.scanCountResetAt);
-        let currentScanCount = company.currentScanCount;
-        
-        if (now.getMonth() !== resetDate.getMonth() || now.getFullYear() !== resetDate.getFullYear()) {
-            // Reset scan count for new month
-            await prisma.company.update({
-                where: { code: companyCode },
-                data: {
-                    currentScanCount: 0,
-                    scanCountResetAt: now,
-                }
-            });
-            currentScanCount = 0;
+        if (!company.isActive) {
+            return { success: false, message: "Firma hesabınız pasif durumda. Lütfen yönetici ile iletişime geçin." };
         }
-        
-        // Check if adding the scan count would exceed the limit
-        if (currentScanCount + scanCount > company.monthlyScanLimit) {
-            return { success: false, message: `Aylık tarama limitiniz (${company.monthlyScanLimit}) dolmuştur. Mevcut kullanım: ${currentScanCount}` };
+
+        const usedCredits = await resetCreditsIfNewMonth(companyCode, company.creditResetAt, company.usedCredits);
+        const cost = scanCount * resolveMultiplier(company.model);
+
+        if (usedCredits + cost > company.monthlyCredits) {
+            const remaining = Math.max(0, company.monthlyCredits - usedCredits);
+            return {
+                success: false,
+                message: `Yeterli krediniz yok. Bu işlem ${cost} kredi gerektiriyor, kalan krediniz ${remaining}. (Aylık kota: ${company.monthlyCredits})`,
+                cost,
+            };
         }
-        
-        return { success: true, message: "Limit kontrolü başarılı." };
+
+        return { success: true, message: "Kredi kontrolü başarılı.", cost };
     } catch (error) {
         console.error("Error checking usage limit:", error);
-        return { success: false, message: "Limit kontrolü sırasında bir hata oluştu." };
+        return { success: false, message: "Kredi kontrolü sırasında bir hata oluştu." };
     }
 }
 
@@ -180,43 +151,27 @@ export async function incrementScanCount(companyCode: string, scanCount: number 
     try {
         const company = await prisma.company.findUnique({
             where: { code: companyCode },
+            include: { model: true },
         });
 
         if (!company) {
             return { success: false, message: "Geçersiz firma kodu." };
         }
 
-        // Check if the scan count needs to be reset
-        const now = new Date();
-        const resetDate = new Date(company.scanCountResetAt);
-        let currentScanCount = company.currentScanCount;
-        
-        if (now.getMonth() !== resetDate.getMonth() || now.getFullYear() !== resetDate.getFullYear()) {
-            // Reset scan count for new month
-            await prisma.company.update({
-                where: { code: companyCode },
-                data: {
-                    currentScanCount: 0,
-                    scanCountResetAt: now,
-                }
-            });
-            currentScanCount = 0;
-        }
-        
-        // Increment the scan count
+        const usedCredits = await resetCreditsIfNewMonth(companyCode, company.creditResetAt, company.usedCredits);
+        const cost = scanCount * resolveMultiplier(company.model);
+
         await prisma.company.update({
             where: { code: companyCode },
-            data: {
-                currentScanCount: currentScanCount + scanCount,
-            }
+            data: { usedCredits: usedCredits + cost },
         });
-        
-        // Revalidate admin dashboard to update scan counts
+
+        // Revalidate admin dashboard to update credit usage
         revalidatePath('/admin/dashboard');
-        
-        return { success: true, message: "Tarama sayısı artırıldı." };
+
+        return { success: true, message: "Kredi kullanımı güncellendi." };
     } catch (error) {
-        console.error("Error incrementing scan count:", error);
-        return { success: false, message: "Tarama sayısı artırılırken bir hata oluştu." };
+        console.error("Error incrementing credit usage:", error);
+        return { success: false, message: "Kredi kullanımı güncellenirken bir hata oluştu." };
     }
 }

@@ -15,15 +15,17 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Prisma } from '@prisma/client';
+import type { Company, Model, Package } from '@prisma/client';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Pencil } from 'lucide-react';
 
-type Company = Prisma.Company;
-
 interface EditCompanyFormProps {
   company: Company;
+  models: Model[];
+  packages: Package[];
 }
+
+const selectClass = "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -34,7 +36,7 @@ function SubmitButton() {
   );
 }
 
-export function EditCompanyModal({ company }: EditCompanyFormProps) {
+export function EditCompanyModal({ company, models, packages }: EditCompanyFormProps) {
   const [open, setOpen] = useState(false);
   const initialState = { errors: {}, message: null, success: false };
   
@@ -75,9 +77,27 @@ export function EditCompanyModal({ company }: EditCompanyFormProps) {
                         {state.errors?.code && <p className="text-sm text-red-500">{state.errors.code[0]}</p>}
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="monthlyScanLimit">Aylık Tarama Limiti</Label>
-                        <Input id="monthlyScanLimit" name="monthlyScanLimit" type="number" defaultValue={company.monthlyScanLimit} />
-                        {state.errors?.monthlyScanLimit && <p className="text-sm text-red-500">{state.errors.monthlyScanLimit[0]}</p>}
+                        <Label htmlFor="packageId">Paket</Label>
+                        <select id="packageId" name="packageId" className={selectClass} defaultValue={company.packageId ?? ''}>
+                            <option value="">— Paket yok —</option>
+                            {packages.map((p) => (
+                                <option key={p.id} value={p.id}>{p.name} ({p.monthlyCredits} kredi)</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="modelId">Model</Label>
+                        <select id="modelId" name="modelId" className={selectClass} defaultValue={company.modelId ?? ''}>
+                            <option value="">— Varsayılan model —</option>
+                            {models.map((m) => (
+                                <option key={m.id} value={m.id}>{m.displayName} (×{m.creditMultiplier})</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="monthlyCredits">Aylık Kredi</Label>
+                        <Input id="monthlyCredits" name="monthlyCredits" type="number" defaultValue={company.monthlyCredits} />
+                        {state.errors?.monthlyCredits && <p className="text-sm text-red-500">{state.errors.monthlyCredits[0]}</p>}
                     </div>
                 </div>
                 {state.message && !state.success && <p className="text-sm text-red-500">{state.message}</p>}

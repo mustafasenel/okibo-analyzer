@@ -36,19 +36,4 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const invoiceId = params.id;
-
-    await prisma.invoice.delete({
-      where: {
-        id: invoiceId
-      }
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting invoice:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+// Tekil fatura silme /api/invoices/[id] altındadır (bkz. app/api/invoices/[id]/route.ts).

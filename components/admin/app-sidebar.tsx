@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconDashboard, IconHome, IconSettings, IconHelpCircle } from "@tabler/icons-react"
+import { IconDashboard, IconHome, IconSettings, IconHelpCircle, IconCpu, IconPackage } from "@tabler/icons-react"
 import { NavMain } from "@/components/admin/nav-main"
 import { NavUser } from "@/components/admin/nav-user"
 import {
@@ -28,6 +28,16 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       title: "Firmalar",
       url: "/admin/dashboard",
       icon: IconDashboard,
+    },
+    {
+      title: "Modeller",
+      url: "/admin/models",
+      icon: IconCpu,
+    },
+    {
+      title: "Paketler",
+      url: "/admin/packages",
+      icon: IconPackage,
     },
     {
       title: "Ana Uygulama",

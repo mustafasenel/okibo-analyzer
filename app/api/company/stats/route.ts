@@ -19,9 +19,13 @@ export async function GET(request: NextRequest) {
         id: true,
         name: true,
         code: true,
-        monthlyScanLimit: true,
-        currentScanCount: true,
-        scanCountResetAt: true,
+        isActive: true,
+        monthlyCredits: true,
+        usedCredits: true,
+        creditResetAt: true,
+        model: {
+          select: { displayName: true, creditMultiplier: true },
+        },
       }
     });
 
@@ -29,9 +33,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 });
     }
 
-    // Kullanım yüzdesini hesapla
-    const usagePercentage = company.monthlyScanLimit > 0 
-      ? Math.round((company.currentScanCount / company.monthlyScanLimit) * 100)
+    const multiplier = company.model?.creditMultiplier && company.model.creditMultiplier > 0
+      ? company.model.creditMultiplier
+      : 1;
+    const remainingCredits = Math.max(0, company.monthlyCredits - company.usedCredits);
+
+    // Kredi kullanım yüzdesi
+    const usagePercentage = company.monthlyCredits > 0
+      ? Math.round((company.usedCredits / company.monthlyCredits) * 100)
       : 0;
 
     return NextResponse.json({
@@ -39,11 +48,19 @@ export async function GET(request: NextRequest) {
       company: {
         name: company.name,
         code: company.code,
-        monthlyLimit: company.monthlyScanLimit,
-        currentMonthUsage: company.currentScanCount,
+        isActive: company.isActive,
+        // Kredi tabanlı alanlar (yeni)
+        monthlyCredits: company.monthlyCredits,
+        usedCredits: company.usedCredits,
+        remainingCredits,
+        modelName: company.model?.displayName ?? null,
+        creditMultiplier: multiplier,
+        // Geriye dönük uyumlu anahtarlar (SettingsForm bunları kullanıyor)
+        monthlyLimit: company.monthlyCredits,
+        currentMonthUsage: company.usedCredits,
         usagePercentage,
-        remainingScans: Math.max(0, company.monthlyScanLimit - company.currentScanCount),
-        lastResetDate: company.scanCountResetAt,
+        remainingScans: Math.floor(remainingCredits / multiplier),
+        lastResetDate: company.creditResetAt,
       }
     });
 

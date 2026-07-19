@@ -7,7 +7,7 @@ import { ImagePreviewGrid } from '@/components/scanner/ImagePreviewGrid';
 import ImageLightbox from '@/components/scanner/ImageLightbox'; // Lightbox bileşenini import et
 import { Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import imageCompression from 'browser-image-compression';
+import { analyzeImage, uploadImage, normalizePageItems, UploadedImageInfo } from '@/lib/scan';
 import { checkUsageLimit, incrementScanCount } from '@/app/review/actions';
 
 // --- TYPES ---
@@ -20,55 +20,6 @@ interface ImageFileWithStatus {
     status: ImageFileStatus;
     retries: number; // Deneme sayısını takip etmek için
 }
-
-const DEFAULT_MODEL = 'qwen/qwen3-vl-8b-instruct';
-const MAX_RETRIES = 3;
-
-interface UploadedImageInfo {
-    publicId: string;
-    url: string;
-    originalName: string;
-}
-
-// --- HELPERS ---
-const fetchWithRetry = async (url: string, options: RequestInit, retries = MAX_RETRIES): Promise<Response> => {
-    try {
-        const response = await fetch(url, options);
-        if (!response.ok && response.status >= 500 && retries > 0) {
-            console.warn(`Request failed with status ${response.status}. Retrying... (${retries} retries left)`);
-            await new Promise(res => setTimeout(res, 1000)); // 1 saniye bekle
-            return fetchWithRetry(url, options, retries - 1);
-        }
-        return response;
-    } catch (error) {
-        if (retries > 0) {
-            console.warn(`Request failed with network error. Retrying... (${retries} retries left)`);
-            await new Promise(res => setTimeout(res, 1000));
-            return fetchWithRetry(url, options, retries - 1);
-        }
-        throw error;
-    }
-};
-
-const uploadFile = async (file: File): Promise<UploadedImageInfo> => {
-    const options = { maxSizeMB: 1.5, maxWidthOrHeight: 1920, useWebWorker: true };
-    const compressedFile = await imageCompression(file, options);
-
-    const formData = new FormData();
-    formData.append('file', compressedFile);
-    formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
-    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
-
-    const url = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!}/image/upload`;
-    const response = await fetchWithRetry(url, { method: 'POST', body: formData });
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Cloudinary upload failed: ${errorData.error.message}`);
-    }
-    const data = await response.json();
-    return { publicId: data.public_id, url: data.secure_url, originalName: file.name };
-};
 
 export default function Home() {
     const t = useTranslations('HomePage');
@@ -153,18 +104,8 @@ export default function Home() {
                 setAnalysisMessage(t('analyzingMessage', { current: index + 1, total: imageFiles.length }));
                 updateImageStatus(imageFile.id, 'processing');
 
-                const formData = new FormData();
-                formData.append('image', imageFile.file);
-                formData.append('model', DEFAULT_MODEL);
-
-                const response = await fetchWithRetry('/api/analyze', { method: 'POST', body: formData });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Analysis failed');
-                }
-
-                const result = await response.json();
+                // Model sunucu tarafında companyCode'dan çözülür.
+                const result = await analyzeImage(imageFile.file, companyCode);
                 updateImageStatus(imageFile.id, 'completed');
                 return result;
             } catch (err) {
@@ -186,43 +127,17 @@ export default function Home() {
         setAnalysisMessage(t('aggregatingResults'));
         const finalMeta = allResults[0]?.invoice_meta || {};
         const finalSummary = allResults[allResults.length - 1]?.invoice_summary || null;
-        
-        // Yardımcı fonksiyon: Fatura satırını normalize et
-        const normalizeInvoiceItem = (item: any) => {
-            let { Kolli, Inhalt, Menge, Preis, Netto, ...rest } = item;
-            
-            // 1. Kolli-Inhalt tutarlılık kontrolü
-            // Kural: Kolli (koli sayısı) her zaman Inhalt'tan (koli içindeki adet) küçük olmalı
-            if (Kolli && Inhalt && Kolli > Inhalt) {
-                console.warn(`Kolli-Inhalt swap detected for item ${item.ArtikelNumber}: Kolli=${Kolli}, Inhalt=${Inhalt}`);
-                [Kolli, Inhalt] = [Inhalt, Kolli]; // Yer değiştir
-            }
-            
-            // 2. Netto hesaplama ve doğrulama
-            const ocrNetto = Netto; // OCR'dan okunan değer
-            const calculatedNetto = Menge && Preis ? parseFloat((Menge * Preis).toFixed(2)) : Netto;
-            
-            return {
-                ...rest,
-                Kolli,
-                Inhalt,
-                Menge,
-                Preis,
-                Netto: ocrNetto, // OCR'dan okunan orijinal değer
-                originalNetto: calculatedNetto, // Hesaplanan değer
-            };
-        };
-        
+
         const finalPaginatedData = allResults.map((result, index) => ({
             page: index + 1,
-            items: (result.invoice_data || []).map(normalizeInvoiceItem),
+            items: normalizePageItems(result.invoice_data || []),
         }));
 
         const finalData = { invoiceMeta: finalMeta, invoiceData: finalPaginatedData, invoiceSummary: finalSummary };
         sessionStorage.setItem('analysisResult', JSON.stringify(finalData));
 
         setAnalysisMessage(t('uploadingImages'));
-        const uploadPromises = imageFiles.map(img => uploadFile(img.file).catch(err => {
+        const uploadPromises = imageFiles.map(img => uploadImage(img.file).catch(err => {
             console.error(`Failed to upload ${img.file.name}:`, err);
             return null; // Return null on upload failure
         }));

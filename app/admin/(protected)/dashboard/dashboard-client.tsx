@@ -1,18 +1,19 @@
 'use client';
 
 import { useState } from "react";
-import { Company } from "@prisma/client";
+import type { Model, Package } from "@prisma/client";
 import { DataTable } from "@/components/admin/data-table";
-import { columns } from "./columns";
+import { makeColumns, CompanyWithRelations } from "./columns";
 import { SectionCards } from "@/components/admin/section-cards";
 import { ChartAreaInteractive } from "@/components/admin/chart-area-interactive";
 import { NewCompanyModal } from "@/components/admin/NewCompanyModal";
 
-type CompanyWithData = Company;
 type DailyScanData = { date: string; scans: number };
 
 interface DashboardClientProps {
-    companies: CompanyWithData[];
+    companies: CompanyWithRelations[];
+    models: Model[];
+    packages: Package[];
     stats: {
         totalCompanies: number;
         totalInvoices: number;
@@ -22,17 +23,13 @@ interface DashboardClientProps {
     dailyScanData: DailyScanData[];
 }
 
-export function DashboardClient({ companies, stats, dailyScanData }: DashboardClientProps) {
+export function DashboardClient({ companies, models, packages, stats, dailyScanData }: DashboardClientProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
-
-    const handleSuccess = () => {
-        setIsModalOpen(false);
-        // revalidatePath in server action will handle the data refresh
-    };
+    const columns = makeColumns(models, packages);
 
     return (
         <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-            <SectionCards 
+            <SectionCards
                 totalCompanies={stats.totalCompanies}
                 totalInvoices={stats.totalInvoices}
                 totalScansThisMonth={stats.totalScansThisMonth}
@@ -41,13 +38,15 @@ export function DashboardClient({ companies, stats, dailyScanData }: DashboardCl
             <ChartAreaInteractive data={dailyScanData} />
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold">Firmalar</h1>
-                <NewCompanyModal 
-                    open={isModalOpen} 
-                    onOpenChange={setIsModalOpen} 
-                    onSuccess={handleSuccess} 
+                <NewCompanyModal
+                    open={isModalOpen}
+                    onOpenChange={setIsModalOpen}
+                    onSuccess={() => setIsModalOpen(false)}
+                    models={models}
+                    packages={packages}
                 />
             </div>
-             <DataTable columns={columns} data={companies} />
+            <DataTable columns={columns} data={companies} />
         </div>
     );
 }

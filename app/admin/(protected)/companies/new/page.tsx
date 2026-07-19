@@ -65,9 +65,9 @@ export default function NewCompanyPage() {
                 {state.errors?.code && <p className="text-sm text-red-500">{state.errors.code[0]}</p>}
               </div>
               <div className="grid gap-3 sm:col-span-2">
-                <Label htmlFor="monthlyScanLimit">Aylık Tarama Limiti</Label>
-                <Input id="monthlyScanLimit" name="monthlyScanLimit" type="number" defaultValue="100" className="w-full sm:max-w-[200px]" />
-                 {state.errors?.monthlyScanLimit && <p className="text-sm text-red-500">{state.errors.monthlyScanLimit[0]}</p>}
+                <Label htmlFor="monthlyCredits">Aylık Kredi</Label>
+                <Input id="monthlyCredits" name="monthlyCredits" type="number" defaultValue="100" className="w-full sm:max-w-[200px]" />
+                 {state.errors?.monthlyCredits && <p className="text-sm text-red-500">{state.errors.monthlyCredits[0]}</p>}
               </div>
             </div>
             {state.message && !state.success && <p className="text-sm text-red-500 mt-4">{state.message}</p>}

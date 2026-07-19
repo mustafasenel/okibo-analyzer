@@ -30,7 +30,7 @@
     "saveSuccessTitle": "Invoice Saved",
     "saveSuccessDescription": "Your invoice has been successfully saved. You can continue the process from the Okibo desktop application.",
     "saveSuccessConfirm": "Got it",
-    "editTitle": "Edit Invoice",
+    "editTitle": "View Invoice",
     "updateButton": "Update",
     "updateSuccessMessage": "Invoice successfully updated."
   },

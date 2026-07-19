@@ -5,7 +5,8 @@ async function getCompanies() {
   const companies = await prisma.company.findMany({
     orderBy: {
       name: 'asc'
-    }
+    },
+    include: { model: true, package: true },
   });
   return companies;
 }
@@ -16,9 +17,9 @@ async function getStats() {
     const companies = await prisma.company.findMany();
     const totalScansThisMonth = companies.reduce((sum, company) => {
         const now = new Date();
-        const resetDate = new Date(company.scanCountResetAt);
+        const resetDate = new Date(company.creditResetAt);
         if (now.getMonth() === resetDate.getMonth() && now.getFullYear() === resetDate.getFullYear()) {
-            return sum + company.currentScanCount;
+            return sum + company.usedCredits;
         }
         return sum;
     }, 0);
@@ -61,13 +62,19 @@ async function getDailyScanData() {
 }
 
 export default async function Page() {
-  const companies = await getCompanies();
-  const stats = await getStats();
-  const dailyScanData = await getDailyScanData();
+  const [companies, stats, dailyScanData, models, packages] = await Promise.all([
+    getCompanies(),
+    getStats(),
+    getDailyScanData(),
+    prisma.model.findMany({ orderBy: [{ sortOrder: 'asc' }, { displayName: 'asc' }] }),
+    prisma.package.findMany({ orderBy: { monthlyCredits: 'asc' } }),
+  ]);
 
   return (
-    <DashboardClient 
+    <DashboardClient
         companies={companies}
+        models={models}
+        packages={packages}
         stats={stats}
         dailyScanData={dailyScanData}
     />

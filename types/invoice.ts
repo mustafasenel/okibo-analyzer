@@ -4,10 +4,10 @@ export interface InvoiceItem {
     Kolli: number;
     Inhalt: number;
     Menge: number;
-    Preis: string;
-    Netto: string;
-    MwSt?: number; // VAT rate (typically 7 or 19)
-    originalNetto?: string;
+    Preis: number;      // birim fiyat
+    Netto: number;      // OCR'dan okunan satır toplamı
+    MwSt?: number;      // VAT rate (typically 7 or 19)
+    originalNetto?: number; // hesaplanan satır toplamı (Menge × Preis)
 }
 
 export interface InvoicePage {

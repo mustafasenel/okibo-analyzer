@@ -1,5 +1,9 @@
 import { system_propmt } from '@/lib/system-propmt';
+import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+
+// Company'ye atanmış model yoksa kullanılacak varsayılan OpenRouter modeli.
+const DEFAULT_OPENROUTER_MODEL = 'qwen/qwen3-vl-8b-instruct';
 
 // Helper function for exponential backoff
 const fetchWithRetry = async (
@@ -61,10 +65,22 @@ export async function POST(req: Request) {
     try {
         const formData = await req.formData();
         const image = formData.get("image") as File | null; // Expect a single image
-        const model = formData.get("model") as string || 'mistralai/mistral-small-3.2-24b-instruct:free';
+        const companyCode = formData.get("companyCode") as string | null;
 
         if (!image) {
             return new Response(JSON.stringify({ error: "No image provided" }), { status: 400 });
+        }
+
+        // Model seçimi sunucu tarafında, firmaya atanmış modelden çözülür (client belirlemez).
+        let model = DEFAULT_OPENROUTER_MODEL;
+        if (companyCode) {
+            const company = await prisma.company.findUnique({
+                where: { code: companyCode },
+                include: { model: true },
+            });
+            if (company?.model?.isActive && company.model.openrouterId) {
+                model = company.model.openrouterId;
+            }
         }
 
         const arrayBuffer = await image.arrayBuffer();

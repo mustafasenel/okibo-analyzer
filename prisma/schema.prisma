@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -22,11 +19,18 @@ model Invoice {
   invoiceSummary  Json
   status          Status   @default(PENDING)
 
+  // Audit: which model produced this scan and how many credits it consumed
+  modelUsed       String?
+  creditsCost     Int      @default(1)
+
   // Relation to Company
   company         Company  @relation(fields: [companyCode], references: [code])
-  
+
   // Relation to Images
   images          InvoiceImage[]
+
+  // PHP side reads by companyCode + status
+  @@index([companyCode, status])
 }
 
 enum Status {
@@ -36,14 +40,52 @@ enum Status {
 }
 
 model Company {
-  id                String    @id @default(auto()) @map("_id") @db.ObjectId
-  name              String
-  code              String    @unique
-  monthlyScanLimit  Int       @default(100)
-  currentScanCount  Int       @default(0)
-  scanCountResetAt  DateTime  @default(now())
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  code           String   @unique
+  isActive       Boolean  @default(true)
 
-  invoices          Invoice[]
+  // Credit quota (monthly renewing)
+  monthlyCredits Int      @default(100) // quota per month, usually inherited from the assigned package
+  usedCredits    Int      @default(0)
+  creditResetAt  DateTime @default(now())
+
+  // Per-market assigned model (admin decides which market uses which model)
+  modelId        String?  @db.ObjectId
+  model          Model?   @relation(fields: [modelId], references: [id])
+
+  // Assigned credit package (template)
+  packageId      String?  @db.ObjectId
+  package        Package? @relation(fields: [packageId], references: [id])
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  invoices       Invoice[]
+}
+
+model Model {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  openrouterId     String    @unique // e.g. "qwen/qwen3-vl-8b-instruct"
+  displayName      String            // friendly name shown to end users, e.g. "Standart"
+  creditMultiplier Int       @default(1) // credits consumed per scan with this model
+  isActive         Boolean   @default(true)
+  sortOrder        Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  companies        Company[]
+}
+
+model Package {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  name           String            // e.g. "Başlangıç", "Pro"
+  monthlyCredits Int
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  companies      Company[]
 }
 
 model Admin {
@@ -54,14 +96,14 @@ model Admin {
 }
 
 model InvoiceImage {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  invoiceId   String   @db.ObjectId
-  publicId    String   // Cloudinary public ID
-  url         String   // Cloudinary URL
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceId    String   @db.ObjectId
+  publicId     String   // Cloudinary public ID
+  url          String   // Cloudinary URL
   originalName String
-  pageNumber  Int      @default(1)
-  createdAt   DateTime @default(now())
+  pageNumber   Int      @default(1)
+  createdAt    DateTime @default(now())
 
   // Relation to Invoice
-  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoice      Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 }

@@ -1,12 +1,11 @@
 'use client';
 
-'use client';
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ReviewDataTabs from '@/components/review/ReviewDataTabs';
 import ImageSheet from '@/components/review/ImageSheet';
-import { saveInvoice, updateInvoice } from './actions';
+import { saveInvoice, checkUsageLimit, incrementScanCount } from './actions';
+import { analyzeImage, uploadImage, normalizePageItems, UploadedImageInfo } from '@/lib/scan';
 import { Check, X, Loader2, FileImage } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
@@ -14,16 +13,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { InvoiceData, InvoiceItem, InvoiceMeta, InvoiceSummary } from '@/types/invoice';
 
-// Tipler
 interface InvoicePage {
     page: number;
     items: InvoiceItem[];
-}
-
-interface UploadedImageInfo {
-    publicId: string;
-    url: string;
-    originalName: string;
 }
 
 export default function ReviewPage() {
@@ -36,51 +28,48 @@ export default function ReviewPage() {
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [isSaveDisabled, setIsSaveDisabled] = useState(true);
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-    const [isEditingMode, setIsEditingMode] = useState(false);
-    const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
+    const [isViewMode, setIsViewMode] = useState(false); // history'den salt-görüntüleme
+    const [viewInvoiceId, setViewInvoiceId] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isRescanning, setIsRescanning] = useState(false);
     const [currentPageIndex, setCurrentPageIndex] = useState(0);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const resultJson = sessionStorage.getItem('analysisResult');
         const imagesJson = sessionStorage.getItem('invoiceImages');
-        const editingId = sessionStorage.getItem('editingInvoiceId');
+        const viewId = sessionStorage.getItem('editingInvoiceId'); // history "görüntüle" bunu set eder
 
-        if (editingId && !resultJson) {
-            // Edit mode: Fetch data from DB
-            setIsEditingMode(true);
-            setEditingInvoiceId(editingId);
-            
-            fetch(`/api/invoices/${editingId}`)
+        if (viewId && !resultJson) {
+            // Salt-görüntüleme modu: kaydedilmiş faturayı DB'den getir (düzenleme PHP tarafında yapılır)
+            setIsViewMode(true);
+            setViewInvoiceId(viewId);
+
+            fetch(`/api/invoices/${viewId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.invoice) {
                         setInvoiceData(data.invoice.invoiceData);
                         setInvoiceMeta(data.invoice.invoiceMeta);
                         setInvoiceSummary(data.invoice.invoiceSummary);
-                        // Fetch images associated with the invoice
-                        return fetch(`/api/invoices/images?invoiceId=${editingId}`);
-                    } else {
-                        throw new Error('Failed to fetch invoice data');
+                        return fetch(`/api/invoices/images?invoiceId=${viewId}`);
                     }
+                    throw new Error('Failed to fetch invoice data');
                 })
                 .then(response => response.json())
                 .then(imageData => {
                     if (imageData.success && imageData.images) {
-                        // The images are already in the correct format (UploadedImageInfo)
                         setInvoiceImages(imageData.images);
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching data in edit mode:', error);
+                    console.error('Error fetching invoice for view:', error);
                     router.replace('/history');
                 });
         } else {
-            // New scan mode
-            if (editingId) {
+            // Yeni tarama modu
+            if (viewId) {
                 sessionStorage.removeItem('editingInvoiceId');
-                setIsEditingMode(false);
-                setEditingInvoiceId(null);
             }
             if (imagesJson) {
                 setInvoiceImages(JSON.parse(imagesJson));
@@ -91,7 +80,7 @@ export default function ReviewPage() {
                     setInvoiceData(parsedData.invoiceData);
                     setInvoiceMeta(parsedData.invoiceMeta);
                     setInvoiceSummary(parsedData.invoiceSummary);
-                } catch (error) {
+                } catch {
                     router.replace('/');
                 }
             } else {
@@ -103,47 +92,70 @@ export default function ReviewPage() {
         setIsSaveDisabled(!savedCompanyCode);
     }, [router]);
 
-    const handleItemChange = (index: number, updatedItem: InvoiceItem) => {
-        const newData = [...invoiceData];
-        const currentPageItems = [...newData[currentPageIndex].items];
-        const currentItem = { ...updatedItem };
-        const kolli = parseInt(String(currentItem['Kolli'] || '0'), 10) || 0;
-        const inhalt = parseInt(String(currentItem['Inhalt'] || '0'), 10) || 0;
-        currentItem['Menge'] = kolli * inhalt;
-        const menge = currentItem['Menge'];
-        const preis = parseFloat(String(currentItem['Preis'] || '0').replace(',', '.')) || 0;
-        currentItem['Netto'] = (menge * preis).toFixed(3);
-        currentPageItems[index] = currentItem;
-        newData[currentPageIndex].items = currentPageItems;
-        setInvoiceData(newData);
-    };
+    // --- Sayfayı yeniden tara: yeni görsel çek → analiz et → o sayfanın verisini değiştir ---
+    const handleRescanPage = () => {
+        if (isRescanning || isViewMode) return;
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.capture = 'environment';
+        input.onchange = async (e) => {
+            const target = e.target as HTMLInputElement;
+            const file = target.files?.[0];
+            if (!file) return;
 
-    const handleAddItem = (index: number) => {
-        const newData = [...invoiceData];
-        const currentPageItems = [...newData[currentPageIndex].items];
-        const hasVatInCurrentData = invoiceData.some(page => page.items.some(item => item.MwSt !== undefined && item.MwSt !== null));
-        const newItem: InvoiceItem = {
-            ArtikelNumber: '-',
-            ArtikelBez: '',
-            Kolli: 0,
-            Inhalt: 0,
-            Menge: 0,
-            Preis: "0.000",
-            Netto: "0.000",
-            ...(hasVatInCurrentData && { MwSt: 19 }),
-            originalNetto: "0.000"
+            const companyCode = localStorage.getItem('companyCode');
+            if (!companyCode) {
+                setError('Firma kodu ayarlanmamış. Lütfen ayarlardan kontrol edin.');
+                return;
+            }
+
+            setError('');
+            setIsRescanning(true);
+            try {
+                // Yeniden tarama da bir model çağrısıdır → kredi kontrolü
+                const limitCheck = await checkUsageLimit(companyCode, 1);
+                if (!limitCheck.success) {
+                    setError(limitCheck.message);
+                    return;
+                }
+
+                const result = await analyzeImage(file, companyCode);
+                const newItems = normalizePageItems(result.invoice_data || []);
+
+                setInvoiceData(prev => {
+                    const next = [...prev];
+                    if (next[currentPageIndex]) {
+                        next[currentPageIndex] = { ...next[currentPageIndex], items: newItems };
+                    }
+                    return next;
+                });
+
+                // İlk sayfa yeniden tarandıysa meta, son sayfa ise özet güncellenir
+                if (currentPageIndex === 0 && result.invoice_meta) {
+                    setInvoiceMeta(result.invoice_meta);
+                }
+                if (currentPageIndex === invoiceData.length - 1 && result.invoice_summary) {
+                    setInvoiceSummary(result.invoice_summary);
+                }
+
+                // Görseli yükle ve o sayfanın görselini değiştir
+                const uploaded = await uploadImage(file);
+                setInvoiceImages(prev => {
+                    const next = [...prev];
+                    next[currentPageIndex] = uploaded;
+                    return next;
+                });
+
+                await incrementScanCount(companyCode, 1);
+            } catch (err) {
+                console.error('Yeniden tarama hatası:', err);
+                setError('Sayfa yeniden taranırken bir hata oluştu.');
+            } finally {
+                setIsRescanning(false);
+            }
         };
-        currentPageItems.splice(index + 1, 0, newItem);
-        newData[currentPageIndex].items = currentPageItems;
-        setInvoiceData(newData);
-    };
-
-    const handleDeleteItem = (index: number) => {
-        const newData = [...invoiceData];
-        const currentPageItems = [...newData[currentPageIndex].items];
-        currentPageItems.splice(index, 1);
-        newData[currentPageIndex].items = currentPageItems;
-        setInvoiceData(newData);
+        input.click();
     };
 
     const handleSaveToDb = async () => {
@@ -151,157 +163,131 @@ export default function ReviewPage() {
         if (!companyCode) return;
 
         setIsSaving(true);
-
-        const payload = {
-            invoiceMeta,
-            invoiceData,
-            invoiceSummary,
-            images: invoiceImages,
-        };
-
         try {
-            const result = isEditingMode && editingInvoiceId
-                ? await updateInvoice(editingInvoiceId, payload)
-                : await saveInvoice(payload, companyCode);
-
+            const result = await saveInvoice(
+                { invoiceMeta, invoiceData, invoiceSummary, images: invoiceImages },
+                companyCode
+            );
             if (result.success) {
                 setIsSuccessModalOpen(true);
             } else {
-                console.error("Save/Update error:", result.error);
+                setError(result.error || 'Kaydetme başarısız.');
             }
         } catch (error) {
-            console.error("Failed to save to DB:", error);
+            console.error('Failed to save to DB:', error);
+            setError('Kaydetme sırasında bir hata oluştu.');
         } finally {
             setIsSaving(false);
         }
     };
 
-    const handleDiscard = () => {
+    const clearSessionAndLeave = (to: string) => {
         sessionStorage.removeItem('analysisResult');
         sessionStorage.removeItem('invoiceImages');
         sessionStorage.removeItem('editingInvoiceId');
-        router.push(isEditingMode ? '/history' : '/');
+        router.push(to);
     };
 
-    const handleModalConfirm = () => {
-        sessionStorage.removeItem('analysisResult');
-        sessionStorage.removeItem('invoiceImages');
-        sessionStorage.removeItem('editingInvoiceId');
-        router.push(isEditingMode ? '/history' : '/');
-    };
-    
-    // Functions to handle page navigation
-    const goToNextPage = () => {
-        setCurrentPageIndex((prevIndex) => Math.min(prevIndex + 1, invoiceData.length - 1));
-    };
+    const handleDiscard = () => clearSessionAndLeave(isViewMode ? '/history' : '/');
+    const handleModalConfirm = () => clearSessionAndLeave('/history');
 
-    const goToPreviousPage = () => {
-        setCurrentPageIndex((prevIndex) => Math.max(prevIndex - 1, 0));
-    };
+    const goToNextPage = () => setCurrentPageIndex(i => Math.min(i + 1, invoiceData.length - 1));
+    const goToPreviousPage = () => setCurrentPageIndex(i => Math.max(i - 1, 0));
 
-
-    // Veri henüz yüklenmediyse bir yükleme animasyonu göster
-    if (invoiceData.length === 0) { // Changed from !invoiceData to handle empty array state
-      return (
-        <div className="flex flex-col justify-center items-center h-screen">
-          <Loader2 className="animate-spin h-8 w-8 text-violet-600"/>
-          <p className="mt-4 text-gray-600">{t('loading')}</p>
-        </div>
-      );
+    if (invoiceData.length === 0) {
+        return (
+            <div className="flex flex-col justify-center items-center h-screen">
+                <Loader2 className="animate-spin h-8 w-8 text-violet-600" />
+                <p className="mt-4 text-gray-600">{t('loading')}</p>
+            </div>
+        );
     }
-
-    // Veri yüklendikten sonra ana içeriği göster
-    // `isSaveDisabled` is now only managed by its state, so the duplicate declaration is removed.
 
     return (
         <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-4 px-4">
                 <h1 className="text-2xl font-bold text-gray-900">
-                    {isEditingMode ? t('editTitle') : t('title')}
+                    {isViewMode ? t('editTitle') : t('title')}
                 </h1>
             </div>
-            
-            {/* 
-                İçeriğin butonlar tarafından ezilmemesi için mobil cihazlarda altta boşluk bırakıyoruz.
-                mb-24 -> 6rem boşluk bırakır. Bu, 4rem'lik navigasyon + 1rem'lik buton + 1rem ekstra boşluk.
-            */}
+
+            {error && (
+                <p className="mx-4 mb-4 text-red-600 text-center font-medium bg-red-50 p-3 rounded-lg">{error}</p>
+            )}
+
             <div className="mb-24 sm:mb-8">
                 {invoiceData.length > 0 && invoiceMeta && (
                     <ReviewDataTabs
                         invoiceMeta={invoiceMeta}
                         invoiceSummary={invoiceSummary}
-                        invoiceData={invoiceData[currentPageIndex]?.items || []} // Pass only the current page's items
-                        onItemChange={handleItemChange}
-                        onAddItem={handleAddItem}
-                        onDeleteItem={handleDeleteItem}
-                        // Pass pagination data and handlers
+                        invoiceData={invoiceData[currentPageIndex]?.items || []}
                         currentPage={currentPageIndex + 1}
                         totalPages={invoiceData.length}
                         onNextPage={goToNextPage}
                         onPreviousPage={goToPreviousPage}
+                        onRescanPage={isViewMode ? undefined : handleRescanPage}
+                        isRescanning={isRescanning}
                     />
                 )}
-                {/* error && <p className="text-red-500 mt-4 px-4">{error}</p> */}
             </div>
 
-            {/* Onay/Red Butonları */}
+            {/* Alt aksiyon butonları */}
             <div className="flex gap-4 fixed bottom-20 left-4 right-4 z-10 sm:static">
                 <button
                     onClick={handleDiscard}
-                    className="flex-1 bg-red-500 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-red-600 shadow-lg"
+                    className="flex-1 bg-gray-500 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-600 shadow-lg"
                 >
                     <X className="h-5 w-5" />
-                    <span>{t('discardButton')}</span>
+                    <span>{isViewMode ? t('discardButton') : t('discardButton')}</span>
                 </button>
-                
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <div className="flex-1">
-                                <button
-                                    onClick={handleSaveToDb}
-                                    disabled={isSaveDisabled || isSaving}
-                                    className="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
-                                >
-                                    {isSaving ? <Loader2 className="animate-spin h-5 w-5" /> : <Check className="h-5 w-5" />}
-                                    <span>{isSaving ? t('saving') : (isEditingMode ? t('updateButton') : t('confirmButton'))}</span>
-                                </button>
-                            </div>
-                        </TooltipTrigger>
-                        {isSaveDisabled && (
-                            <TooltipContent>
-                                <p>{t('companyCodeTooltip')}</p>
-                            </TooltipContent>
-                        )}
-                    </Tooltip>
-                </TooltipProvider>
 
+                {!isViewMode && (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="flex-1">
+                                    <button
+                                        onClick={handleSaveToDb}
+                                        disabled={isSaveDisabled || isSaving || isRescanning}
+                                        className="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
+                                    >
+                                        {isSaving ? <Loader2 className="animate-spin h-5 w-5" /> : <Check className="h-5 w-5" />}
+                                        <span>{isSaving ? t('saving') : t('confirmButton')}</span>
+                                    </button>
+                                </div>
+                            </TooltipTrigger>
+                            {isSaveDisabled && (
+                                <TooltipContent>
+                                    <p>{t('companyCodeTooltip')}</p>
+                                </TooltipContent>
+                            )}
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
             </div>
 
-            {/* Floating "View Invoice" Button */}
-            <Button 
-                variant="outline" 
-                onClick={() => setIsSheetOpen(true)} 
+            {/* Faturayı görüntüle (float button) */}
+            <Button
+                variant="outline"
+                onClick={() => setIsSheetOpen(true)}
                 disabled={invoiceImages.length === 0}
                 className="fixed bottom-24 right-4 z-20 h-14 w-14 rounded-full shadow-lg bg-white"
             >
                 <FileImage size={24} />
             </Button>
 
-            <ImageSheet 
+            <ImageSheet
                 images={invoiceImages.map(img => img.url)}
                 open={isSheetOpen}
                 onOpenChange={setIsSheetOpen}
-                invoiceId={editingInvoiceId || undefined}
+                invoiceId={viewInvoiceId || undefined}
             />
 
             <AlertDialog open={isSuccessModalOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>{t('saveSuccessTitle')}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {isEditingMode ? t('updateSuccessMessage') : t('saveSuccessDescription')}
-                        </AlertDialogDescription>
+                        <AlertDialogDescription>{t('saveSuccessDescription')}</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogAction onClick={handleModalConfirm}>{t('saveSuccessConfirm')}</AlertDialogAction>

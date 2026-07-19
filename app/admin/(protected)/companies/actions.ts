@@ -4,20 +4,26 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { z } from 'zod';
 
+const optionalId = z.string().optional().transform((v) => (v && v.length > 0 ? v : null));
+
 const CompanySchema = z.object({
   name: z.string().min(3, { message: "Firma adı en az 3 karakter olmalıdır." }),
   code: z.string().min(2, { message: "Firma kodu en az 2 karakter olmalıdır." }).refine(async (code) => {
     const company = await prisma.company.findUnique({ where: { code } });
     return !company;
   }, { message: "Bu firma kodu zaten kullanımda." }),
-  monthlyScanLimit: z.coerce.number().int().min(0, { message: 'Limit 0 dan küçük olamaz.' }),
+  monthlyCredits: z.coerce.number().int().min(0, { message: 'Kredi 0 dan küçük olamaz.' }),
+  modelId: optionalId,
+  packageId: optionalId,
 });
 
 export async function createCompany(prevState: any, formData: FormData) {
   const validatedFields = await CompanySchema.safeParseAsync({
     name: formData.get('name'),
     code: formData.get('code'),
-    monthlyScanLimit: formData.get('monthlyScanLimit'),
+    monthlyCredits: formData.get('monthlyCredits'),
+    modelId: formData.get('modelId'),
+    packageId: formData.get('packageId'),
   });
 
   if (!validatedFields.success) {
@@ -43,15 +49,17 @@ export async function createCompany(prevState: any, formData: FormData) {
 const UpdateCompanySchema = CompanySchema.omit({ code: true });
 
 export async function updateCompany(
-    id: string, 
-    prevState: any, 
+    id: string,
+    prevState: any,
     formData: FormData
 ) {
     const code = formData.get('code') as string;
 
     const validatedFields = UpdateCompanySchema.safeParse({
         name: formData.get('name'),
-        monthlyScanLimit: formData.get('monthlyScanLimit'),
+        monthlyCredits: formData.get('monthlyCredits'),
+        modelId: formData.get('modelId'),
+        packageId: formData.get('packageId'),
     });
 
     if (!validatedFields.success) {
@@ -95,7 +103,7 @@ export async function updateCompany(
 
 export async function deleteCompany(id: string) {
     try {
-        const invoiceCount = await prisma.invoice.count({ where: { companyId: id } });
+        const invoiceCount = await prisma.invoice.count({ where: { company: { id } } });
 
         if (invoiceCount > 0) {
             return { success: false, message: 'Bu firmanın ilişkili faturaları olduğundan silinemez.' };

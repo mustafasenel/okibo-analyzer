@@ -16,12 +16,17 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RefreshCw } from 'lucide-react';
+import type { Model, Package } from '@prisma/client';
 
 interface NewCompanyFormProps {
   onSuccess: () => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  models: Model[];
+  packages: Package[];
 }
+
+const selectClass = "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -32,10 +37,16 @@ function SubmitButton() {
   );
 }
 
-export function NewCompanyModal({ onSuccess, open, onOpenChange }: NewCompanyFormProps) {
+export function NewCompanyModal({ onSuccess, open, onOpenChange, models, packages }: NewCompanyFormProps) {
   const initialState = { errors: {}, message: null, success: false };
   const [state, dispatch] = useActionState(createCompany, initialState);
   const [companyCode, setCompanyCode] = useState('');
+  const [monthlyCredits, setMonthlyCredits] = useState('100');
+
+  const onPackageChange = (packageId: string) => {
+    const pkg = packages.find((p) => p.id === packageId);
+    if (pkg) setMonthlyCredits(String(pkg.monthlyCredits));
+  };
 
   useEffect(() => {
     if (state.success) {
@@ -80,9 +91,27 @@ export function NewCompanyModal({ onSuccess, open, onOpenChange }: NewCompanyFor
                         {state.errors?.code && <p className="text-sm text-red-500">{state.errors.code[0]}</p>}
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="monthlyScanLimit">Aylık Tarama Limiti</Label>
-                        <Input id="monthlyScanLimit" name="monthlyScanLimit" type="number" defaultValue="100" />
-                        {state.errors?.monthlyScanLimit && <p className="text-sm text-red-500">{state.errors.monthlyScanLimit[0]}</p>}
+                        <Label htmlFor="packageId">Paket</Label>
+                        <select id="packageId" name="packageId" className={selectClass} onChange={(e) => onPackageChange(e.target.value)} defaultValue="">
+                            <option value="">— Paket yok —</option>
+                            {packages.map((p) => (
+                                <option key={p.id} value={p.id}>{p.name} ({p.monthlyCredits} kredi)</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="modelId">Model</Label>
+                        <select id="modelId" name="modelId" className={selectClass} defaultValue="">
+                            <option value="">— Varsayılan model —</option>
+                            {models.map((m) => (
+                                <option key={m.id} value={m.id}>{m.displayName} (×{m.creditMultiplier})</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="monthlyCredits">Aylık Kredi</Label>
+                        <Input id="monthlyCredits" name="monthlyCredits" type="number" value={monthlyCredits} onChange={(e) => setMonthlyCredits(e.target.value)} />
+                        {state.errors?.monthlyCredits && <p className="text-sm text-red-500">{state.errors.monthlyCredits[0]}</p>}
                     </div>
                 </div>
                 {state.message && !state.success && <p className="text-sm text-red-500 mt-4">{state.message}</p>}
