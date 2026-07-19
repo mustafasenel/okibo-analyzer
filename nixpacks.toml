@@ -1,0 +1,13 @@
+# Railway/Nixpacks bu projeyi SADECE bir Next.js (Node) web uygulaması olarak derler.
+# Repo kökündeki Android/Gradle dosyaları (capacitor / TWA: build.gradle, gradlew, ...)
+# yok sayılır; aksi halde Nixpacks projeyi Gradle sanıp yanlış build alıyor.
+providers = ["node"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm run start"
