@@ -28,13 +28,7 @@ export const metadata: Metadata = {
     title: 'Invoice Analyzer',
     description: 'AI-powered invoice analysis application',
   },
-  icons: {
-    shortcut: '/favicon.ico',
-    apple: [
-      { url: '/icons/icon-152x152.png' },
-      { url: '/icons/icon-192x192.png' },
-    ],
-  },
+  // İkonlar Next dosya konvansiyonlarıyla yönetilir: app/icon.png (favicon) + app/apple-icon.png
 };
 
 export default async function RootLayout({
@@ -58,7 +52,6 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Okibo" />
-        <link rel="apple-touch-icon" href="/next.svg" />
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={`${inter.className} bg-gray-100`}>

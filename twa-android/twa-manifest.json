@@ -1,6 +1,6 @@
 {
   "packageId": "app.vercel.okibo_analyzer.twa",
-  "host": "okibo-analyzer.vercel.app",
+  "host": "okibo-analyzer.up.railway.app",
   "name": "Okibo Invoice Analyzer",
   "launcherName": "Okibo",
   "display": "standalone",
@@ -13,8 +13,8 @@
   "backgroundColor": "#FFFFFF",
   "enableNotifications": false,
   "startUrl": "/",
-  "iconUrl": "https://okibo-analyzer.vercel.app/icons/icon-512x512.png",
-  "maskableIconUrl": "https://okibo-analyzer.vercel.app/icons/icon-512x512.png",
+  "iconUrl": "https://okibo-analyzer.up.railway.app/icons/icon-512x512.png",
+  "maskableIconUrl": "https://okibo-analyzer.up.railway.app/icons/icon-512x512.png",
   "splashScreenFadeOutDuration": 200,
   "signingKey": {
     "path": "/Users/senel/Documents/okibo-analyzer/android.keystore",
@@ -24,7 +24,7 @@
   "appVersionCode": 9,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://okibo-analyzer.vercel.app/manifest.json",
+  "webManifestUrl": "https://okibo-analyzer.up.railway.app/manifest.json",
   "fallbackType": "webview",
   "features": {
     "locationDelegation": {
@@ -40,12 +40,12 @@
   "enableSiteSettingsShortcut": false,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
-  "fullScopeUrl": "https://okibo-analyzer.vercel.app/",
+  "fullScopeUrl": "https://okibo-analyzer.up.railway.app/",
   "minSdkVersion": 21,
   "orientation": "portrait-primary",
   "fingerprints": [],
   "additionalTrustedOrigins": [
-    "https://okibo-analyzer.vercel.app"
+    "https://okibo-analyzer.up.railway.app"
   ],
   "retainedBundles": [],
   "protocolHandlers": [],

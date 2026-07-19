@@ -18,7 +18,7 @@
   
     <string-array name="additional_trusted_origins">
     
-      <item>https://https://okibo-analyzer.vercel.app</item>
+      <item>https://https://okibo-analyzer.up.railway.app</item>
     
     </string-array>
   
@@ -56,7 +56,7 @@
         \"relation\": [\"delegate_permission/common.handle_all_urls\"],
         \"target\": {
             \"namespace\": \"web\",
-            \"site\": \"https://okibo-analyzer.vercel.app\"
+            \"site\": \"https://okibo-analyzer.up.railway.app\"
         }
     }]
     
@@ -64,7 +64,7 @@
           \"relation\": [\"delegate_permission/common.handle_all_urls\"],
           \"target\": {
               \"namespace\": \"web\",
-              \"site\": \"https://https://okibo-analyzer.vercel.app\"
+              \"site\": \"https://https://okibo-analyzer.up.railway.app\"
           }
       }]        
     

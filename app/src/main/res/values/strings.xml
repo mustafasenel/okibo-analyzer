@@ -34,7 +34,7 @@
         \"relation\": [\"delegate_permission/common.handle_all_urls\"],
         \"target\": {
             \"namespace\": \"web\",
-            \"site\": \"https://okibo-analyzer.vercel.app\"
+            \"site\": \"https://okibo-analyzer.up.railway.app\"
         }
     }]
     
