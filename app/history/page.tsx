@@ -38,7 +38,8 @@ export default function HistoryPage() {
     try {
       const companyCode = localStorage.getItem('companyCode');
       if (!companyCode) {
-        router.push('/settings');
+        // Firma kodu yoksa CompanyCodeGuard modalı devreye girer; sessizce yönlendirme yapmayız.
+        setInvoices([]);
         return;
       }
 

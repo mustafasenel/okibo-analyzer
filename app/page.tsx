@@ -2,13 +2,15 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import ImageCapture from '@/components/scanner/ImageCapture';
 import { ImagePreviewGrid } from '@/components/scanner/ImagePreviewGrid';
 import ImageLightbox from '@/components/scanner/ImageLightbox'; // Lightbox bileşenini import et
-import { Loader2 } from 'lucide-react';
+import { Loader2, Lock, Settings2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { analyzeImage, uploadImage, normalizePageItems, UploadedImageInfo } from '@/lib/scan';
 import { checkUsageLimit, incrementScanCount } from '@/app/review/actions';
+import { useCompanyCode } from '@/hooks/use-company-code';
 
 // --- TYPES ---
 type ImageFileStatus = 'pending' | 'processing' | 'completed' | 'error';
@@ -23,8 +25,10 @@ interface ImageFileWithStatus {
 
 export default function Home() {
     const t = useTranslations('HomePage');
+    const tGuard = useTranslations('CompanyGuard');
     const router = useRouter();
-    
+    const { canScan, company, status } = useCompanyCode();
+
     const [imageFiles, setImageFiles] = useState<ImageFileWithStatus[]>([]);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisMessage, setAnalysisMessage] = useState('');
@@ -87,8 +91,8 @@ export default function Home() {
         setIsAnalyzing(true);
 
         const companyCode = localStorage.getItem('companyCode');
-        if (!companyCode) {
-            setError("Firma kodu ayarlanmamış. Lütfen ayarlardan kontrol edin.");
+        if (!companyCode || !canScan) {
+            setError(tGuard('lockedDescription'));
             setIsAnalyzing(false);
             return;
         }
@@ -159,9 +163,38 @@ export default function Home() {
     return (
         <div className="p-4 max-w-lg mx-auto">
             <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">{t('title')}</h1>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <ImageCapture onFilesChange={handleFilesChange} disabled={isAnalyzing} />
-            </div>
+
+            {/* Firma kodu doğrulanmışsa firma adı + kalan kredi rozeti */}
+            {canScan && company && (
+                <div className="mb-4 flex items-center justify-between rounded-xl border border-violet-100 bg-violet-50/60 px-4 py-2.5">
+                    <span className="truncate text-sm font-medium text-gray-700">{company.name}</span>
+                    <span className="shrink-0 text-xs font-semibold text-violet-700">
+                        {tGuard('creditsLeft', { count: company.remainingCredits })}
+                    </span>
+                </div>
+            )}
+
+            {canScan ? (
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                    <ImageCapture onFilesChange={handleFilesChange} disabled={isAnalyzing} />
+                </div>
+            ) : (
+                /* Firma kodu yok/geçersiz → tarama alanı kilitli */
+                <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center shadow-sm">
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100">
+                        <Lock className="h-7 w-7 text-gray-400" />
+                    </div>
+                    <h2 className="font-semibold text-gray-800">{tGuard('lockedTitle')}</h2>
+                    <p className="mx-auto mt-1.5 max-w-xs text-sm text-gray-500">{tGuard('lockedDescription')}</p>
+                    <Link
+                        href="/settings"
+                        className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition hover:bg-violet-700 active:scale-[0.98]"
+                    >
+                        <Settings2 className="h-4 w-4" />
+                        {tGuard('goToSettings')}
+                    </Link>
+                </div>
+            )}
             {error && <p className="text-red-600 mt-4 text-center font-semibold bg-red-100 p-3 rounded-md">{error}</p>}
             {imageFiles.length > 0 && (
                 <ImagePreviewGrid 
@@ -176,7 +209,7 @@ export default function Home() {
                 <div className="mt-8">
                     <button
                         onClick={handleSubmit}
-                        disabled={isAnalyzing}
+                        disabled={isAnalyzing || !canScan}
                         className="w-full bg-violet-600 text-white font-bold py-4 px-4 rounded-lg text-lg flex items-center justify-center gap-2 hover:bg-violet-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300"
                     >
                         {isAnalyzing ? (

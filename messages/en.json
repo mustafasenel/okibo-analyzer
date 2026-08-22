@@ -126,5 +126,23 @@
   },
   "PWAInstaller": {
     "installApp": "Install App"
+  },
+  "CompanyGuard": {
+    "missingTitle": "Company Code Required",
+    "missingDescription": "You need to enter your company code in settings before you can start scanning invoices.",
+    "invalidTitle": "Invalid Company Code",
+    "invalidDescription": "The company code was not found in the system. Please check the code and try again.",
+    "inactiveTitle": "Account Inactive",
+    "inactiveDescription": "Your company account is currently inactive. Please contact your administrator.",
+    "goToSettings": "Go to Settings",
+    "hint": "Contact your administrator if you do not know your company code.",
+    "lockedTitle": "Scanning Locked",
+    "lockedDescription": "Enter a valid company code in settings to start scanning invoices.",
+    "creditsLeft": "{count} credits left",
+    "emptyCode": "Please enter a company code.",
+    "offlineError": "Could not verify the code. Check your internet connection and try again.",
+    "verified": "{name} verified",
+    "codeHint": "Enter the company code provided by your administrator.",
+    "verifying": "Verifying..."
   }
 }

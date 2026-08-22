@@ -121,5 +121,23 @@
   },
   "PWAInstaller": {
     "installApp": "App installieren"
+  },
+  "CompanyGuard": {
+    "missingTitle": "Firmencode erforderlich",
+    "missingDescription": "Bitte geben Sie Ihren Firmencode in den Einstellungen ein, bevor Sie Rechnungen scannen.",
+    "invalidTitle": "Ungültiger Firmencode",
+    "invalidDescription": "Der Firmencode wurde im System nicht gefunden. Bitte prüfen Sie den Code und versuchen Sie es erneut.",
+    "inactiveTitle": "Konto inaktiv",
+    "inactiveDescription": "Ihr Firmenkonto ist derzeit inaktiv. Bitte wenden Sie sich an Ihren Administrator.",
+    "goToSettings": "Zu den Einstellungen",
+    "hint": "Wenden Sie sich an Ihren Administrator, wenn Sie Ihren Firmencode nicht kennen.",
+    "lockedTitle": "Scannen gesperrt",
+    "lockedDescription": "Geben Sie in den Einstellungen einen gültigen Firmencode ein, um Rechnungen zu scannen.",
+    "creditsLeft": "{count} Guthaben übrig",
+    "emptyCode": "Bitte geben Sie einen Firmencode ein.",
+    "offlineError": "Code konnte nicht überprüft werden. Prüfen Sie Ihre Internetverbindung.",
+    "verified": "{name} bestätigt",
+    "codeHint": "Geben Sie den Firmencode Ihres Administrators ein.",
+    "verifying": "Wird überprüft..."
   }
 }

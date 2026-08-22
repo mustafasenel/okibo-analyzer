@@ -130,5 +130,23 @@
   },
   "PWAInstaller": {
     "installApp": "Uygulamayı Yükle"
+  },
+  "CompanyGuard": {
+    "missingTitle": "Firma Kodu Gerekli",
+    "missingDescription": "Fatura taramaya başlamadan önce ayarlardan firma kodunuzu girmelisiniz.",
+    "invalidTitle": "Geçersiz Firma Kodu",
+    "invalidDescription": "Girilen firma kodu sistemde bulunamadı. Lütfen kodu kontrol edip tekrar deneyin.",
+    "inactiveTitle": "Hesap Pasif",
+    "inactiveDescription": "Firma hesabınız şu anda pasif durumda. Lütfen yöneticinizle iletişime geçin.",
+    "goToSettings": "Ayarlara Git",
+    "hint": "Firma kodunuzu bilmiyorsanız yöneticinizle iletişime geçin.",
+    "lockedTitle": "Tarama Kilitli",
+    "lockedDescription": "Fatura taramak için önce ayarlardan geçerli bir firma kodu girin.",
+    "creditsLeft": "{count} kredi kaldı",
+    "emptyCode": "Lütfen bir firma kodu girin.",
+    "offlineError": "Kod doğrulanamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.",
+    "verified": "{name} doğrulandı",
+    "codeHint": "Yöneticinizden aldığınız firma kodunu girin.",
+    "verifying": "Doğrulanıyor..."
   }
 }

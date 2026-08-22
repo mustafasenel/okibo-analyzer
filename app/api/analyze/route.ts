@@ -71,6 +71,16 @@ export async function POST(req: Request) {
             return new Response(JSON.stringify({ error: "No image provided" }), { status: 400 });
         }
 
+        // Sunucu yapılandırması eksikse net hata ver (aksi halde OpenRouter 401 döner ve
+        // istemciye anlamsız bir 500 olarak yansır).
+        if (!process.env.OPENROUTER_API_KEY) {
+            console.error("OPENROUTER_API_KEY tanımlı değil — sunucu ortam değişkenlerini kontrol edin.");
+            return new Response(
+                JSON.stringify({ error: "Sunucu yapılandırması eksik: analiz servisi anahtarı tanımlı değil. Lütfen yöneticiyle iletişime geçin." }),
+                { status: 503, headers: { "Content-Type": "application/json" } }
+            );
+        }
+
         // Model seçimi sunucu tarafında, firmaya atanmış modelden çözülür (client belirlemez).
         let model = DEFAULT_OPENROUTER_MODEL;
         if (companyCode) {

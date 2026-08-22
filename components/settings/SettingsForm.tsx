@@ -4,17 +4,21 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import Link from 'next/link';
-import { LogIn, Building2, TrendingUp, Calendar } from 'lucide-react';
+import { LogIn, Building2, TrendingUp, Calendar, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { saveCompanyCode, verifyCompanyCode } from '@/hooks/use-company-code';
 
 const locales = ['tr', 'en', 'de'];
 
 export default function SettingsForm() {
     const t = useTranslations('SettingsPage');
+    const tGuard = useTranslations('CompanyGuard');
     const { locale, setLocale } = useLanguage();
     const [selectedLanguage, setSelectedLanguage] = useState(locale);
     const [companyCode, setCompanyCode] = useState('');
     const [message, setMessage] = useState('');
+    const [saveError, setSaveError] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
     const [companyStats, setCompanyStats] = useState<any>(null);
     const [isLoadingStats, setIsLoadingStats] = useState(false);
 
@@ -67,10 +71,33 @@ export default function SettingsForm() {
         setTimeout(() => setMessage(''), 3000);
     };
 
-    const handleSave = () => {
-        localStorage.setItem('companyCode', companyCode);
+    const handleSave = async () => {
+        const code = companyCode.trim();
+        setMessage('');
+        setSaveError('');
+
+        if (!code) {
+            setSaveError(tGuard('emptyCode'));
+            return;
+        }
+
+        // Kodu kaydetmeden önce sunucuda doğrula — geçersiz kod kaydedilmesin.
+        setIsSaving(true);
+        const result = await verifyCompanyCode(code);
+        setIsSaving(false);
+
+        if (!result.ok) {
+            if (result.reason === 'invalid') setSaveError(tGuard('invalidDescription'));
+            else if (result.reason === 'inactive') setSaveError(tGuard('inactiveDescription'));
+            else setSaveError(tGuard('offlineError'));
+            setCompanyStats(null);
+            return;
+        }
+
+        saveCompanyCode(code);       // localStorage + global bildirim
+        setCompanyCode(code);
+        setCompanyStats(result.company);
         setMessage(t('settingsSaved'));
-        fetchCompanyStats(companyCode);
         setTimeout(() => setMessage(''), 3000);
     };
 
@@ -107,10 +134,27 @@ export default function SettingsForm() {
                             id="companyCode"
                             name="companyCode"
                             value={companyCode}
-                            onChange={(e) => setCompanyCode(e.target.value)}
-                            className="w-full p-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                            onChange={(e) => { setCompanyCode(e.target.value); setSaveError(''); }}
+                            className={`w-full p-3 bg-white text-gray-900 border rounded-lg focus:ring-2 focus:border-transparent ${
+                                saveError
+                                    ? 'border-red-300 focus:ring-red-500'
+                                    : 'border-gray-300 focus:ring-violet-500'
+                            }`}
                             placeholder="ÖR: OKIBO01"
                         />
+                        {saveError ? (
+                            <p className="mt-2 flex items-start gap-1.5 text-sm text-red-600">
+                                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                                <span>{saveError}</span>
+                            </p>
+                        ) : companyStats ? (
+                            <p className="mt-2 flex items-center gap-1.5 text-sm text-green-600">
+                                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                                <span>{tGuard('verified', { name: companyStats.name })}</span>
+                            </p>
+                        ) : (
+                            <p className="mt-2 text-xs text-gray-500">{tGuard('codeHint')}</p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -187,11 +231,13 @@ export default function SettingsForm() {
                 </div>
             )}
 
-            <button 
-                onClick={handleSave} 
-                className="w-full bg-violet-600 text-white font-bold py-3 rounded-lg hover:bg-violet-700 transition-colors"
+            <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-violet-600 py-3 font-bold text-white transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:bg-gray-400"
             >
-                {t('saveSettings')}
+                {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isSaving ? tGuard('verifying') : t('saveSettings')}
             </button>
             {message && (
                 <p className="text-green-600 mt-4 text-center font-medium bg-green-50 p-3 rounded-lg">

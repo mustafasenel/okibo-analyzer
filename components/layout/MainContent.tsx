@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import BottomNavBar from '@/components/layout/BottomNavBar';
+import CompanyCodeGuard from '@/components/layout/CompanyCodeGuard';
 
 export default function MainContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -16,12 +17,16 @@ export default function MainContent({ children }: { children: React.ReactNode })
         {children}
       </main>
       {!isAdminRoute && (
-        <div className="fixed bottom-0 left-0 right-0 z-50" style={{ 
-          bottom: '0px',
-          marginBottom: '0px'
-        }}>
-          <BottomNavBar />
-        </div>
+        <>
+          <div className="fixed bottom-0 left-0 right-0 z-50" style={{
+            bottom: '0px',
+            marginBottom: '0px'
+          }}>
+            <BottomNavBar />
+          </div>
+          {/* Firma kodu yoksa/geçersizse uygulamayı kilitleyip ayarlara yönlendirir */}
+          <CompanyCodeGuard />
+        </>
       )}
     </div>
   );
