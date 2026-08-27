@@ -1,256 +1,258 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
-import { useLanguage } from '@/components/providers/LanguageProvider';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { LogIn, Building2, TrendingUp, Calendar, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import {
+    Loader2, ShieldCheck, AlertCircle, ChevronRight, LogIn, LogOut,
+    Languages, LifeBuoy, Pencil,
+} from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { saveCompanyCode, verifyCompanyCode } from '@/hooks/use-company-code';
+import {
+    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+    AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useLanguage } from '@/components/providers/LanguageProvider';
+import { useCompanyCode, saveCompanyCode, clearCompanyCode, verifyCompanyCode } from '@/hooks/use-company-code';
+import UsageDetail from '@/components/settings/UsageDetail';
 
-const locales = ['tr', 'en', 'de'];
+const LOCALES = ['tr', 'en', 'de'] as const;
+const LOCALE_NAMES: Record<string, string> = { tr: 'Türkçe', en: 'English', de: 'Deutsch' };
+const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? '0.1.0';
+const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
 
+/** Ayarlar — form değil durum ekranı. Tek gerçek girdi firma kodu. */
 export default function SettingsForm() {
-    const t = useTranslations('SettingsPage');
-    const tGuard = useTranslations('CompanyGuard');
+    const t = useTranslations('Settings');
     const { locale, setLocale } = useLanguage();
-    const [selectedLanguage, setSelectedLanguage] = useState(locale);
-    const [companyCode, setCompanyCode] = useState('');
-    const [message, setMessage] = useState('');
-    const [saveError, setSaveError] = useState('');
-    const [isSaving, setIsSaving] = useState(false);
-    const [companyStats, setCompanyStats] = useState<any>(null);
-    const [isLoadingStats, setIsLoadingStats] = useState(false);
+    const { status, company, recheck } = useCompanyCode();
 
-    const languageNames = {
-        tr: 'Türkçe',
-        en: 'English',
-        de: 'Deutsch'
-    };
+    const [draftCode, setDraftCode] = useState('');
+    const [editing, setEditing] = useState(false);      // bağlıyken kodu değiştirme modu
+    const [confirmChange, setConfirmChange] = useState(false);
+    const [connecting, setConnecting] = useState(false);
+    const [error, setError] = useState('');
+    const [showUsage, setShowUsage] = useState(false);
+    const [lastSync, setLastSync] = useState<Date | null>(null);
+
+    const connected = status === 'valid' && !!company;
 
     useEffect(() => {
-        // Dil ayarını context'ten senkronize et
-        setSelectedLanguage(locale);
+        if (company) setLastSync(new Date());
+    }, [company]);
 
-        // Firma kodunu yükle
-        const savedCode = localStorage.getItem('companyCode');
-        if (savedCode) {
-            setCompanyCode(savedCode);
-            fetchCompanyStats(savedCode);
-        }
-    }, [locale]);
-
-    const fetchCompanyStats = async (code: string) => {
-        if (!code) {
-            setCompanyStats(null);
-            return;
-        }
-        
-        setIsLoadingStats(true);
-        try {
-            const response = await fetch(`/api/company/stats?code=${code}`);
-            const data = await response.json();
-            
-            if (data.success) {
-                setCompanyStats(data.company);
-            } else {
-                setCompanyStats(null);
-            }
-        } catch (error) {
-            console.error('Error fetching company stats:', error);
-            setCompanyStats(null);
-        } finally {
-            setIsLoadingStats(false);
-        }
-    };
-
-    const handleLanguageChange = async (newLanguage: string) => {
-        setSelectedLanguage(newLanguage);
-        setMessage(t('languageChanged'));
-        await setLocale(newLanguage);
-        setTimeout(() => setMessage(''), 3000);
-    };
-
-    const handleSave = async () => {
-        const code = companyCode.trim();
-        setMessage('');
-        setSaveError('');
-
-        if (!code) {
-            setSaveError(tGuard('emptyCode'));
-            return;
-        }
-
-        // Kodu kaydetmeden önce sunucuda doğrula — geçersiz kod kaydedilmesin.
-        setIsSaving(true);
+    const connect = async () => {
+        const code = draftCode.trim();
+        if (!code) { setError(t('emptyCode')); return; }
+        setError('');
+        setConnecting(true);
         const result = await verifyCompanyCode(code);
-        setIsSaving(false);
-
+        setConnecting(false);
         if (!result.ok) {
-            if (result.reason === 'invalid') setSaveError(tGuard('invalidDescription'));
-            else if (result.reason === 'inactive') setSaveError(tGuard('inactiveDescription'));
-            else setSaveError(tGuard('offlineError'));
-            setCompanyStats(null);
+            setError(result.reason === 'inactive' ? t('inactiveCode') : result.reason === 'offline' ? t('offlineError') : t('invalidCode'));
             return;
         }
-
-        saveCompanyCode(code);       // localStorage + global bildirim
-        setCompanyCode(code);
-        setCompanyStats(result.company);
-        setMessage(t('settingsSaved'));
-        setTimeout(() => setMessage(''), 3000);
+        saveCompanyCode(code);   // satır bazlı otomatik kayıt — ayrı "kaydet" yok
+        setEditing(false);
+        setDraftCode('');
+        void recheck();
     };
+
+    const disconnect = () => {
+        clearCompanyCode();
+        setDraftCode('');
+        setEditing(false);
+    };
+
+    // ── Bağlı değil / kod değiştiriliyor → kurulum ekranı ────────────────
+    if (!connected || editing) {
+        return (
+            <div className="mx-auto w-full max-w-lg px-4 pb-28 pt-5">
+                <h1 className="text-[22px] font-bold tracking-[-.02em] text-[var(--ok-ink)]">{t('connectTitle')}</h1>
+                <p className="mt-1 text-[13px] text-[var(--ok-muted)]">{t('connectSubtitle')}</p>
+
+                <label className="ok-mono mb-2 mt-6 block text-[10px] text-[var(--ok-muted)]">{t('companyCode')}</label>
+                <input
+                    value={draftCode}
+                    onChange={(e) => { setDraftCode(e.target.value.toUpperCase()); setError(''); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') void connect(); }}
+                    autoCapitalize="characters"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    placeholder="OKIBO01"
+                    className={`w-full rounded-xl border-[1.5px] bg-white px-4 py-4 font-mono text-[22px] font-bold tracking-[.08em] text-[var(--ok-ink)] outline-none transition ${
+                        error ? 'border-[var(--ok-danger)]' : 'border-[var(--ok-purple)] focus:ring-4 focus:ring-[var(--ok-purple)]/15'
+                    }`}
+                />
+                <p className="mt-2 text-[12px] leading-relaxed text-[var(--ok-muted)]">{t('codeHint')}</p>
+
+                {connecting && (
+                    <p className="mt-3 flex items-center gap-2 text-[12.5px] font-medium text-[var(--ok-purple)]">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        {t('verifying')}
+                    </p>
+                )}
+                {error && (
+                    <p className="mt-3 flex items-start gap-1.5 text-[12.5px] font-medium text-[var(--ok-danger)]">
+                        <AlertCircle className="mt-px h-3.5 w-3.5 shrink-0" />
+                        {error}
+                    </p>
+                )}
+
+                <div className="mt-5 rounded-xl border border-[var(--ok-line)] bg-white p-3.5">
+                    <p className="text-[12.5px] font-bold text-[var(--ok-ink)]">{t('whatIsCodeTitle')}</p>
+                    <p className="mt-1 text-[12px] leading-relaxed text-[var(--ok-muted)]">{t('whatIsCodeBody')}</p>
+                </div>
+
+                <button
+                    onClick={connect}
+                    disabled={connecting}
+                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--ok-purple)] py-4 text-[15px] font-bold text-white transition active:scale-[.99] disabled:opacity-60"
+                >
+                    {connecting && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {t('connect')}
+                </button>
+
+                {editing && (
+                    <button onClick={() => { setEditing(false); setError(''); }}
+                        className="mt-2.5 w-full rounded-xl border border-[var(--ok-line)] py-3 text-[14px] font-semibold text-[var(--ok-body)]">
+                        {t('cancel')}
+                    </button>
+                )}
+            </div>
+        );
+    }
+
+    // ── Bağlı → durum ekranı ─────────────────────────────────────────────
+    const used = company.usedCredits;
+    const total = company.monthlyCredits;
+    const percent = total > 0 ? Math.round((used / total) * 100) : 0;
+    const warning = percent >= 80;
+    const resetDate = new Date(company.lastResetDate);
+    const nextReset = new Date(resetDate.getFullYear(), resetDate.getMonth() + 1, resetDate.getDate());
 
     return (
-        <div className="space-y-8 relative">
-            {/* Dil Seçici */}
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('language')}
-                </label>
-                <Select value={selectedLanguage} onValueChange={handleLanguageChange}>
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Dil seçin" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {locales.map((locale) => (
-                            <SelectItem key={locale} value={locale}>
-                                {languageNames[locale as keyof typeof languageNames]}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-            {/* Uygulama Ayarları */}
-            <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('appSettings')}</h3>
-                <div className="space-y-4">
-                    <div>
-                        <label htmlFor="companyCode" className="block text-sm font-medium text-gray-700 mb-2">
-                            {t('companyCode')}
-                        </label>
-                        <input
-                            type="text"
-                            id="companyCode"
-                            name="companyCode"
-                            value={companyCode}
-                            onChange={(e) => { setCompanyCode(e.target.value); setSaveError(''); }}
-                            className={`w-full p-3 bg-white text-gray-900 border rounded-lg focus:ring-2 focus:border-transparent ${
-                                saveError
-                                    ? 'border-red-300 focus:ring-red-500'
-                                    : 'border-gray-300 focus:ring-violet-500'
-                            }`}
-                            placeholder="ÖR: OKIBO01"
-                        />
-                        {saveError ? (
-                            <p className="mt-2 flex items-start gap-1.5 text-sm text-red-600">
-                                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                                <span>{saveError}</span>
-                            </p>
-                        ) : companyStats ? (
-                            <p className="mt-2 flex items-center gap-1.5 text-sm text-green-600">
-                                <CheckCircle2 className="h-4 w-4 shrink-0" />
-                                <span>{tGuard('verified', { name: companyStats.name })}</span>
-                            </p>
-                        ) : (
-                            <p className="mt-2 text-xs text-gray-500">{tGuard('codeHint')}</p>
-                        )}
-                    </div>
-                </div>
-            </div>
+        <>
+            <div className="mx-auto w-full max-w-lg px-4 pb-28 pt-5">
+                <h1 className="mb-4 text-[22px] font-bold tracking-[-.02em] text-[var(--ok-ink)]">{t('title')}</h1>
 
-            {/* Firma İstatistikleri */}
-            {companyStats && (
-                <div className="bg-gradient-to-br from-violet-50 to-purple-50 p-6 rounded-xl border border-violet-200 shadow-sm">
-                    <div className="flex items-center gap-2 mb-4">
-                        <Building2 className="h-5 w-5 text-violet-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">{companyStats.name}</h3>
+                {/* Firma kodu — en üstte, mor çerçeveli */}
+                <section className="rounded-xl border-[1.5px] border-[var(--ok-purple)] bg-white p-4">
+                    <div className="flex items-center justify-between">
+                        <span className="ok-mono text-[10px] text-[var(--ok-muted)]">{t('companyCode')}</span>
+                        <span className="ok-mono flex items-center gap-1 rounded-[5px] bg-[var(--ok-green-tint)] px-1.5 py-0.5 text-[9px] font-bold text-[var(--ok-green)]">
+                            <ShieldCheck className="h-3 w-3" />
+                            {t('connected')}
+                        </span>
                     </div>
-                    
-                    <div className="space-y-4">
-                        {/* Kullanım İstatistiği */}
-                        <div className="bg-white p-4 rounded-lg">
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                    <TrendingUp className="h-4 w-4 text-violet-600" />
-                                    <span className="text-sm font-medium text-gray-700">Aylık Kullanım</span>
-                                </div>
-                                <span className="text-sm font-bold text-gray-900">
-                                    {companyStats.currentMonthUsage} / {companyStats.monthlyLimit}
-                                </span>
-                            </div>
-                            
-                            {/* İlerleme Çubuğu */}
-                            <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                                <div 
-                                    className={`h-2.5 rounded-full transition-all duration-500 ${
-                                        companyStats.usagePercentage >= 90 
-                                            ? 'bg-red-600' 
-                                            : companyStats.usagePercentage >= 70 
-                                            ? 'bg-yellow-500' 
-                                            : 'bg-green-500'
-                                    }`}
-                                    style={{ width: `${Math.min(companyStats.usagePercentage, 100)}%` }}
-                                />
-                            </div>
-                            
-                            <div className="flex items-center justify-between mt-2">
-                                <span className="text-xs text-gray-500">
-                                    Kalan: {companyStats.remainingScans} tarama
-                                </span>
-                                <span className={`text-xs font-semibold ${
-                                    companyStats.usagePercentage >= 90 
-                                        ? 'text-red-600' 
-                                        : companyStats.usagePercentage >= 70 
-                                        ? 'text-yellow-600' 
-                                        : 'text-green-600'
-                                }`}>
-                                    %{companyStats.usagePercentage}
-                                </span>
-                            </div>
+                    <p className="mt-1.5 font-mono text-[24px] font-bold tracking-[.08em] text-[var(--ok-ink)]">{company.code}</p>
+                    <p className="mt-1 text-[13.5px] font-semibold text-[var(--ok-ink)]">{company.name}</p>
+                    <p className="mt-2 text-[11.5px] leading-relaxed text-[var(--ok-muted)]">{t('codeWarning')}</p>
+                    <button onClick={() => setConfirmChange(true)}
+                        className="mt-3 flex items-center gap-1.5 text-[12.5px] font-bold text-[var(--ok-purple)]">
+                        <Pencil className="h-3.5 w-3.5" />
+                        {t('changeCode')}
+                    </button>
+                </section>
+
+                {/* Kota — kodun hemen altında, mor kimlikte */}
+                <button onClick={() => setShowUsage(true)}
+                    className={`mt-3 w-full rounded-xl border bg-white p-4 text-left ${warning ? 'border-[rgba(201,138,0,.5)]' : 'border-[var(--ok-line)]'}`}>
+                    <div className="flex items-center justify-between">
+                        <span className={`text-[13.5px] font-bold ${warning ? 'text-[#5C4200]' : 'text-[var(--ok-ink)]'}`}>
+                            {t('quotaTitle', { count: company.remainingScans })}
+                        </span>
+                        <span className="flex items-center gap-0.5 text-[12px] font-semibold text-[var(--ok-purple)]">
+                            {t('detail')} <ChevronRight className="h-3.5 w-3.5" />
+                        </span>
+                    </div>
+                    <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-[var(--ok-surface)]">
+                        <div className={`h-full rounded-full ${warning ? 'bg-[#C98A00]' : 'bg-[var(--ok-purple)]'}`}
+                            style={{ width: `${Math.min(100, Math.max(2, percent))}%` }} />
+                    </div>
+                    <div className="mt-1.5 flex items-center justify-between text-[11.5px] text-[var(--ok-muted)]">
+                        <span className="tabular-nums">{t('quotaUsage', { used, total })}</span>
+                        <span>{t('renewsOn', { date: nextReset.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }) })}</span>
+                    </div>
+                </button>
+
+                {/* Uygulama */}
+                <h2 className="ok-mono mb-2 mt-6 px-0.5 text-[10px] text-[var(--ok-muted)]">{t('appSection')}</h2>
+                <div className="overflow-hidden rounded-xl border border-[var(--ok-line)] bg-white">
+                    <div className="flex items-center justify-between gap-3 border-b border-[var(--ok-line)] px-3.5 py-3">
+                        <span className="flex items-center gap-2.5 text-[13.5px] font-medium text-[var(--ok-ink)]">
+                            <Languages className="h-4 w-4 text-[var(--ok-muted)]" />
+                            {t('language')}
+                        </span>
+                        {/* Dil anında uygulanır — ayrı kaydet yok */}
+                        <Select value={locale} onValueChange={(v) => void setLocale(v)}>
+                            <SelectTrigger className="h-8 w-[130px] border-0 bg-transparent text-[13px] font-semibold shadow-none">
+                                <SelectValue placeholder={LOCALE_NAMES[locale]} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {LOCALES.map(l => <SelectItem key={l} value={l}>{LOCALE_NAMES[l]}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {SUPPORT_EMAIL ? (
+                        <a href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`Okibo · ${company.code}`)}`}
+                            className="flex items-center justify-between px-3.5 py-3">
+                            <span className="flex items-center gap-2.5 text-[13.5px] font-medium text-[var(--ok-ink)]">
+                                <LifeBuoy className="h-4 w-4 text-[var(--ok-muted)]" />
+                                {t('support')}
+                            </span>
+                            <ChevronRight className="h-4 w-4 text-[var(--ok-faint)]" />
+                        </a>
+                    ) : (
+                        <div className="flex items-start gap-2.5 px-3.5 py-3">
+                            <LifeBuoy className="mt-px h-4 w-4 shrink-0 text-[var(--ok-muted)]" />
+                            <span className="text-[12.5px] leading-snug text-[var(--ok-muted)]">{t('supportFallback')}</span>
                         </div>
-                        
-                        {/* Son Sıfırlama Tarihi */}
-                        {companyStats.lastResetDate && (
-                            <div className="flex items-center gap-2 text-xs text-gray-600">
-                                <Calendar className="h-3.5 w-3.5" />
-                                <span>
-                                    Son sıfırlama: {new Date(companyStats.lastResetDate).toLocaleDateString('tr-TR')}
-                                </span>
-                            </div>
-                        )}
-                    </div>
+                    )}
                 </div>
-            )}
 
-            {isLoadingStats && (
-                <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                    <div className="h-8 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-2 bg-gray-200 rounded"></div>
-                </div>
-            )}
-
-            <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-violet-600 py-3 font-bold text-white transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-            >
-                {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isSaving ? tGuard('verifying') : t('saveSettings')}
-            </button>
-            {message && (
-                <p className="text-green-600 mt-4 text-center font-medium bg-green-50 p-3 rounded-lg">
-                    {message}
-                </p>
-            )}
-            <div className="absolute bottom-0 right-0">
-                <Link
-                    href="/admin/login"
-                    className="inline-flex items-center p-2 text-xs text-gray-500 hover:text-gray-800">
-                    <LogIn className="h-4 w-4" />
+                <Link href="/admin/login"
+                    className="mt-4 flex items-center justify-center gap-1.5 text-[12px] font-medium text-[var(--ok-muted-2)]">
+                    <LogIn className="h-3.5 w-3.5" />
+                    {t('adminPanel')}
                 </Link>
             </div>
-        </div>
+
+            {/* Çıkış ve sürüm alt barda sabit */}
+            <div className="fixed bottom-16 left-0 right-0 z-30 border-t border-[var(--ok-line)] bg-white px-4 pb-2 pt-2.5">
+                <div className="mx-auto w-full max-w-lg">
+                    <button onClick={disconnect}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--ok-line)] py-3 text-[14px] font-semibold text-[var(--ok-danger)]">
+                        <LogOut className="h-4 w-4" />
+                        {t('logout')}
+                    </button>
+                    <p className="ok-mono mt-2 text-center text-[9px] text-[var(--ok-faint)]">
+                        {t('versionLine', {
+                            version: APP_VERSION,
+                            time: lastSync ? lastSync.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '—',
+                        })}
+                    </p>
+                </div>
+            </div>
+
+            {showUsage && <UsageDetail code={company.code} onClose={() => setShowUsage(false)} />}
+
+            {/* Kod değişikliği onaydan geçer */}
+            <AlertDialog open={confirmChange} onOpenChange={setConfirmChange}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t('changeConfirmTitle')}</AlertDialogTitle>
+                        <AlertDialogDescription>{t('changeConfirmBody')}</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => { setDraftCode(company.code); setEditing(true); }}>
+                            {t('changeCode')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     );
 }
