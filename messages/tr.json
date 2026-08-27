@@ -40,18 +40,34 @@
     "uploadHint": "PDF, JPG"
   },
   "ReviewPage": {
-    "title": "Veriyi İncele ve Onayla",
+    "title": "Fatura",
     "confirmButton": "Onayla ve Kaydet",
     "discardButton": "Vazgeç",
     "saving": "Kaydediliyor...",
-    "loading": "Analiz sonuçları yükleniyor...",
+    "loading": "Fatura yükleniyor...",
     "companyCodeTooltip": "Lütfen kaydetmeden önce Ayarlar'dan bir Firma Kodu belirleyin.",
     "saveSuccessTitle": "Fatura Okundu",
     "saveSuccessDescription": "Faturanız başarıyla okundu. Okibo masaüstü uygulamasından işleme devam edebilirsiniz.",
     "saveSuccessConfirm": "Anladım",
     "editTitle": "Fatura Görüntüle",
     "updateButton": "Güncelle",
-    "updateSuccessMessage": "Fatura başarıyla güncellendi."
+    "updateSuccessMessage": "Fatura başarıyla güncellendi.",
+    "document": "Belge",
+    "pageCount": "{count} sayfa",
+    "mismatchTitle": "Toplam eşleşmiyor",
+    "mismatchBody": "Satırların toplamı <b>{line}</b>, faturanın yazdığı net tutar <b>{stated}</b>. Fark {diff}.",
+    "inspectDifference": "Farkı incele",
+    "rescanPage": "Sayfayı yeniden çek",
+    "rescanError": "Sayfa yeniden taranırken bir hata oluştu.",
+    "suspiciousNote": "Şüpheli hücre sarı işaretli. Düzeltmeyi masaüstünde yapacaksın.",
+    "itemsLabel": "KALEMLER · {count} SATIR",
+    "pageOf": "Sayfa {current}/{total}",
+    "lineTotal": "Satır toplamı · {count} satır",
+    "confirmSave": "Onayla ve kaydet",
+    "fixOnDesktop": "{count} hücreyi masaüstünde düzelt",
+    "backToHistory": "Geçmişe dön",
+    "noCompanyCode": "Firma kodu ayarlanmamış.",
+    "saveError": "Kaydetme sırasında bir hata oluştu."
   },
   "HistoryPage": {
     "title": "Fatura Geçmişi",
@@ -214,5 +230,47 @@
     "cancelConfirmText": "Analiz iptal edilsin mi? Şu ana kadar okunanlar kaybolur, kredi harcanmaz.",
     "cancelKeep": "Devam et",
     "cancelConfirm": "İptal et"
+  },
+  "ReviewTable": {
+    "product": "ÜRÜN",
+    "boxes": "KOLİ",
+    "qty": "MİK.",
+    "price": "FİYAT",
+    "net": "NET",
+    "noName": "İsimsiz ürün"
+  },
+  "CellDetail": {
+    "close": "Kapat",
+    "location": "Sayfa {page} · satır {row} · şüpheli hücre",
+    "reason": {
+      "nettoMismatch": "Hesaplanan net tutmuyor",
+      "quantityMismatch": "Koli × içerik miktarı vermiyor",
+      "missingValue": "Değer okunamadı",
+      "priceOutlier": "Fiyat aykırı görünüyor"
+    },
+    "noImage": "Bu sayfanın görseli yok",
+    "zoomHint": "Yakınlaştırmak için çift dokun veya iki parmakla aç.",
+    "readValue": "Okunan değer",
+    "noEditNote": "Mobilde alan düzenlenmez. Görüntüyle uyuşmuyorsa ya sayfayı yeniden çek ya da masaüstü düzeltme kuyruğuna işaretle.",
+    "flagForDesktop": "Masaüstünde düzeltilecek olarak işaretle",
+    "flagged": "İşaretlendi · kaldırmak için dokun",
+    "accept": "Doğru, geç"
+  },
+  "SavedScreen": {
+    "subtitle": "{invoiceNo} · {items} kalem · {pages} sayfa",
+    "saved": "Kaydedildi. Masaüstü uygulamasından işleme devam edebilirsin.",
+    "savedWithFlags": "Kaydedildi. {count} hücre masaüstü düzeltme kuyruğunda bekliyor.",
+    "amounts": "Tutarlar",
+    "net": "Net",
+    "vat": "KDV",
+    "calculatedFromLines": "Satırlardan hesaplanan",
+    "hasDifference": "fark var",
+    "gross": "Brüt toplam",
+    "invoiceInfo": "Fatura bilgisi",
+    "statItems": "kalem",
+    "statDesktop": "masaüstünde",
+    "statCredits": "kredi",
+    "newScan": "Yeni fatura tara",
+    "goHistory": "Geçmişe git"
   }
 }

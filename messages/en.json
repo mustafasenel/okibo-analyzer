@@ -40,18 +40,34 @@
     "uploadHint": "PDF, JPG"
   },
   "ReviewPage": {
-    "title": "Review and Confirm Data",
+    "title": "Invoice",
     "confirmButton": "Confirm & Save",
     "discardButton": "Discard",
     "saving": "Saving...",
-    "loading": "Loading analysis results...",
+    "loading": "Loading invoice...",
     "companyCodeTooltip": "Please set a Company Code in Settings before saving.",
     "saveSuccessTitle": "Invoice Saved",
     "saveSuccessDescription": "Your invoice has been successfully saved. You can continue the process from the Okibo desktop application.",
     "saveSuccessConfirm": "Got it",
     "editTitle": "View Invoice",
     "updateButton": "Update",
-    "updateSuccessMessage": "Invoice successfully updated."
+    "updateSuccessMessage": "Invoice successfully updated.",
+    "document": "Document",
+    "pageCount": "{count} pages",
+    "mismatchTitle": "Totals do not match",
+    "mismatchBody": "Line total is <b>{line}</b>, the invoice states <b>{stated}</b>. Difference {diff}.",
+    "inspectDifference": "Inspect difference",
+    "rescanPage": "Re-capture page",
+    "rescanError": "Something went wrong while re-capturing the page.",
+    "suspiciousNote": "Suspicious cells are highlighted. Corrections are made on desktop.",
+    "itemsLabel": "ITEMS · {count} ROWS",
+    "pageOf": "Page {current}/{total}",
+    "lineTotal": "Line total · {count} rows",
+    "confirmSave": "Confirm and save",
+    "fixOnDesktop": "Fix {count} cells on desktop",
+    "backToHistory": "Back to history",
+    "noCompanyCode": "No company code set.",
+    "saveError": "Something went wrong while saving."
   },
   "HistoryPage": {
     "title": "Invoice History",
@@ -214,5 +230,47 @@
     "cancelConfirmText": "Cancel the analysis? Pages read so far are lost and no credits are charged.",
     "cancelKeep": "Keep going",
     "cancelConfirm": "Cancel"
+  },
+  "ReviewTable": {
+    "product": "PRODUCT",
+    "boxes": "BOX",
+    "qty": "QTY",
+    "price": "PRICE",
+    "net": "NET",
+    "noName": "Unnamed product"
+  },
+  "CellDetail": {
+    "close": "Close",
+    "location": "Page {page} · row {row} · suspicious cell",
+    "reason": {
+      "nettoMismatch": "Calculated net does not match",
+      "quantityMismatch": "Box × content does not equal quantity",
+      "missingValue": "Value could not be read",
+      "priceOutlier": "Price looks like an outlier"
+    },
+    "noImage": "No image for this page",
+    "zoomHint": "Double tap or pinch to zoom.",
+    "readValue": "Value read",
+    "noEditNote": "Fields are not edited on mobile. If it does not match the image, re-capture the page or flag it for the desktop correction queue.",
+    "flagForDesktop": "Flag for desktop correction",
+    "flagged": "Flagged · tap to remove",
+    "accept": "Correct, skip"
+  },
+  "SavedScreen": {
+    "subtitle": "{invoiceNo} · {items} items · {pages} pages",
+    "saved": "Saved. You can continue from the desktop app.",
+    "savedWithFlags": "Saved. {count} cells are waiting in the desktop correction queue.",
+    "amounts": "Amounts",
+    "net": "Net",
+    "vat": "VAT",
+    "calculatedFromLines": "Calculated from lines",
+    "hasDifference": "difference",
+    "gross": "Gross total",
+    "invoiceInfo": "Invoice info",
+    "statItems": "items",
+    "statDesktop": "on desktop",
+    "statCredits": "credits",
+    "newScan": "Scan new invoice",
+    "goHistory": "Go to history"
   }
 }

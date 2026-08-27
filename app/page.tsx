@@ -53,7 +53,7 @@ export default function Home() {
 
     const multiplier = company?.creditMultiplier && company.creditMultiplier > 0 ? company.creditMultiplier : 1;
     const creditCost = pages.length * multiplier;
-    const estimatedSeconds = pages.length * SECONDS_PER_PAGE;
+    const estimatedSeconds = Math.max(SECONDS_PER_PAGE, Math.ceil((pages.length * SECONDS_PER_PAGE) / 2));
 
     const patch = (id: string, data: Partial<ScanPage>) =>
         setPages(prev => prev.map(p => (p.id === id ? { ...p, ...data } : p)));
@@ -170,7 +170,8 @@ export default function Home() {
             const avg = durations.length > 0
                 ? durations.reduce((a, b) => a + b, 0) / durations.length
                 : SECONDS_PER_PAGE * 1000;
-            setEtaSeconds(remaining > 0 ? Math.ceil((avg * remaining) / 1000) : null);
+            // Aynı anda 2 sayfa okunduğu için kalan süre yarıya iner
+            setEtaSeconds(remaining > 0 ? Math.ceil((avg * remaining) / 2000) : null);
         }
     };
 
@@ -193,12 +194,20 @@ export default function Home() {
         analysisListRef.current = list;
         outcomesRef.current = new Map();
 
+        // Aynı anda en fazla 2 sayfa okunur: "sırada" durumu ve gerçek ETA korunur,
+        // toplam süre tek tek okumaya göre yarıya iner.
         const durations: number[] = [];
-        try {
-            for (const page of list) {
+        const queue = [...list];
+        const worker = async () => {
+            while (queue.length > 0) {
                 if (cancelRef.current) return;
+                const page = queue.shift();
+                if (!page) return;
                 await readPage(page, companyCode, durations);
             }
+        };
+        try {
+            await Promise.all([worker(), worker()]);
         } catch {
             return; // iptal edildi
         }

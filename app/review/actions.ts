@@ -23,6 +23,8 @@ interface InvoicePayload {
     invoiceData: any;
     invoiceSummary: any;
     images?: UploadedImageInfo[];
+    /** Mobilde masaüstü düzeltme kuyruğuna işaretlenen şüpheli hücreler */
+    flaggedCells?: any[];
 }
 
 export async function saveInvoice(invoicePayload: InvoicePayload, companyCode: string) {
@@ -55,6 +57,7 @@ export async function saveInvoice(invoicePayload: InvoicePayload, companyCode: s
                 status: 'PENDING',
                 modelUsed: company.model?.openrouterId ?? null,
                 creditsCost,
+                flaggedCells: invoicePayload.flaggedCells ?? [],
             },
         });
 

@@ -16,18 +16,34 @@
     "modelSelectionLabel": "Analysemodell"
   },
   "ReviewPage": {
-    "title": "Daten prüfen und bestätigen",
+    "title": "Rechnung",
     "confirmButton": "Speichern",
     "discardButton": "Verwerfen",
     "saving": "Speichern...",
-    "loading": "Analyseergebnisse werden geladen...",
+    "loading": "Rechnung wird geladen...",
     "companyCodeTooltip": "Bitte legen Sie vor dem Speichern einen Firmencode in den Einstellungen fest.",
     "saveSuccessTitle": "Rechnung gespeichert",
     "saveSuccessDescription": "Ihre Rechnung wurde erfolgreich gespeichert. Sie können den Vorgang in der Okibo-Desktop-Anwendung fortsetzen.",
     "saveSuccessConfirm": "Verstanden",
     "editTitle": "Rechnung ansehen",
     "updateButton": "Aktualisieren",
-    "updateSuccessMessage": "Rechnung erfolgreich aktualisiert."
+    "updateSuccessMessage": "Rechnung erfolgreich aktualisiert.",
+    "document": "Beleg",
+    "pageCount": "{count} Seiten",
+    "mismatchTitle": "Summen stimmen nicht überein",
+    "mismatchBody": "Zeilensumme <b>{line}</b>, die Rechnung nennt <b>{stated}</b>. Differenz {diff}.",
+    "inspectDifference": "Differenz prüfen",
+    "rescanPage": "Seite neu aufnehmen",
+    "rescanError": "Beim erneuten Aufnehmen ist ein Fehler aufgetreten.",
+    "suspiciousNote": "Verdächtige Zellen sind markiert. Korrekturen erfolgen am Desktop.",
+    "itemsLabel": "POSITIONEN · {count} ZEILEN",
+    "pageOf": "Seite {current}/{total}",
+    "lineTotal": "Zeilensumme · {count} Zeilen",
+    "confirmSave": "Bestätigen und speichern",
+    "fixOnDesktop": "{count} Zellen am Desktop korrigieren",
+    "backToHistory": "Zurück zum Verlauf",
+    "noCompanyCode": "Kein Firmencode gesetzt.",
+    "saveError": "Beim Speichern ist ein Fehler aufgetreten."
   },
   "HistoryPage": {
     "title": "Rechnungsverlauf",
@@ -224,5 +240,47 @@
     "cancelConfirmText": "Analyse abbrechen? Bisher gelesene Seiten gehen verloren, es wird kein Guthaben berechnet.",
     "cancelKeep": "Weiter",
     "cancelConfirm": "Abbrechen"
+  },
+  "ReviewTable": {
+    "product": "ARTIKEL",
+    "boxes": "KOL",
+    "qty": "MNG",
+    "price": "PREIS",
+    "net": "NETTO",
+    "noName": "Unbenannt"
+  },
+  "CellDetail": {
+    "close": "Schließen",
+    "location": "Seite {page} · Zeile {row} · verdächtige Zelle",
+    "reason": {
+      "nettoMismatch": "Berechneter Netto passt nicht",
+      "quantityMismatch": "Kolli × Inhalt ergibt nicht die Menge",
+      "missingValue": "Wert nicht lesbar",
+      "priceOutlier": "Preis wirkt unplausibel"
+    },
+    "noImage": "Kein Bild für diese Seite",
+    "zoomHint": "Doppeltippen oder aufziehen zum Zoomen.",
+    "readValue": "Gelesener Wert",
+    "noEditNote": "Auf dem Handy werden Felder nicht bearbeitet. Passt es nicht zum Bild, Seite neu aufnehmen oder für die Desktop-Korrektur markieren.",
+    "flagForDesktop": "Für Desktop-Korrektur markieren",
+    "flagged": "Markiert · zum Entfernen tippen",
+    "accept": "Korrekt, weiter"
+  },
+  "SavedScreen": {
+    "subtitle": "{invoiceNo} · {items} Positionen · {pages} Seiten",
+    "saved": "Gespeichert. Sie können in der Desktop-App fortfahren.",
+    "savedWithFlags": "Gespeichert. {count} Zellen warten in der Desktop-Korrekturliste.",
+    "amounts": "Beträge",
+    "net": "Netto",
+    "vat": "MwSt",
+    "calculatedFromLines": "Aus Zeilen berechnet",
+    "hasDifference": "Differenz",
+    "gross": "Bruttosumme",
+    "invoiceInfo": "Rechnungsdaten",
+    "statItems": "Positionen",
+    "statDesktop": "am Desktop",
+    "statCredits": "Guthaben",
+    "newScan": "Neue Rechnung scannen",
+    "goHistory": "Zum Verlauf"
   }
 }

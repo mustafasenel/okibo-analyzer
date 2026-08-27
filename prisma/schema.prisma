@@ -23,6 +23,10 @@ model Invoice {
   modelUsed       String?
   creditsCost     Int      @default(1)
 
+  // Mobilde işaretlenen şüpheli hücreler (masaüstü düzeltme kuyruğu için).
+  // Eklemeli alan: mevcut PHP sorgularını etkilemez.
+  flaggedCells    Json?
+
   // Relation to Company
   company         Company  @relation(fields: [companyCode], references: [code])
 
