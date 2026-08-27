@@ -13,70 +13,98 @@ interface InvoiceTableProps {
 
 const fmt = (v: unknown, digits = 2) => {
     const n = typeof v === 'number' ? v : parseFloat(String(v ?? '0').replace(',', '.'));
-    if (!isFinite(n)) return '-';
+    if (!isFinite(n)) return '—';
     return new Intl.NumberFormat('de-DE', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(n);
 };
 
-/** Alışık olunan tablo formatı korunur; yalnızca okunurluk ve şüpheli hücre işareti eklenir. */
+/**
+ * Fatura kalemleri — kullanıcının alışık olduğu tüm kolonlar korunur.
+ * Okunurluk için: ürün kolonu sabit (yatay kaydırmada yerinde kalır),
+ * sayılar sağa hizalı ve tabular, satır yüksekliği 44px, başlıklar yapışkan.
+ */
 export default function InvoiceTable({ items, page, suspicious, onCellPress }: InvoiceTableProps) {
     const t = useTranslations('ReviewTable');
 
-    const cellClass = (row: number, field: SuspicionField, extra = '') => {
-        if (suspicious.has(cellKey(page, row, field))) {
-            return `${extra} rounded-[5px] bg-[#FBF3DF] font-bold text-[#5C4200] shadow-[inset_0_0_0_1.5px_#C98A00]`;
-        }
-        return extra;
-    };
+    // KDV kolonu yalnızca faturada varsa gösterilir
+    const hasVat = items.some(i => i.MwSt !== undefined && i.MwSt !== null);
+
+    const mark = (row: number, field: SuspicionField, extra = '') =>
+        suspicious.has(cellKey(page, row, field))
+            ? `${extra} rounded-[5px] bg-[#FBF3DF] font-bold text-[#5C4200] shadow-[inset_0_0_0_1.5px_#C98A00]`
+            : extra;
 
     const press = (row: number, field: SuspicionField) => {
         if (suspicious.has(cellKey(page, row, field))) onCellPress(row, field);
     };
 
+    const num = 'shrink-0 px-2 py-2 text-right text-[12.5px]';
+    const head = 'shrink-0 px-2 py-2.5 text-right';
+
     return (
-        <div className="overflow-hidden rounded-xl border border-[rgba(20,18,28,.12)] bg-white">
-            {/* Yapışkan başlık */}
-            <div className="ok-mono sticky top-0 z-10 flex border-b border-[rgba(20,18,28,.1)] bg-[#FAF9FC] text-[9.5px] tracking-[.06em] text-[var(--ok-muted)]">
-                <div className="w-[118px] shrink-0 border-r border-[rgba(20,18,28,.08)] px-2.5 py-2.5">{t('product')}</div>
-                <div className="w-[38px] shrink-0 px-1 py-2.5 text-right">{t('boxes')}</div>
-                <div className="w-[40px] shrink-0 px-1 py-2.5 text-right">{t('qty')}</div>
-                <div className="w-[48px] shrink-0 px-1 py-2.5 text-right">{t('price')}</div>
-                <div className="flex-1 py-2.5 pl-1 pr-2.5 text-right">{t('net')}</div>
-            </div>
-
-            {items.map((item, row) => (
-                <div
-                    key={row}
-                    className="flex min-h-[44px] items-center border-b border-[rgba(20,18,28,.06)] tabular-nums last:border-b-0"
-                >
-                    <button
-                        onClick={() => press(row, 'ArtikelBez')}
-                        className="w-[118px] shrink-0 border-r border-[rgba(20,18,28,.08)] px-2.5 py-2 text-left"
-                    >
-                        <div className={cellClass(row, 'ArtikelBez', 'truncate text-[12.5px] font-semibold')}>
-                            {item.ArtikelBez || t('noName')}
-                        </div>
-                        <div className="ok-mono mt-px text-[10px] normal-case tracking-normal text-[var(--ok-muted-2)]">
-                            {item.ArtikelNumber || '—'}
-                        </div>
-                    </button>
-
-                    <div className="w-[38px] shrink-0 px-1 py-2 text-right text-[12.5px]">{item.Kolli ?? '—'}</div>
-
-                    <button onClick={() => press(row, 'Menge')} className="w-[40px] shrink-0 px-1 py-2 text-right">
-                        <span className={cellClass(row, 'Menge', 'inline-block px-1 text-[12.5px]')}>{item.Menge ?? '—'}</span>
-                    </button>
-
-                    <button onClick={() => press(row, 'Preis')} className="w-[48px] shrink-0 px-1 py-2 text-right">
-                        <span className={cellClass(row, 'Preis', 'inline-block px-1 text-[12.5px]')}>{fmt(item.Preis)}</span>
-                    </button>
-
-                    <button onClick={() => press(row, 'Netto')} className="flex-1 py-2 pl-1 pr-2.5 text-right">
-                        <span className={cellClass(row, 'Netto', 'inline-block px-1 text-[12.5px] font-bold')}>
-                            {fmt(item.originalNetto ?? item.Netto)}
-                        </span>
-                    </button>
+        <div className="overflow-x-auto rounded-xl border border-[rgba(20,18,28,.12)] bg-white">
+            <div className="min-w-max">
+                {/* Yapışkan başlık */}
+                <div className="ok-mono flex border-b border-[rgba(20,18,28,.1)] bg-[#FAF9FC] text-[9.5px] tracking-[.06em] text-[var(--ok-muted)]">
+                    <div className="sticky left-0 z-10 w-[132px] shrink-0 border-r border-[rgba(20,18,28,.08)] bg-[#FAF9FC] px-2.5 py-2.5">
+                        {t('product')}
+                    </div>
+                    <div className={`${head} w-[42px]`}>{t('boxes')}</div>
+                    <div className={`${head} w-[48px]`}>{t('content')}</div>
+                    <div className={`${head} w-[46px]`}>{t('qty')}</div>
+                    <div className={`${head} w-[56px]`}>{t('price')}</div>
+                    {hasVat && <div className={`${head} w-[44px]`}>{t('vat')}</div>}
+                    <div className={`${head} w-[72px]`}>{t('netCalc')}</div>
+                    <div className={`${head} w-[72px] pr-2.5`}>{t('netOcr')}</div>
                 </div>
-            ))}
+
+                {items.map((item, row) => {
+                    const calc = item.originalNetto ?? item.Netto;
+                    const ocr = item.Netto;
+                    const diff = Math.abs(Number(calc ?? 0) - Number(ocr ?? 0)) > 0.02;
+
+                    return (
+                        <div key={row} className="flex min-h-[44px] items-center border-b border-[rgba(20,18,28,.06)] tabular-nums last:border-b-0">
+                            {/* Ürün — sabit kolon: ad + ürün kodu */}
+                            <button
+                                onClick={() => press(row, 'ArtikelBez')}
+                                className="sticky left-0 z-10 w-[132px] shrink-0 border-r border-[rgba(20,18,28,.08)] bg-white px-2.5 py-2 text-left"
+                            >
+                                <div className={mark(row, 'ArtikelBez', 'truncate text-[12.5px] font-semibold')}>
+                                    {item.ArtikelBez || t('noName')}
+                                </div>
+                                <div className="mt-px font-mono text-[10px] text-[var(--ok-muted-2)]">
+                                    {item.ArtikelNumber || '—'}
+                                </div>
+                            </button>
+
+                            <div className={`${num} w-[42px]`}>{item.Kolli ?? '—'}</div>
+                            <div className={`${num} w-[48px]`}>{item.Inhalt ?? '—'}</div>
+
+                            <button onClick={() => press(row, 'Menge')} className={`${num} w-[46px]`}>
+                                <span className={mark(row, 'Menge', 'inline-block px-1')}>{item.Menge ?? '—'}</span>
+                            </button>
+
+                            <button onClick={() => press(row, 'Preis')} className={`${num} w-[56px]`}>
+                                <span className={mark(row, 'Preis', 'inline-block px-1')}>{fmt(item.Preis, 2)}</span>
+                            </button>
+
+                            {hasVat && (
+                                <div className={`${num} w-[44px]`}>{item.MwSt !== undefined && item.MwSt !== null ? `%${item.MwSt}` : '—'}</div>
+                            )}
+
+                            {/* Hesaplanan net (miktar × fiyat) */}
+                            <div className={`${num} w-[72px] font-bold`}>{fmt(calc)}</div>
+
+                            {/* OCR'ın okuduğu net — hesaplanandan farklıysa vurgulanır */}
+                            <button onClick={() => press(row, 'Netto')} className={`${num} w-[72px] pr-2.5`}>
+                                <span className={mark(row, 'Netto', `inline-block px-1 ${diff ? 'font-bold' : ''}`)}>
+                                    {fmt(ocr)}
+                                </span>
+                            </button>
+                        </div>
+                    );
+                })}
+            </div>
         </div>
     );
 }

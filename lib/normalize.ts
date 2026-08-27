@@ -45,14 +45,40 @@ export function normalizeInvoiceItem(item: any) {
     let inhalt = Math.round(parseNum(Inhalt));
     let menge = Math.round(parseNum(Menge));
 
-    // OCR sütun karışması: Kolli (koli sayısı) neredeyse her zaman Inhalt'tan (koli içi adet) küçük/eşittir.
-    if (kolli > 0 && inhalt > 0 && kolli > inhalt) {
-        [kolli, inhalt] = [inhalt, kolli];
+    const preis = round(parseNum(Preis), 3);
+    const ocrNetto = round(parseNum(Netto), 2);
+
+    // Güvenlik ağı: satır toplamı ve birim fiyat biliniyorsa gerçek adet bunlardan çıkar.
+    // (Model "Menge ME = 1 KTN" gibi koli sayısını toplam adet sanabiliyor.)
+    let impliedMenge = 0;
+    if (preis > 0 && ocrNetto > 0) {
+        const raw = ocrNetto / preis;
+        const rounded = Math.round(raw);
+        // Yuvarlama makul ölçüde tutuyorsa güvenilir kabul et
+        if (rounded > 0 && Math.abs(raw - rounded) <= Math.max(0.02, rounded * 0.02)) {
+            impliedMenge = rounded;
+        }
     }
 
-    // Kolli * Inhalt = Menge tutarlılığı
     if (kolli > 0 && inhalt > 0) {
+        // Tanım gereği: koli sayısı × koli içi adet = toplam adet.
+        // (Model "Menge ME = 1 KTN" değerini toplam adet sansa bile burada düzelir.)
+        if (kolli > inhalt) {
+            // Çarpım değişmediği için bu yalnızca hangisinin koli olduğunu düzeltir
+            [kolli, inhalt] = [inhalt, kolli];
+        }
         menge = kolli * inhalt;
+    } else if (impliedMenge > 0) {
+        // Koli/içerik eksik: toplam adedi satır toplamı ÷ birim fiyattan tamamla
+        menge = impliedMenge;
+        if (inhalt > 0 && menge % inhalt === 0) {
+            kolli = menge / inhalt;
+        } else if (kolli > 0 && menge % kolli === 0) {
+            inhalt = menge / kolli;
+        } else {
+            kolli = 1;
+            inhalt = menge;
+        }
     } else if (menge > 0 && inhalt > 0) {
         kolli = Math.max(1, Math.round(menge / inhalt));
         menge = kolli * inhalt;
@@ -71,8 +97,6 @@ export function normalizeInvoiceItem(item: any) {
         menge = kolli * inhalt;
     }
 
-    const preis = round(parseNum(Preis), 3);
-    const ocrNetto = round(parseNum(Netto), 2);            // OCR'dan okunan
     const calculatedNetto = round(menge * preis, 2);       // hesaplanan
 
     return {

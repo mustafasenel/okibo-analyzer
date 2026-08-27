@@ -306,7 +306,7 @@ export default function Home() {
                 onChange={e => { void addFiles(e.target.files); e.target.value = ''; }} />
 
             {/* Başlık */}
-            <header className="flex items-center gap-3 px-4 pb-4 pt-5">
+            <header className="mx-auto w-full max-w-lg flex items-center gap-3 px-4 pb-4 pt-5">
                 <Image src="/icons/icon-192x192.png" alt="" width={38} height={38}
                     className="rounded-[10px] border border-[var(--ok-line)] bg-white" />
                 <div className="min-w-0 flex-1">
@@ -323,7 +323,7 @@ export default function Home() {
                 )}
             </header>
 
-            <div className="px-4">
+            <div className="mx-auto w-full max-w-lg px-4">
                 {canScan ? (
                     <ImageCapture onCamera={openCamera} onFiles={openFiles} disabled={isPreparing} />
                 ) : (

@@ -238,7 +238,11 @@
     "qty": "QTY",
     "price": "PRICE",
     "net": "NET",
-    "noName": "Unnamed product"
+    "noName": "Unnamed product",
+    "content": "CONTENT",
+    "vat": "VAT",
+    "netCalc": "NET (CALC)",
+    "netOcr": "NET (OCR)"
   },
   "CellDetail": {
     "close": "Close",

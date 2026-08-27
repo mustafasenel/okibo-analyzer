@@ -28,14 +28,14 @@ export default function CellDetailSheet({
 
     return (
         <div className="fixed inset-0 z-[55] flex flex-col bg-white">
-            <div className="flex items-center justify-between border-b border-[var(--ok-line)] px-4 py-3.5">
+            <div className="mx-auto w-full max-w-lg flex items-center justify-between border-b border-[var(--ok-line)] px-4 py-3.5">
                 <span className="text-[12.5px] text-[var(--ok-muted)]">{invoiceLabel}</span>
                 <button onClick={onClose} aria-label={t('close')} className="text-[var(--ok-body)]">
                     <X className="h-5 w-5" />
                 </button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-4">
+            <div className="mx-auto w-full max-w-lg min-h-0 flex-1 overflow-y-auto px-4 pt-4">
                 <h2 className="text-[17px] font-bold text-[var(--ok-ink)]">
                     {productName} · {fieldLabel}
                 </h2>
@@ -74,7 +74,7 @@ export default function CellDetailSheet({
                 <p className="mt-3.5 text-[12px] leading-relaxed text-[var(--ok-muted)]">{t('autoNote')}</p>
             </div>
 
-            <div className="flex flex-col gap-2 border-t border-[var(--ok-line)] px-4 pb-6 pt-3">
+            <div className="mx-auto w-full max-w-lg flex flex-col gap-2 border-t border-[var(--ok-line)] px-4 pb-6 pt-3">
                 {canRescan && (
                     <button
                         onClick={onRescan}

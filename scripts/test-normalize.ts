@@ -54,5 +54,34 @@ check('MwSt integer',
     normalizeInvoiceItem({ ArtikelBez: 'x', Kolli: 1, Inhalt: 1, Preis: '1', Netto: '1', MwSt: '19' }).MwSt,
     19);
 
+console.log('\n--- gerçek fatura satırları (Akar GmbH) ---');
+
+// Rabatlı satır: 5 KTN × 18 adet, net birim 0,650 → 90 adet, 58,50
+check('indirimli satır (5 KTN x 18)',
+    (({ Kolli, Inhalt, Menge, originalNetto }) => ({ Kolli, Inhalt, Menge, originalNetto }))(
+        normalizeInvoiceItem({ ArtikelNumber:'01151-01', ArtikelBez:'BISKREM DUO BISKÜVI',
+            Kolli:5, Inhalt:18, Menge:5, Preis:'0,650', Netto:'58,50' })),
+    { Kolli: 5, Inhalt: 18, Menge: 90, originalNetto: 58.5 });
+
+// Model "Menge ME"yi toplam adet sanmış: 1 KTN × 12 → 12 adet, 19,80
+check('koli sayısı toplam adet sanılmış',
+    (({ Kolli, Inhalt, Menge, originalNetto }) => ({ Kolli, Inhalt, Menge, originalNetto }))(
+        normalizeInvoiceItem({ ArtikelNumber:'00771-03', ArtikelBez:'CIZI PEYNIRLI KRAKER',
+            Kolli:1, Inhalt:12, Menge:1, Preis:'1,650', Netto:'19,80' })),
+    { Kolli: 1, Inhalt: 12, Menge: 12, originalNetto: 19.8 });
+
+// Tek parça: 1 STK
+check('tek parça satır (1 STK)',
+    (({ Kolli, Inhalt, Menge, originalNetto }) => ({ Kolli, Inhalt, Menge, originalNetto }))(
+        normalizeInvoiceItem({ ArtikelNumber:'00000-10', ArtikelBez:'EURO PALETTE',
+            Kolli:1, Inhalt:1, Menge:1, Preis:'11,000', Netto:'11,00' })),
+    { Kolli: 1, Inhalt: 1, Menge: 1, originalNetto: 11 });
+
+// Koli/içerik eksik: toplam adet fiyat ve tutardan tamamlanır
+check('koli/içerik eksik → tutardan tamamla',
+    (({ Kolli, Inhalt, Menge }) => ({ Kolli, Inhalt, Menge }))(
+        normalizeInvoiceItem({ ArtikelBez:'X', Preis:'0,650', Netto:'58,50' })),
+    { Kolli: 1, Inhalt: 90, Menge: 90 });
+
 console.log(`\nSonuç: ${pass} geçti, ${fail} kaldı`);
 process.exit(fail > 0 ? 1 : 0);

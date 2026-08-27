@@ -235,10 +235,14 @@
   "ReviewTable": {
     "product": "ÜRÜN",
     "boxes": "KOLİ",
-    "qty": "MİK.",
+    "qty": "MİKTAR",
     "price": "FİYAT",
     "net": "NET",
-    "noName": "İsimsiz ürün"
+    "noName": "İsimsiz ürün",
+    "content": "İÇERİK",
+    "vat": "KDV",
+    "netCalc": "NET (HES.)",
+    "netOcr": "NET (OCR)"
   },
   "CellDetail": {
     "close": "Kapat",

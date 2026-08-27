@@ -77,7 +77,7 @@ export default function PageOrderSheet({
     return (
         <div className="fixed inset-0 z-[55] flex flex-col bg-white">
             {/* Başlık */}
-            <div className="flex items-center justify-between border-b border-[var(--ok-line)] px-4 py-3.5">
+            <div className="mx-auto w-full max-w-lg flex items-center justify-between border-b border-[var(--ok-line)] px-4 py-3.5">
                 <button onClick={onClose} className="flex items-center gap-1 text-sm font-semibold text-[var(--ok-body)]">
                     <ChevronLeft className="h-4 w-4" />
                     {t('back')}
@@ -86,7 +86,7 @@ export default function PageOrderSheet({
                 <button onClick={onClose} className="text-sm font-bold text-[var(--ok-purple)]">{t('done')}</button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-4">
+            <div className="mx-auto w-full max-w-lg min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-4">
                 <p className="mb-4 text-[13px] leading-relaxed text-[var(--ok-muted)]">{t('description')}</p>
 
                 <div ref={listRef} className="flex flex-col gap-2.5">
@@ -178,7 +178,7 @@ export default function PageOrderSheet({
             </div>
 
             {/* Alt aksiyon */}
-            <div className="border-t border-[var(--ok-line)] bg-white px-4 pb-6 pt-3">
+            <div className="mx-auto w-full max-w-lg border-t border-[var(--ok-line)] bg-white px-4 pb-6 pt-3">
                 <p className="mb-2.5 text-[11.5px] leading-relaxed text-[var(--ok-muted)]">
                     {t('stayNote', { seconds: estimatedSeconds })}
                 </p>

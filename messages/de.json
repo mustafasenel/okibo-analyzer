@@ -244,11 +244,15 @@
   },
   "ReviewTable": {
     "product": "ARTIKEL",
-    "boxes": "KOL",
-    "qty": "MNG",
+    "boxes": "KOLLI",
+    "qty": "MENGE",
     "price": "PREIS",
     "net": "NETTO",
-    "noName": "Unbenannt"
+    "noName": "Unbenannt",
+    "content": "INHALT",
+    "vat": "MWST",
+    "netCalc": "NETTO (BER.)",
+    "netOcr": "NETTO (OCR)"
   },
   "CellDetail": {
     "close": "Schließen",

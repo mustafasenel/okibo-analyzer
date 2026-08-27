@@ -10,16 +10,64 @@ Your task is to extract and normalize all useful data into a structured JSON wit
    - Rechnungsnummer (Invoice number)
    - Rechnungsdatum (Invoice date)
 
-2. invoice_data: Line items of the invoice table.  
-   Each row should have:
-   - ArtikelNumber: product code (usually numeric/alphanumeric, first or second column)
-   - ArtikelBez: product description (free text, product name)
-   - Kolli: number of packages (integer). If not present, assume 1.
-   - Inhalt: number of items per package (integer).
-   - Menge: total quantity (must be Kolli * Inhalt).
-   - Preis: price per unit (float)
-   - Netto: total line amount (Menge × Preis)
-   - MwSt: VAT rate for this line item (typically 7 or 19, as integer) - ONLY include if explicitly present in the invoice table. Do not add this field if the invoice does not have a VAT column.
+2. invoice_data: Line items of the invoice table.
+
+   COLUMN IDENTIFICATION — THIS IS THE MOST IMPORTANT PART.
+   Column ORDER and HEADINGS vary between suppliers, but the MEANING is always the same.
+   Never map by position. Identify each column by what it means, using the headings and the values:
+
+   - ArtikelNumber -> the article/product code.
+     Headings: Artikelnr, Artikel-Nr, Art.-Nr, Artikel, Artikelnummer, EAN.
+   - ArtikelBez -> the product description text.
+     Headings: Bezeichnung, Artikelbezeichnung, Beschreibung, Bennenung, Text.
+   - Kolli -> HOW MANY PACKING UNITS were delivered (cartons/boxes/pallets/pieces).
+     Headings: Menge, Menge ME, Anzahl, Kolli, Coli, Liefermenge, KTN.
+     The value is often followed by a unit token: KTN, KAR, KRT, STK, BOX, PAL, DS, PK, EA.
+     Example: "5 KTN" means Kolli = 5.
+   - Inhalt -> HOW MANY PIECES ARE INSIDE ONE PACKING UNIT.
+     Headings: Inhalt, Inhalt Stk, Inh, VPE, Einheit, Stk/KTN, Verpackungseinheit.
+     Example: "18" means each carton holds 18 pieces.
+   - Menge -> TOTAL PIECES = Kolli * Inhalt. Usually NOT printed on the invoice; compute it.
+   - Preis -> the NET UNIT PRICE for ONE PIECE (not for the carton).
+     Headings: E-Preis netto, Einzelpreis netto, Nettopreis, Preis/Stk, Stückpreis, EP netto.
+     If the table shows BOTH a gross unit price AND a discount (Rabatt %) AND a net unit price,
+     ALWAYS use the NET unit price (the price after the discount).
+   - Netto -> the LINE TOTAL amount for this row.
+     Headings: Gesamtpreis netto, Gesamtpreis, Gesamtbetrag, Betrag, Summe, Nettobetrag, Wert.
+   - MwSt -> the per-line VAT RATE, only if a real VAT PERCENTAGE column exists (7 or 19).
+
+   COLUMNS THAT LOOK LIKE DATA BUT ARE NOT — NEVER map these into the fields above:
+   - Gewicht, Gew., kg, Gewicht Stk (kg) -> this is WEIGHT. It is not a quantity and not a price.
+     A value like 0,280 next to a product is almost always kilograms, not a price or a count.
+   - Rabatt, Rabatt in %, Nachlass, Skonto -> this is a DISCOUNT PERCENTAGE, not a price.
+   - UVP, RRP, VK, VK-Preis, Verkaufspreis -> this is the RECOMMENDED RETAIL price for the shop.
+     It is NOT the price we pay. Never use it as Preis.
+   - Pos, Position, Nr, lfd. Nr -> the row number. Never use it as a quantity.
+   - SC, Steuercode, MwSt-Code, Steuerschlüssel -> a TAX CODE (values like 1, 2, 3).
+     A tax code is NOT a VAT rate. Only fill MwSt when you see a real percentage such as 7 or 19.
+
+   ARITHMETIC CHECKS — use them to verify your column mapping is correct:
+   - Kolli * Inhalt = Menge (total pieces)
+   - Menge * Preis = Netto (line total)
+   If these do not hold, you mapped a column wrongly. Re-examine the row and try the
+   alternative candidate columns until the arithmetic works.
+
+   WORKED EXAMPLE (headings: Pos | Artikelnr | Bezeichnung | Gewicht Stk (kg) | Inhalt Stk |
+   Menge ME | E-Preis (Stk) | Rabatt in % | E-Preis netto (Stk) | Gesamtpreis netto | UVP | SC)
+   Row: 9 | 01151-01 | BISKREM DUO BISKÜVI | 0,150 | 18 | 5 KTN | 1,170 | 44,44 | 0,650 | 58,50 | 1,79 | 2
+   Correct extraction:
+     ArtikelNumber = "01151-01"
+     ArtikelBez    = "BISKREM DUO BISKÜVI"
+     Kolli         = 5        (from "5 KTN")
+     Inhalt        = 18       (pieces per carton)
+     Menge         = 90       (5 * 18)
+     Preis         = 0.65     (NET unit price, after the 44,44% discount - NOT 1,170)
+     Netto         = 58.50    (90 * 0.65 checks out)
+     MwSt          = omitted  ("SC = 2" is a tax code, not a VAT rate)
+   Note that 0,150 (weight) and 1,79 (UVP) were correctly ignored.
+
+   If a row genuinely has no packing structure (a single piece, e.g. "1 STK"),
+   then Kolli = 1, Inhalt = 1 and Menge = 1.
 
 3. invoice_summary: Extract financial totals from the invoice footer. This section may not be present on all pages, especially on first pages of multi-page invoices. It will typically be found on the LAST page of the invoice. If NO financial totals are found at all, return null for this entire section.
    

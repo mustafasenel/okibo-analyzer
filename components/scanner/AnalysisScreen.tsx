@@ -52,16 +52,18 @@ export default function AnalysisScreen({ pages, saving, etaSeconds, onCancel, on
     return (
         <div className="fixed inset-0 z-[60] flex flex-col bg-[var(--ok-ink)] text-white">
             {/* Ekranda kal uyarısı */}
-            <div className="mx-4 mt-4 flex items-center gap-2.5 rounded-[10px] border border-[rgba(224,168,32,.45)] bg-[rgba(201,138,0,.16)] px-3 py-2.5">
+            <div className="mx-auto mt-4 w-full max-w-lg px-4">
+                <div className="flex items-center gap-2.5 rounded-[10px] border border-[rgba(224,168,32,.45)] bg-[rgba(201,138,0,.16)] px-3 py-2.5">
                 <span
                     className="h-[7px] w-[7px] shrink-0 rounded-full bg-[var(--ok-amber-dot)]"
                     style={{ animation: 'ok-soft-pulse 1.6s ease-in-out infinite' }}
                 />
                 <p className="text-[11.5px] font-semibold leading-snug">{t('stayWarning')}</p>
+                </div>
             </div>
 
             {/* Yüzde ve başlık */}
-            <div className="flex flex-col items-start gap-2 px-6 pb-5 pt-6">
+            <div className="mx-auto w-full max-w-lg flex flex-col items-start gap-2 px-6 pb-5 pt-6">
                 <div className="flex items-baseline gap-1.5">
                     <span className="text-[72px] font-bold leading-[.9] tracking-[-.04em] tabular-nums">{percent}</span>
                     <span className="text-2xl font-semibold opacity-50">%</span>
@@ -77,7 +79,7 @@ export default function AnalysisScreen({ pages, saving, etaSeconds, onCancel, on
             </div>
 
             {/* Sayfa listesi */}
-            <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-[18px] pb-2">
+            <div className="mx-auto w-full max-w-lg flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-[18px] pb-2">
                 <div className="ok-mono px-1 pb-0.5 text-[10.5px] opacity-45">{t('pagesLabel')}</div>
                 {pages.map((page, index) => (
                     <PageRow key={page.id} page={page} index={index + 1} onRetry={() => onRetryPage(page.id)} />
@@ -85,7 +87,7 @@ export default function AnalysisScreen({ pages, saving, etaSeconds, onCancel, on
             </div>
 
             {/* Alt bilgi + iptal */}
-            <div className="flex flex-col gap-2.5 px-[18px] pb-7 pt-3.5">
+            <div className="mx-auto w-full max-w-lg flex flex-col gap-2.5 px-[18px] pb-7 pt-3.5">
                 {failed > 0 && (
                     <div className="rounded-[10px] bg-white/5 px-3.5 py-3 text-[11.5px] leading-relaxed opacity-75">
                         {t('failedNote', { count: failed })}

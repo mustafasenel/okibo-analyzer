@@ -222,7 +222,7 @@ export default function ReviewPage() {
     return (
         <div className={`min-h-full bg-[var(--ok-surface)] ${isViewMode ? "pb-44" : "pb-[12rem]"}`}>
             {/* Başlık */}
-            <header className="flex items-center gap-3 border-b border-[rgba(20,18,28,.07)] bg-[var(--ok-surface)] px-4 pb-3 pt-5">
+            <header className="mx-auto w-full max-w-lg flex items-center gap-3 border-b border-[rgba(20,18,28,.07)] bg-[var(--ok-surface)] px-4 pb-3 pt-5">
                 <div className="min-w-0 flex-1">
                     <h1 className="truncate text-[17px] font-bold tracking-[-.02em] text-[var(--ok-ink)]">
                         {String(invoiceMeta?.Firma ?? t('title'))}
@@ -238,7 +238,7 @@ export default function ReviewPage() {
                 </button>
             </header>
 
-            <div className="flex flex-col gap-3 px-4 pt-3">
+            <div className="mx-auto w-full max-w-lg flex flex-col gap-3 px-4 pt-3">
                 {error && (
                     <p className="rounded-xl border border-[rgba(168,33,92,.25)] bg-[#FCEEF4] px-3.5 py-3 text-[13px] font-medium text-[var(--ok-danger)]">
                         {error}

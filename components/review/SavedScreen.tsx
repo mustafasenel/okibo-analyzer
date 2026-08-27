@@ -34,7 +34,7 @@ export default function SavedScreen({
 
     return (
         <div className="min-h-full bg-[var(--ok-surface)] pb-24">
-            <div className="px-4 pt-6">
+            <div className="mx-auto w-full max-w-lg px-4 pt-6">
                 <p className="text-[12.5px] text-[var(--ok-muted)]">
                     {t('subtitle', { invoiceNo, items: itemCount, pages: pageCount })}
                 </p>
