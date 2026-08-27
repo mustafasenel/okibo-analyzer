@@ -154,12 +154,25 @@
     "errorAnalysisFailed": "Einige Seiten konnten nicht analysiert werden. Bitte laden Sie sie erneut hoch.",
     "errorUploadFailed": "Nicht alle Bilder konnten hochgeladen werden. Bitte erneut versuchen.",
     "pdfPreparing": "PDF wird vorbereitet...",
-    "pdfProcessingPage": "PDF-Seiten werden extrahiert ({current}/{total})..."
+    "pdfProcessingPage": "PDF-Seiten werden extrahiert ({current}/{total})...",
+    "creditLabel": "Guthaben",
+    "thisInvoice": "DIESE RECHNUNG · {count} SEITEN",
+    "editOrder": "Reihenfolge",
+    "pageShort": "Seite {index}",
+    "sharp": "SCHARF",
+    "blurry": "UNSCHARF",
+    "addPage": "Seite hinzufügen",
+    "removePage": "Seite entfernen",
+    "startAnalysis": "Analyse starten",
+    "startMeta": "{pages} Seiten · {credits} Guthaben · ~{seconds}s",
+    "checkingQuality": "Seitenqualität wird geprüft..."
   },
   "ImageCapture": {
-    "uploadButton": "Datei hochladen",
-    "cameraButton": "Kamera öffnen",
-    "infoText": "Wählen Sie alle Seiten der Rechnung. PDF wird ebenfalls unterstützt."
+    "uploadButton": "Datei",
+    "cameraButton": "Aufnehmen",
+    "infoText": "Fügen Sie alle Seiten der Rechnung hinzu.",
+    "cameraHint": "Seiten der Reihe nach",
+    "uploadHint": "PDF, JPG"
   },
   "AnalysisProgress": {
     "title": "Ihre Rechnung wird verarbeitet",
@@ -169,5 +182,47 @@
     "stepUploading": "Bilder werden gespeichert",
     "elapsed": "Verstrichen: {time}",
     "keepOpen": "App geöffnet lassen"
+  },
+  "PageOrder": {
+    "back": "Zurück",
+    "title": "Seitenreihenfolge",
+    "done": "Fertig",
+    "description": "Die Reihenfolge muss der Rechnung entsprechen. Zum Verschieben ziehen, unscharfe Seiten neu aufnehmen.",
+    "page": "Seite {index}",
+    "sharp": "SCHARF",
+    "blurry": "UNSCHARF",
+    "sharpHint": "Positionen · klare Lesung",
+    "blurryHint": "Schwacher Fokus, Lesung kann fehlschlagen",
+    "recapture": "Neu aufnehmen",
+    "rotate": "Drehen",
+    "delete": "Löschen",
+    "addPage": "Seite hinzufügen",
+    "dragHandle": "Zum Verschieben ziehen",
+    "stayNote": "Sie müssen während der Analyse in der App bleiben. Es dauert etwa {seconds} Sekunden.",
+    "start": "Zur Analyse senden",
+    "startMeta": "{pages} Seiten · {credits} Guthaben"
+  },
+  "AnalysisScreen": {
+    "stayWarning": "Bildschirm nicht schließen, App nicht verlassen. Die Analyse läuft nur bei geöffnetem Bildschirm.",
+    "startingHeadline": "Analyse startet",
+    "readingHeadline": "Seite {page} wird gelesen · {current}/{total}",
+    "finishingHeadline": "Seiten abgeschlossen",
+    "savingHeadline": "Bilder werden gespeichert",
+    "readingSubline": "Positionen werden extrahiert. Noch etwa {seconds} Sekunden.",
+    "readingSublineNoEta": "Positionen werden extrahiert.",
+    "savingSubline": "Fast fertig, Prüfansicht wird geöffnet.",
+    "pagesLabel": "Seiten",
+    "pageTitle": "Seite {index}",
+    "pageDone": "{count} Positionen gefunden",
+    "pageReading": "Wird gelesen · Positionen",
+    "pageQueued": "In Warteschlange",
+    "pageFailed": "Nicht lesbar · Guthaben erstattet",
+    "retry": "Erneut",
+    "failedNote": "{count} Seiten konnten nicht gelesen werden. Dafür wurde kein Guthaben berechnet; erneut versuchen oder mit den gelesenen Seiten fortfahren.",
+    "continueWithRead": "Mit {count} Seiten fortfahren",
+    "cancel": "Analyse abbrechen",
+    "cancelConfirmText": "Analyse abbrechen? Bisher gelesene Seiten gehen verloren, es wird kein Guthaben berechnet.",
+    "cancelKeep": "Weiter",
+    "cancelConfirm": "Abbrechen"
   }
 }

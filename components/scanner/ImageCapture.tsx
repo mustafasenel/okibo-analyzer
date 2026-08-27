@@ -1,74 +1,48 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Camera, Upload } from 'lucide-react';
-import { useRef } from 'react';
+import { Camera, FileUp } from 'lucide-react';
 
 interface ImageCaptureProps {
-  onFilesChange: (files: FileList) => void;
+  onCamera: () => void;
+  onFiles: () => void;
   disabled: boolean;
 }
 
-export default function ImageCapture({ onFilesChange, disabled }: ImageCaptureProps) {
+/** Tarama panelinin iki eylemi: kamerayla çek (birincil) ve dosyadan yükle. */
+export default function ImageCapture({ onCamera, onFiles, disabled }: ImageCaptureProps) {
   const t = useTranslations('ImageCapture');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      onFilesChange(event.target.files);
-      // Reset the input value to allow selecting the same file again
-      event.target.value = '';
-    }
-  };
-
-  const triggerFileSelect = () => fileInputRef.current?.click();
-  const triggerCamera = () => cameraInputRef.current?.click();
 
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row gap-4">
-        {/* File Upload Button */}
-        <button
-          onClick={triggerFileSelect}
-          disabled={disabled}
-          className="flex-1 flex items-center justify-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 hover:border-violet-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Upload className="h-6 w-6" />
-          <span className="font-semibold">{t('uploadButton')}</span>
-        </button>
+    <div className="grid grid-cols-2 gap-2.5">
+      {/* Birincil eylem — mor yalnızca burada kullanılır */}
+      <button
+        onClick={onCamera}
+        disabled={disabled}
+        className="flex flex-col justify-between rounded-xl bg-[var(--ok-purple)] p-3.5 text-left text-white transition active:scale-[.99] disabled:opacity-45"
+      >
+        <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-white/15">
+          <Camera className="h-[18px] w-[18px]" />
+        </span>
+        <span className="mt-6">
+          <span className="block text-[15px] font-bold leading-tight">{t('cameraButton')}</span>
+          <span className="mt-0.5 block text-[11.5px] opacity-75">{t('cameraHint')}</span>
+        </span>
+      </button>
 
-        {/* Camera Capture Button */}
-        <button
-          onClick={triggerCamera}
-          disabled={disabled}
-          className="flex-1 flex items-center justify-center gap-3 p-4 bg-violet-600 text-white rounded-lg font-semibold hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Camera className="h-6 w-6" />
-          <span>{t('cameraButton')}</span>
-        </button>
-      </div>
-
-      {/* Hidden Inputs */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileSelect}
-        className="hidden"
-        multiple
-        accept="image/*,application/pdf,.pdf"
-      />
-      <input
-        type="file"
-        ref={cameraInputRef}
-        onChange={handleFileSelect}
-        className="hidden"
-        multiple
-        accept="image/*"
-        capture="environment"
-      />
-
-      <p className="text-xs text-gray-500 mt-3 text-center">{t('infoText')}</p>
+      <button
+        onClick={onFiles}
+        disabled={disabled}
+        className="flex flex-col justify-between rounded-xl border border-[var(--ok-line)] bg-white p-3.5 text-left transition active:scale-[.99] disabled:opacity-45"
+      >
+        <span className="flex h-8 w-8 items-center justify-center rounded-[9px] border border-[var(--ok-line)] bg-[var(--ok-surface-2)]">
+          <FileUp className="h-[18px] w-[18px] text-[var(--ok-body)]" />
+        </span>
+        <span className="mt-6">
+          <span className="block text-[15px] font-bold leading-tight text-[var(--ok-ink)]">{t('uploadButton')}</span>
+          <span className="mt-0.5 block text-[11.5px] text-[var(--ok-muted)]">{t('uploadHint')}</span>
+        </span>
+      </button>
     </div>
   );
 }

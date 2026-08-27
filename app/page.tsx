@@ -1,298 +1,439 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import ImageCapture from '@/components/scanner/ImageCapture';
-import { ImagePreviewGrid } from '@/components/scanner/ImagePreviewGrid';
-import ImageLightbox from '@/components/scanner/ImageLightbox'; // Lightbox bileşenini import et
-import { Loader2, Lock, Settings2 } from 'lucide-react';
+import Image from 'next/image';
+import { Lock, Settings2, Loader2, ListOrdered, Plus, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+
+import ImageCapture from '@/components/scanner/ImageCapture';
+import ImageLightbox from '@/components/scanner/ImageLightbox';
+import PageOrderSheet from '@/components/scanner/PageOrderSheet';
+import AnalysisScreen from '@/components/scanner/AnalysisScreen';
 import { analyzeImage, uploadImage, normalizePageItems, UploadedImageInfo } from '@/lib/scan';
+import { expandFilesToImages, isPdf } from '@/lib/pdf';
+import { assessSharpness } from '@/lib/quality';
+import { rotateImageFile } from '@/lib/image';
 import { checkUsageLimit, incrementScanCount } from '@/app/review/actions';
 import { useCompanyCode } from '@/hooks/use-company-code';
-import { expandFilesToImages, isPdf } from '@/lib/pdf';
-import AnalysisProgress, { AnalysisStage } from '@/components/scanner/AnalysisProgress';
+import type { ScanPage } from '@/types/scan';
 
-// --- TYPES ---
-type ImageFileStatus = 'pending' | 'processing' | 'completed' | 'error';
-
-interface ImageFileWithStatus {
-    file: File;
-    id: string;
-    preview: string;
-    status: ImageFileStatus;
-    retries: number; // Deneme sayısını takip etmek için
-}
+/** Sayfa başına kaba süre tahmini (ilk ölçüm gelene kadar) */
+const SECONDS_PER_PAGE = 7;
 
 export default function Home() {
     const t = useTranslations('HomePage');
     const tGuard = useTranslations('CompanyGuard');
     const router = useRouter();
-    const { canScan, company, status } = useCompanyCode();
+    const { canScan, company } = useCompanyCode();
 
-    const [imageFiles, setImageFiles] = useState<ImageFileWithStatus[]>([]);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [stage, setStage] = useState<AnalysisStage>('analyzing');
-    const [analyzedCount, setAnalyzedCount] = useState(0);
-    const [uploadedCount, setUploadedCount] = useState(0);
-    const [elapsedSeconds, setElapsedSeconds] = useState(0);
-    const [error, setError] = useState<string>('');
-    const [lightboxImageUrl, setLightboxImageUrl] = useState<string | null>(null); // Lightbox için state
-    const [isPreparing, setIsPreparing] = useState(false); // PDF sayfalara ayrılırken
+    const [pages, setPages] = useState<ScanPage[]>([]);
+    const [showOrder, setShowOrder] = useState(false);
+    const [analyzing, setAnalyzing] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [etaSeconds, setEtaSeconds] = useState<number | null>(null);
+    const [isPreparing, setIsPreparing] = useState(false);
     const [prepareMessage, setPrepareMessage] = useState('');
+    const [error, setError] = useState('');
+    const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+    const [busyId, setBusyId] = useState<string | null>(null);
 
-    // Analiz sürerken geçen süreyi say (tahmini süre veremiyoruz; şeffaf olan bu)
-    useEffect(() => {
-        if (!isAnalyzing) return;
-        const startedAt = Date.now();
-        setElapsedSeconds(0);
-        const id = setInterval(() => {
-            setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
-        }, 1000);
-        return () => clearInterval(id);
-    }, [isAnalyzing]);
+    // Döngü içinde güncel listeyi okumak için ayna
+    const pagesRef = useRef<ScanPage[]>([]);
+    pagesRef.current = pages;
+    const cancelRef = useRef(false);
+    // React state render'a bağlı olduğu için, akış kararları senkron bu kayıtlardan verilir
+    const outcomesRef = useRef<Map<string, { ok: boolean; result?: any; itemCount?: number; durationMs?: number }>>(new Map());
+    const analysisListRef = useRef<ScanPage[]>([]);
+    const abortRef = useRef<AbortController | null>(null);
+    const recaptureIdRef = useRef<string | null>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleFilesChange = async (files: FileList | null, idToReplace?: string) => {
-        if (!files || files.length === 0) return;
+    const multiplier = company?.creditMultiplier && company.creditMultiplier > 0 ? company.creditMultiplier : 1;
+    const creditCost = pages.length * multiplier;
+    const estimatedSeconds = pages.length * SECONDS_PER_PAGE;
+
+    const patch = (id: string, data: Partial<ScanPage>) =>
+        setPages(prev => prev.map(p => (p.id === id ? { ...p, ...data } : p)));
+
+    // ── Dosya ekleme (PDF sayfalara ayrılır, netlik ölçülür) ─────────────
+    const addFiles = async (fileList: FileList | null) => {
+        const replaceId = recaptureIdRef.current;
+        recaptureIdRef.current = null;
+        if (!fileList || fileList.length === 0) return;
         setError('');
 
-        const selected = Array.from(files);
-        let prepared = selected;
-
-        // PDF seçildiyse sayfalarına ayrılıp görsele çevrilir; sonrası mevcut akışla aynıdır.
-        if (selected.some(isPdf)) {
+        let incoming = Array.from(fileList);
+        if (incoming.some(isPdf)) {
             setIsPreparing(true);
             setPrepareMessage(t('pdfPreparing'));
             try {
-                const { images, errors } = await expandFilesToImages(selected, ({ current, total }) => {
-                    setPrepareMessage(t('pdfProcessingPage', { current, total }));
-                });
+                const { images, errors } = await expandFilesToImages(incoming, ({ current, total }) =>
+                    setPrepareMessage(t('pdfProcessingPage', { current, total }))
+                );
                 if (errors.length > 0) setError(errors.join(' '));
-                prepared = images;
+                incoming = images;
             } finally {
                 setIsPreparing(false);
                 setPrepareMessage('');
             }
         }
+        if (incoming.length === 0) return;
 
-        if (prepared.length === 0) return;
-
+        setIsPreparing(true);
+        setPrepareMessage(t('checkingQuality'));
         const stamp = Date.now();
-        const newFiles = prepared.map((file, index) => ({
-            file,
-            id: `${file.name}-${stamp}-${index}`,
-            preview: URL.createObjectURL(file),
-            status: 'pending' as ImageFileStatus,
-            retries: 0,
-        }));
+        const built: ScanPage[] = [];
+        for (let i = 0; i < incoming.length; i++) {
+            const file = incoming[i];
+            const { label } = await assessSharpness(file);
+            built.push({
+                id: `${file.name}-${stamp}-${i}`,
+                file,
+                preview: URL.createObjectURL(file),
+                sharpness: label,
+                status: 'idle',
+            });
+        }
+        setIsPreparing(false);
+        setPrepareMessage('');
 
-        if (idToReplace) {
-            setImageFiles(prev => prev.map(img => img.id === idToReplace ? newFiles[0] : img));
+        if (replaceId) {
+            setPages(prev => prev.map(p => {
+                if (p.id !== replaceId) return p;
+                URL.revokeObjectURL(p.preview);
+                return built[0];
+            }));
         } else {
-            setImageFiles(prev => [...prev, ...newFiles]);
+            setPages(prev => [...prev, ...built]);
         }
     };
 
-    const handleRemoveImage = (idToRemove: string) => {
-        setImageFiles(prev => prev.filter(image => image.id !== idToRemove));
-    };
+    const openCamera = () => cameraInputRef.current?.click();
+    const openFiles = () => fileInputRef.current?.click();
+    const recapture = (id: string) => { recaptureIdRef.current = id; cameraInputRef.current?.click(); };
 
-    const updateImageStatus = (id: string, status: ImageFileStatus) => {
-        setImageFiles(prev => prev.map(img => img.id === id ? { ...img, status } : img));
-    };
+    const removePage = (id: string) => setPages(prev => {
+        const target = prev.find(p => p.id === id);
+        if (target) URL.revokeObjectURL(target.preview);
+        return prev.filter(p => p.id !== id);
+    });
 
-    const handleReplaceImage = (idToReplace: string) => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        // Kamerayı da seçenek olarak sunmak için capture ekleyebiliriz, ancak bu seferlik sadece dosya seçimi
-        // input.capture = 'environment'; 
-        input.onchange = (e) => {
-            const target = e.target as HTMLInputElement;
-            if (target.files && target.files.length > 0) {
-                handleFilesChange(target.files, idToReplace);
-            }
-        };
-        input.click();
-    };
-
-    const handlePreviewImage = (id: string) => {
-        const image = imageFiles.find(img => img.id === id);
-        if (image) {
-            setLightboxImageUrl(image.preview);
+    const rotatePage = async (id: string) => {
+        const page = pagesRef.current.find(p => p.id === id);
+        if (!page) return;
+        setBusyId(id);
+        try {
+            const rotated = await rotateImageFile(page.file, 90);
+            URL.revokeObjectURL(page.preview);
+            const { label } = await assessSharpness(rotated);
+            patch(id, { file: rotated, preview: URL.createObjectURL(rotated), sharpness: label });
+        } finally {
+            setBusyId(null);
         }
     };
 
-    const handleSubmit = async () => {
-        if (imageFiles.length === 0) {
-            setError(t('errorNoImages'));
-            return;
-        }
-        setError('');
-        setIsAnalyzing(true);
-        setStage('analyzing');
-        setAnalyzedCount(0);
-        setUploadedCount(0);
-
-        const companyCode = localStorage.getItem('companyCode');
-        if (!companyCode || !canScan) {
-            setError(tGuard('lockedDescription'));
-            setIsAnalyzing(false);
-            return;
-        }
-        const limitCheck = await checkUsageLimit(companyCode, imageFiles.length);
-        if (!limitCheck.success) {
-            setError(limitCheck.message);
-            setIsAnalyzing(false);
-            return;
-        }
-
-        // Sayfalar paralel analiz edilir; ilerleme gerçekten biten sayfa sayısıyla ölçülür.
-        const analysisPromises = imageFiles.map(async (imageFile) => {
-            updateImageStatus(imageFile.id, 'processing');
-            try {
-                // Model sunucu tarafında companyCode'dan çözülür.
-                const result = await analyzeImage(imageFile.file, companyCode);
-                updateImageStatus(imageFile.id, 'completed');
-                return result;
-            } catch (err) {
-                console.error(`Failed to process image ${imageFile.id}:`, err);
-                updateImageStatus(imageFile.id, 'error');
-                return null; // Return null for failed analyses
-            } finally {
-                setAnalyzedCount(prev => prev + 1);
-            }
+    const reorder = (from: number, to: number) =>
+        setPages(prev => {
+            const next = [...prev];
+            const [moved] = next.splice(from, 1);
+            next.splice(to, 0, moved);
+            return next;
         });
 
-        const allResults = (await Promise.all(analysisPromises)).filter(res => res !== null);
+    // ── Analiz: sayfalar sırayla okunur (sırada → okunuyor → bitti/hatalı) ──
+    const readPage = async (page: ScanPage, companyCode: string, durations: number[]) => {
+        patch(page.id, { status: 'reading' });
+        const started = performance.now();
+        const controller = new AbortController();
+        abortRef.current = controller;
+        try {
+            const result = await analyzeImage(page.file, companyCode, controller.signal);
+            const durationMs = performance.now() - started;
+            durations.push(durationMs);
+            const itemCount = Array.isArray(result?.invoice_data) ? result.invoice_data.length : 0;
+            outcomesRef.current.set(page.id, { ok: true, result, itemCount, durationMs });
+            patch(page.id, { status: 'done', result, itemCount, durationMs });
+        } catch (err) {
+            if ((err as any)?.name === 'AbortError') throw err;
+            console.error('Sayfa okunamadı:', err);
+            outcomesRef.current.set(page.id, { ok: false });
+            patch(page.id, { status: 'failed' });
+        } finally {
+            abortRef.current = null;
+            // Ölçülen sürelerden kalan süre tahmini
+            const list = analysisListRef.current;
+            const settled = list.filter(p => outcomesRef.current.has(p.id)).length;
+            const remaining = Math.max(0, list.length - settled);
+            const avg = durations.length > 0
+                ? durations.reduce((a, b) => a + b, 0) / durations.length
+                : SECONDS_PER_PAGE * 1000;
+            setEtaSeconds(remaining > 0 ? Math.ceil((avg * remaining) / 1000) : null);
+        }
+    };
 
-        if (allResults.length !== imageFiles.length) {
+    const startAnalysis = async () => {
+        const companyCode = localStorage.getItem('companyCode');
+        if (!companyCode || !canScan) { setError(tGuard('lockedDescription')); return; }
+        if (pages.length === 0) { setError(t('errorNoImages')); return; }
+
+        const limit = await checkUsageLimit(companyCode, pages.length);
+        if (!limit.success) { setError(limit.message); return; }
+
+        setError('');
+        setShowOrder(false);
+        setAnalyzing(true);
+        cancelRef.current = false;
+        setEtaSeconds(estimatedSeconds);
+        setPages(prev => prev.map(p => ({ ...p, status: 'queued', result: undefined, itemCount: undefined, durationMs: undefined })));
+
+        const list = pagesRef.current;
+        analysisListRef.current = list;
+        outcomesRef.current = new Map();
+
+        const durations: number[] = [];
+        try {
+            for (const page of list) {
+                if (cancelRef.current) return;
+                await readPage(page, companyCode, durations);
+            }
+        } catch {
+            return; // iptal edildi
+        }
+        if (cancelRef.current) return;
+
+        if (list.every(p => outcomesRef.current.get(p.id)?.ok)) {
+            await saveAndContinue(companyCode);
+        }
+        // Hatalı sayfa varsa kullanıcı analiz ekranında tekrar dener ya da devam eder
+    };
+
+    const retryPage = async (id: string) => {
+        const companyCode = localStorage.getItem('companyCode');
+        const page = analysisListRef.current.find(p => p.id === id);
+        if (!companyCode || !page) return;
+        try {
+            await readPage(page, companyCode, []);
+        } catch {
+            return;
+        }
+        if (analysisListRef.current.every(p => outcomesRef.current.get(p.id)?.ok)) {
+            await saveAndContinue(companyCode);
+        }
+    };
+
+    // Okunan sayfalarla devam: görseller yüklenir, kredi sadece okunan sayfalar için düşer
+    const saveAndContinue = async (companyCode: string) => {
+        const done = analysisListRef.current
+            .map(p => ({ page: p, outcome: outcomesRef.current.get(p.id) }))
+            .filter(x => x.outcome?.ok)
+            .map(x => ({ ...x.page, result: x.outcome!.result }));
+        if (done.length === 0) {
+            setAnalyzing(false);
             setError(t('errorAnalysisFailed'));
-            setIsAnalyzing(false);
             return;
         }
 
-        // --- AGGREGATION & UPLOAD ---
-        setStage('aggregating');
-        const finalMeta = allResults[0]?.invoice_meta || {};
-        const finalSummary = allResults[allResults.length - 1]?.invoice_summary || null;
-
-        const finalPaginatedData = allResults.map((result, index) => ({
+        setSaving(true);
+        const invoiceMeta = done.find(p => p.result?.invoice_meta)?.result?.invoice_meta ?? {};
+        const invoiceSummary = [...done].reverse().find(p => p.result?.invoice_summary)?.result?.invoice_summary ?? null;
+        const invoiceData = done.map((p, index) => ({
             page: index + 1,
-            items: normalizePageItems(result.invoice_data || []),
+            items: normalizePageItems(p.result?.invoice_data || []),
         }));
+        sessionStorage.setItem('analysisResult', JSON.stringify({ invoiceMeta, invoiceData, invoiceSummary }));
 
-        const finalData = { invoiceMeta: finalMeta, invoiceData: finalPaginatedData, invoiceSummary: finalSummary };
-        sessionStorage.setItem('analysisResult', JSON.stringify(finalData));
-
-        setStage('uploading');
-        const uploadPromises = imageFiles.map(img =>
-            uploadImage(img.file)
-                .catch(err => {
-                    console.error(`Failed to upload ${img.file.name}:`, err);
-                    return null; // Return null on upload failure
-                })
-                .finally(() => setUploadedCount(prev => prev + 1))
-        );
-        const uploadedImages = (await Promise.all(uploadPromises)).filter((res): res is UploadedImageInfo => res !== null);
-
-        if (uploadedImages.length !== imageFiles.length) {
-            setError(t('errorUploadFailed'));
-            setIsAnalyzing(false);
-            return;
+        const uploaded: UploadedImageInfo[] = [];
+        for (const page of done) {
+            try {
+                uploaded.push(await uploadImage(page.file));
+            } catch (err) {
+                console.error('Görsel yüklenemedi:', err);
+            }
         }
-
-        sessionStorage.setItem('invoiceImages', JSON.stringify(uploadedImages));
+        sessionStorage.setItem('invoiceImages', JSON.stringify(uploaded));
         sessionStorage.removeItem('editingInvoiceId');
-        await incrementScanCount(companyCode, imageFiles.length);
 
+        // Okunamayan sayfanın kredisi alınmaz
+        await incrementScanCount(companyCode, done.length);
         router.push('/review');
     };
 
+    const cancelAnalysis = () => {
+        cancelRef.current = true;
+        abortRef.current?.abort();
+        setAnalyzing(false);
+        setSaving(false);
+        setEtaSeconds(null);
+        setPages(prev => prev.map(p => ({ ...p, status: 'idle' })));
+    };
+
+    // ── Tam ekran analiz ─────────────────────────────────────────────────
+    if (analyzing) {
+        return (
+            <AnalysisScreen
+                pages={pages}
+                saving={saving}
+                etaSeconds={etaSeconds}
+                onCancel={cancelAnalysis}
+                onRetryPage={retryPage}
+                onContinue={
+                    !saving && pages.every(p => p.status === 'done' || p.status === 'failed') && pages.some(p => p.status === 'failed')
+                        ? () => { const c = localStorage.getItem('companyCode'); if (c) void saveAndContinue(c); }
+                        : undefined
+                }
+            />
+        );
+    }
+
     return (
-        <div className={`p-4 max-w-lg mx-auto ${isAnalyzing ? "pb-80" : ""}`}>
-            <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">{t('title')}</h1>
+        <div className="min-h-full bg-[var(--ok-surface)] pb-32">
+            {/* Gizli girdiler — kamera işletim sisteminden açılır */}
+            <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" multiple className="hidden"
+                onChange={e => { void addFiles(e.target.files); e.target.value = ''; }} />
+            <input ref={fileInputRef} type="file" accept="image/*,application/pdf,.pdf" multiple className="hidden"
+                onChange={e => { void addFiles(e.target.files); e.target.value = ''; }} />
 
-            {/* Firma kodu doğrulanmışsa firma adı + kalan kredi rozeti */}
-            {canScan && company && (
-                <div className="mb-4 flex items-center justify-between rounded-xl border border-violet-100 bg-violet-50/60 px-4 py-2.5">
-                    <span className="truncate text-sm font-medium text-gray-700">{company.name}</span>
-                    <span className="shrink-0 text-xs font-semibold text-violet-700">
-                        {tGuard('creditsLeft', { count: company.remainingCredits })}
-                    </span>
+            {/* Başlık */}
+            <header className="flex items-center gap-3 px-4 pb-4 pt-5">
+                <Image src="/icons/icon-192x192.png" alt="" width={38} height={38}
+                    className="rounded-[10px] border border-[var(--ok-line)] bg-white" />
+                <div className="min-w-0 flex-1">
+                    <h1 className="text-[17px] font-bold leading-tight text-[var(--ok-ink)]">{t('title')}</h1>
+                    <p className="truncate text-[12px] text-[var(--ok-muted)]">
+                        {company?.name ?? tGuard('lockedTitle')}
+                    </p>
                 </div>
-            )}
+                {company && (
+                    <div className="flex shrink-0 items-baseline gap-1 rounded-full border border-[var(--ok-line)] bg-white px-3 py-1.5">
+                        <span className="text-[15px] font-bold tabular-nums text-[var(--ok-ink)]">{company.remainingCredits}</span>
+                        <span className="ok-mono text-[9px] text-[var(--ok-muted)]">{t('creditLabel')}</span>
+                    </div>
+                )}
+            </header>
 
-            {canScan ? (
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <ImageCapture onFilesChange={handleFilesChange} disabled={isAnalyzing || isPreparing} />
-
-                    {/* PDF sayfalara ayrılırken ilerleme */}
-                    {isPreparing && (
-                        <div className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-violet-50 px-3 py-2.5 text-sm font-medium text-violet-700">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span>{prepareMessage}</span>
-                        </div>
-                    )}
-                </div>
-            ) : (
-                /* Firma kodu yok/geçersiz → tarama alanı kilitli */
-                <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center shadow-sm">
-                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100">
-                        <Lock className="h-7 w-7 text-gray-400" />
-                    </div>
-                    <h2 className="font-semibold text-gray-800">{tGuard('lockedTitle')}</h2>
-                    <p className="mx-auto mt-1.5 max-w-xs text-sm text-gray-500">{tGuard('lockedDescription')}</p>
-                    <Link
-                        href="/settings"
-                        className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition hover:bg-violet-700 active:scale-[0.98]"
-                    >
-                        <Settings2 className="h-4 w-4" />
-                        {tGuard('goToSettings')}
-                    </Link>
-                </div>
-            )}
-            {error && <p className="text-red-600 mt-4 text-center font-semibold bg-red-100 p-3 rounded-md">{error}</p>}
-            {imageFiles.length > 0 && (
-                <ImagePreviewGrid 
-                    images={imageFiles}
-                    onRemove={handleRemoveImage}
-                    onReplace={handleReplaceImage}
-                    onPreview={handlePreviewImage}
-                    disabled={isAnalyzing}
-                />
-            )}
-            {imageFiles.length > 0 && (
-                isAnalyzing ? (
-                    // Analiz sürerken panel her zaman görünür kalsın (alt navigasyonun üstünde)
-                    <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-3">
-                    <div className="mx-auto max-w-lg">
-                    <AnalysisProgress
-                        stage={stage}
-                        analyzed={analyzedCount}
-                        uploaded={uploadedCount}
-                        total={imageFiles.length}
-                        elapsedSeconds={elapsedSeconds}
-                    />
-                    </div>
-                    </div>
+            <div className="px-4">
+                {canScan ? (
+                    <ImageCapture onCamera={openCamera} onFiles={openFiles} disabled={isPreparing} />
                 ) : (
-                    <div className="mt-8">
-                        <button
-                            onClick={handleSubmit}
-                            disabled={!canScan}
-                            className="w-full bg-violet-600 text-white font-bold py-4 px-4 rounded-lg text-lg flex items-center justify-center gap-2 hover:bg-violet-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300"
-                        >
-                            {t('analyzeButton', { count: imageFiles.length })}
+                    <div className="rounded-xl border border-dashed border-[var(--ok-faint)] bg-white p-8 text-center">
+                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-[14px] bg-[var(--ok-surface)]">
+                            <Lock className="h-7 w-7 text-[var(--ok-faint)]" />
+                        </div>
+                        <h2 className="font-bold text-[var(--ok-ink)]">{tGuard('lockedTitle')}</h2>
+                        <p className="mx-auto mt-1.5 max-w-xs text-[13px] text-[var(--ok-muted)]">{tGuard('lockedDescription')}</p>
+                        <Link href="/settings"
+                            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[var(--ok-purple)] px-5 py-2.5 text-[13px] font-bold text-white">
+                            <Settings2 className="h-4 w-4" />
+                            {tGuard('goToSettings')}
+                        </Link>
+                    </div>
+                )}
+
+                {isPreparing && (
+                    <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-[var(--ok-purple-tint)] px-3 py-2.5 text-[13px] font-semibold text-[var(--ok-purple)]">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {prepareMessage}
+                    </div>
+                )}
+
+                {error && (
+                    <p className="mt-3 rounded-xl border border-[rgba(168,33,92,.25)] bg-[#FCEEF4] px-3.5 py-3 text-[13px] font-medium text-[var(--ok-danger)]">
+                        {error}
+                    </p>
+                )}
+
+                {/* Bu fatura · sayfalar */}
+                {pages.length > 0 && (
+                    <section className="mt-6">
+                        <div className="mb-2.5 flex items-center justify-between px-0.5">
+                            <span className="ok-mono text-[10px] text-[var(--ok-muted)]">
+                                {t('thisInvoice', { count: pages.length })}
+                            </span>
+                            <button onClick={() => setShowOrder(true)}
+                                className="flex items-center gap-1 text-[12px] font-bold text-[var(--ok-purple)]">
+                                <ListOrdered className="h-3.5 w-3.5" />
+                                {t('editOrder')}
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2.5">
+                            {pages.map((page, index) => (
+                                <div key={page.id} className="relative overflow-hidden rounded-xl border border-[var(--ok-line)] bg-white">
+                                    <button onClick={() => setLightboxUrl(page.preview)}
+                                        className="relative block aspect-[3/4] w-full">
+                                        <Image src={page.preview} alt="" fill className="object-cover" unoptimized />
+                                    </button>
+                                    <button onClick={() => removePage(page.id)}
+                                        className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--ok-ink)]/70 text-white backdrop-blur"
+                                        aria-label={t('removePage')}>
+                                        <X className="h-3.5 w-3.5" />
+                                    </button>
+                                    <div className="flex items-center justify-between gap-1 px-2 py-1.5">
+                                        <span className="text-[11.5px] font-bold text-[var(--ok-ink)]">
+                                            {t('pageShort', { index: index + 1 })}
+                                        </span>
+                                        {page.sharpness === 'sharp' && (
+                                            <span className="ok-mono rounded-[5px] bg-[var(--ok-green-tint)] px-1 py-0.5 text-[8.5px] font-bold text-[var(--ok-green)]">
+                                                {t('sharp')}
+                                            </span>
+                                        )}
+                                        {page.sharpness === 'blurry' && (
+                                            <span className="ok-mono rounded-[5px] bg-[var(--ok-amber-tint)] px-1 py-0.5 text-[8.5px] font-bold text-[var(--ok-amber)]">
+                                                {t('blurry')}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+
+                            <button onClick={openFiles} disabled={isPreparing}
+                                className="flex aspect-[3/4] flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-[var(--ok-faint)] text-[var(--ok-muted)] disabled:opacity-40">
+                                <Plus className="h-5 w-5" />
+                                <span className="text-[11.5px] font-semibold">{t('addPage')}</span>
+                            </button>
+                        </div>
+                    </section>
+                )}
+            </div>
+
+            {/* Bitirme eylemi — sabit, maliyeti taşır */}
+            {pages.length > 0 && canScan && (
+                <div className="fixed bottom-16 left-0 right-0 z-30 px-4 pb-3">
+                    <div className="mx-auto max-w-lg">
+                        <button onClick={startAnalysis} disabled={isPreparing}
+                            className="flex w-full items-center justify-between rounded-xl bg-[var(--ok-ink)] px-5 py-4 text-left text-white shadow-lg shadow-black/10 transition active:scale-[.99] disabled:opacity-50">
+                            <span>
+                                <span className="block text-[15px] font-bold">{t('startAnalysis')}</span>
+                                <span className="mt-0.5 block text-[12px] opacity-70">
+                                    {t('startMeta', { pages: pages.length, credits: creditCost, seconds: estimatedSeconds })}
+                                </span>
+                            </span>
+                            <span className="text-lg">→</span>
                         </button>
                     </div>
-                )
+                </div>
             )}
-            <ImageLightbox 
-                imageUrl={lightboxImageUrl}
-                onClose={() => setLightboxImageUrl(null)}
-            />
+
+            {showOrder && (
+                <PageOrderSheet
+                    pages={pages}
+                    creditCost={creditCost}
+                    estimatedSeconds={estimatedSeconds}
+                    onClose={() => setShowOrder(false)}
+                    onReorder={reorder}
+                    onRotate={rotatePage}
+                    onDelete={removePage}
+                    onRecapture={recapture}
+                    onAddPages={openFiles}
+                    onStart={startAnalysis}
+                    busyId={busyId}
+                />
+            )}
+
+            <ImageLightbox imageUrl={lightboxUrl} onClose={() => setLightboxUrl(null)} />
         </div>
     );
 }

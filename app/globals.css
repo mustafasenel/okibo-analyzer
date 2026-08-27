@@ -224,3 +224,41 @@ input[type=number] {
     margin-bottom: 0 !important;
   }
 }
+
+/* ── Okibo tarama akışı tasarım dili (Fatura Okuma - Mobil UX) ──
+   Mor tek eyleme ayrıldı, gövde mürekkep grisi, düşük yarıçap, monospace etiketler. */
+:root {
+  --ok-ink: #14121C;
+  --ok-body: #4A4558;
+  --ok-muted: #6C6580;
+  --ok-muted-2: #8A8497;
+  --ok-faint: #B4AFC2;
+  --ok-line: #E7E5EE;
+  --ok-surface: #F3F2F7;
+  --ok-surface-2: #F7F6FA;
+
+  --ok-purple: #5B21D6;
+  --ok-purple-light: #8B5CFF;
+  --ok-purple-soft: #B79BFF;
+  --ok-purple-tint: #F3F0FC;
+
+  --ok-green: #15653F;
+  --ok-green-tint: #E3F3EA;
+  --ok-green-dot: #2C9E68;
+
+  --ok-amber: #7A4E00;
+  --ok-amber-tint: #F9EFD9;
+  --ok-amber-dot: #E0A820;
+
+  --ok-danger: #A8215C;
+  --ok-danger-dot: #C0392B;
+}
+
+@keyframes ok-spin-arc { to { transform: rotate(360deg); } }
+@keyframes ok-soft-pulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+
+.ok-mono {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}

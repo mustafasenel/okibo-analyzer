@@ -21,7 +21,7 @@ export default function BottomNavBar() {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 z-50" 
+      className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-[var(--ok-line)] z-50" 
       style={{ 
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         marginBottom: '0px',
@@ -38,10 +38,18 @@ export default function BottomNavBar() {
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center justify-center w-full h-full text-sm"
+              className="relative flex h-full w-full flex-col items-center justify-center gap-1 text-[12px]"
             >
-              <item.icon className={`h-6 w-6 mb-1 transition-colors ${isActive ? 'text-violet-600' : 'text-gray-500'}`} />
-              <span className={`transition-colors ${isActive ? 'font-bold text-violet-600' : 'text-gray-600'}`}>{item.label}</span>
+              <item.icon
+                className={`h-[21px] w-[21px] transition-colors ${isActive ? 'text-[var(--ok-purple)]' : 'text-[var(--ok-muted-2)]'}`}
+                strokeWidth={isActive ? 2.2 : 1.8}
+              />
+              <span className={`transition-colors ${isActive ? 'font-bold text-[var(--ok-purple)]' : 'text-[var(--ok-muted)]'}`}>
+                {item.label}
+              </span>
+              {isActive && (
+                <span className="absolute bottom-1.5 h-[2px] w-5 rounded-full bg-[var(--ok-purple)]" />
+              )}
             </Link>
           );
         })}

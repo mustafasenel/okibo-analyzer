@@ -19,12 +19,25 @@
     "errorAnalysisFailed": "Bazı sayfalar analiz edilemedi. Lütfen sorunlu sayfaları yeniden yükleyip tekrar deneyin.",
     "errorUploadFailed": "Görsellerin tamamı yüklenemedi. Lütfen tekrar deneyin.",
     "pdfPreparing": "PDF hazırlanıyor...",
-    "pdfProcessingPage": "PDF sayfaları çıkarılıyor ({current}/{total})..."
+    "pdfProcessingPage": "PDF sayfaları çıkarılıyor ({current}/{total})...",
+    "creditLabel": "kredi",
+    "thisInvoice": "BU FATURA · {count} SAYFA",
+    "editOrder": "Sırayı düzenle",
+    "pageShort": "Sayfa {index}",
+    "sharp": "NET",
+    "blurry": "BULANIK",
+    "addPage": "Sayfa ekle",
+    "removePage": "Sayfayı kaldır",
+    "startAnalysis": "Analizi başlat",
+    "startMeta": "{pages} sayfa · {credits} kredi · ~{seconds} sn",
+    "checkingQuality": "Sayfa kalitesi kontrol ediliyor..."
   },
   "ImageCapture": {
-    "uploadButton": "Dosya Yükle",
-    "cameraButton": "Kamerayı Aç",
-    "infoText": "Faturanın tüm sayfalarını seçin. PDF de yükleyebilirsiniz."
+    "uploadButton": "Dosya",
+    "cameraButton": "Fatura çek",
+    "infoText": "Faturanın tüm sayfalarını ekle.",
+    "cameraHint": "Sayfaları sırayla",
+    "uploadHint": "PDF, JPG"
   },
   "ReviewPage": {
     "title": "Veriyi İncele ve Onayla",
@@ -159,5 +172,47 @@
     "stepUploading": "Görseller kaydediliyor",
     "elapsed": "Geçen süre: {time}",
     "keepOpen": "Uygulamayı açık tutun"
+  },
+  "PageOrder": {
+    "back": "Geri",
+    "title": "Sayfa sırası",
+    "done": "Bitti",
+    "description": "Sıra faturadaki sayfa sırasıyla aynı olmalı. Sürükleyerek taşı, bulanık sayfayı yeniden çek.",
+    "page": "Sayfa {index}",
+    "sharp": "NET",
+    "blurry": "BULANIK",
+    "sharpHint": "Kalem listesi · net okuma",
+    "blurryHint": "Odak zayıf, okuma hatalı olabilir",
+    "recapture": "Yeniden çek",
+    "rotate": "Döndür",
+    "delete": "Sil",
+    "addPage": "Sayfa ekle",
+    "dragHandle": "Sürükleyerek taşı",
+    "stayNote": "Analiz sırasında uygulamada kalman gerekir. Yaklaşık {seconds} saniye sürer.",
+    "start": "Analize gönder",
+    "startMeta": "{pages} sayfa · {credits} kredi"
+  },
+  "AnalysisScreen": {
+    "stayWarning": "Ekranı kapatma, uygulamadan çıkma. Analiz sadece bu ekran açıkken sürer.",
+    "startingHeadline": "Analiz başlıyor",
+    "readingHeadline": "Sayfa {page} okunuyor · {current}/{total}",
+    "finishingHeadline": "Sayfalar tamamlandı",
+    "savingHeadline": "Görseller kaydediliyor",
+    "readingSubline": "Kalem satırları çıkarılıyor. Tahmini kalan süre {seconds} saniye.",
+    "readingSublineNoEta": "Kalem satırları çıkarılıyor.",
+    "savingSubline": "Neredeyse bitti, inceleme ekranı açılıyor.",
+    "pagesLabel": "Sayfalar",
+    "pageTitle": "Sayfa {index}",
+    "pageDone": "{count} kalem bulundu",
+    "pageReading": "Okunuyor · kalem satırları",
+    "pageQueued": "Sırada",
+    "pageFailed": "Okunamadı · kredi iade edildi",
+    "retry": "Tekrar",
+    "failedNote": "{count} sayfa okunamadı. Bu sayfaların kredisi alınmadı; tekrar deneyebilir ya da okunan sayfalarla devam edebilirsin.",
+    "continueWithRead": "{count} sayfayla devam et",
+    "cancel": "Analizi iptal et",
+    "cancelConfirmText": "Analiz iptal edilsin mi? Şu ana kadar okunanlar kaybolur, kredi harcanmaz.",
+    "cancelKeep": "Devam et",
+    "cancelConfirm": "İptal et"
   }
 }

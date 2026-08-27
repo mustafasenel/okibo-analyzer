@@ -22,6 +22,8 @@ export const fetchWithRetry = async (url: string, options: RequestInit, retries 
         }
         return response;
     } catch (error) {
+        // İptal edildiyse yeniden deneme
+        if ((error as any)?.name === 'AbortError') throw error;
         if (retries > 0) {
             await new Promise(res => setTimeout(res, 1000));
             return fetchWithRetry(url, options, retries - 1);
@@ -31,12 +33,12 @@ export const fetchWithRetry = async (url: string, options: RequestInit, retries 
 };
 
 // Tek bir görseli analiz eder. Model, sunucu tarafında companyCode'dan çözülür.
-export async function analyzeImage(file: File, companyCode: string): Promise<any> {
+export async function analyzeImage(file: File, companyCode: string, signal?: AbortSignal): Promise<any> {
     const formData = new FormData();
     formData.append('image', file);
     formData.append('companyCode', companyCode);
 
-    const response = await fetchWithRetry('/api/analyze', { method: 'POST', body: formData });
+    const response = await fetchWithRetry('/api/analyze', { method: 'POST', body: formData, signal });
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Analiz başarısız oldu.');

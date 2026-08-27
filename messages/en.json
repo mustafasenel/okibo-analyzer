@@ -19,12 +19,25 @@
     "aggregatingResults": "Merging results...",
     "uploadingImages": "Uploading images...",
     "errorAnalysisFailed": "Some pages could not be analyzed. Please re-upload them and try again.",
-    "errorUploadFailed": "Not all images could be uploaded. Please try again."
+    "errorUploadFailed": "Not all images could be uploaded. Please try again.",
+    "creditLabel": "credits",
+    "thisInvoice": "THIS INVOICE · {count} PAGES",
+    "editOrder": "Edit order",
+    "pageShort": "Page {index}",
+    "sharp": "SHARP",
+    "blurry": "BLURRY",
+    "addPage": "Add page",
+    "removePage": "Remove page",
+    "startAnalysis": "Start analysis",
+    "startMeta": "{pages} pages · {credits} credits · ~{seconds}s",
+    "checkingQuality": "Checking page quality..."
   },
   "ImageCapture": {
-    "uploadButton": "Upload Files",
-    "cameraButton": "Open Camera",
-    "infoText": "Select all pages of the invoice. You can also upload a PDF."
+    "uploadButton": "File",
+    "cameraButton": "Capture",
+    "infoText": "Add all pages of the invoice.",
+    "cameraHint": "Pages in order",
+    "uploadHint": "PDF, JPG"
   },
   "ReviewPage": {
     "title": "Review and Confirm Data",
@@ -159,5 +172,47 @@
     "stepUploading": "Saving images",
     "elapsed": "Elapsed: {time}",
     "keepOpen": "Keep the app open"
+  },
+  "PageOrder": {
+    "back": "Back",
+    "title": "Page order",
+    "done": "Done",
+    "description": "The order must match the invoice. Drag to move, re-capture blurry pages.",
+    "page": "Page {index}",
+    "sharp": "SHARP",
+    "blurry": "BLURRY",
+    "sharpHint": "Line items · clear read",
+    "blurryHint": "Weak focus, reading may fail",
+    "recapture": "Re-capture",
+    "rotate": "Rotate",
+    "delete": "Delete",
+    "addPage": "Add page",
+    "dragHandle": "Drag to move",
+    "stayNote": "You need to stay in the app during analysis. It takes about {seconds} seconds.",
+    "start": "Send to analysis",
+    "startMeta": "{pages} pages · {credits} credits"
+  },
+  "AnalysisScreen": {
+    "stayWarning": "Do not close the screen or leave the app. Analysis only runs while this screen is open.",
+    "startingHeadline": "Starting analysis",
+    "readingHeadline": "Reading page {page} · {current}/{total}",
+    "finishingHeadline": "Pages completed",
+    "savingHeadline": "Saving images",
+    "readingSubline": "Extracting line items. About {seconds} seconds left.",
+    "readingSublineNoEta": "Extracting line items.",
+    "savingSubline": "Almost done, opening the review screen.",
+    "pagesLabel": "Pages",
+    "pageTitle": "Page {index}",
+    "pageDone": "{count} line items found",
+    "pageReading": "Reading · line items",
+    "pageQueued": "Queued",
+    "pageFailed": "Could not read · credit refunded",
+    "retry": "Retry",
+    "failedNote": "{count} pages could not be read. No credits were charged for them; retry or continue with the pages that were read.",
+    "continueWithRead": "Continue with {count} pages",
+    "cancel": "Cancel analysis",
+    "cancelConfirmText": "Cancel the analysis? Pages read so far are lost and no credits are charged.",
+    "cancelKeep": "Keep going",
+    "cancelConfirm": "Cancel"
   }
 }
