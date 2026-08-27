@@ -12,6 +12,7 @@ import SavedScreen from '@/components/review/SavedScreen';
 import { saveInvoice, checkUsageLimit, incrementScanCount } from './actions';
 import { analyzeImage, uploadImage, normalizePageItems, UploadedImageInfo } from '@/lib/scan';
 import { findSuspiciousCells, totalsMismatch, cellKey, type SuspicionField, type SuspicionReason } from '@/lib/suspicion';
+import { findCulpritLine, findOutlierLines } from '@/lib/reconcile';
 import { metaLabel } from '@/lib/invoice-labels';
 import type { InvoiceData, InvoiceItem, InvoiceMeta, InvoiceSummary } from '@/types/invoice';
 
@@ -94,10 +95,38 @@ export default function ReviewPage() {
         return map;
     }, [invoiceData]);
 
+
     const totals = useMemo(
         () => totalsMismatch(invoiceData, invoiceSummary?.total_net ?? invoiceSummary?.Zwischensumme),
         [invoiceData, invoiceSummary]
     );
+
+    // AI satır bazında tutarlı görünse bile fatura toplamı tutmuyorsa,
+    // farkı tek bir satır açıklıyor mu diye ararız.
+    const culprit = useMemo(
+        () => findCulpritLine(invoiceData, invoiceSummary?.total_net ?? invoiceSummary?.Zwischensumme),
+        [invoiceData, invoiceSummary]
+    );
+
+    // Özet yoksa ikinci savunma hattı: fatura içi aykırı satırlar
+    const outliers = useMemo(
+        () => (invoiceSummary?.total_net ? [] : findOutlierLines(invoiceData)),
+        [invoiceData, invoiceSummary]
+    );
+
+    // Mutabakattan çıkan satırlar da şüpheli sayılır (otomatik kuyruğa gider)
+    const allSuspicious = useMemo(() => {
+        const map = new Map(suspicious);
+        if (culprit) {
+            for (const field of ['Netto', 'Menge'] as SuspicionField[]) {
+                map.set(cellKey(culprit.page, culprit.row, field), 'lineBreaksTotal' as SuspicionReason);
+            }
+        }
+        outliers.forEach(o => {
+            map.set(cellKey(o.page, o.row, 'Netto'), 'outlierLine' as SuspicionReason);
+        });
+        return map;
+    }, [suspicious, culprit, outliers]);
 
     const items = invoiceData[currentPage]?.items ?? [];
     const totalItems = invoiceData.reduce((s, p) => s + (p.items?.length ?? 0), 0);
@@ -146,7 +175,7 @@ export default function ReviewPage() {
                 page: Number(page) + 1,
                 row: Number(row) + 1,
                 field,
-                reason: suspicious.get(key) ?? 'manual',
+                reason: allSuspicious.get(key) ?? 'manual',
                 product: item?.ArtikelBez ?? '',
                 articleNumber: item?.ArtikelNumber ?? '',
                 value: item ? (item as any)[field] : null,
@@ -154,7 +183,7 @@ export default function ReviewPage() {
         });
 
     const persist = async () => {
-        const keys = new Set(suspicious.keys()); // şüpheliler otomatik kuyruğa gider
+        const keys = new Set(allSuspicious.keys()); // şüpheliler otomatik kuyruğa gider
         const companyCode = localStorage.getItem('companyCode');
         if (!companyCode) { setError(t('noCompanyCode')); return; }
         setSaving(true);
@@ -186,7 +215,7 @@ export default function ReviewPage() {
     const confirmAndSave = () => persist();
 
     // Çok fazla şüpheli alan varsa düzeltmeye uğraşmak yerine sayfayı baştan çekmek daha doğru
-    const suspiciousRows = new Set([...suspicious.keys()].map(k => k.split(':').slice(0, 2).join(':'))).size;
+    const suspiciousRows = new Set([...allSuspicious.keys()].map(k => k.split(':').slice(0, 2).join(':'))).size;
     const tooManyIssues = totalItems > 0 && suspiciousRows / totalItems > 0.34;
 
     const leave = (to: string) => {
@@ -211,7 +240,7 @@ export default function ReviewPage() {
                 invoiceNo={String(invoiceMeta?.Rechnungsnummer ?? '—')}
                 itemCount={totalItems}
                 pageCount={invoiceData.length}
-                flaggedCount={suspicious.size}
+                flaggedCount={allSuspicious.size}
                 creditsUsed={invoiceData.length}
                 summary={invoiceSummary}
                 lineTotal={totals.lineTotal}
@@ -267,10 +296,20 @@ export default function ReviewPage() {
                                 b: (c) => <strong>{c}</strong>,
                             })}
                         </p>
+                        {culprit && (
+                            <div className="rounded-lg bg-white/70 px-3 py-2 text-[12px] leading-relaxed text-[#5C4200]">
+                                {t.rich('culpritHint', {
+                                    product: culprit.product || t('unnamedLine'),
+                                    current: money(culprit.currentNetto),
+                                    suggested: money(culprit.suggestedNetto),
+                                    b: (c) => <strong>{c}</strong>,
+                                })}
+                            </div>
+                        )}
                         <div className="flex gap-2">
                             <button
                                 onClick={() => {
-                                    const first = [...suspicious.keys()][0];
+                                    const first = [...allSuspicious.keys()][0];
                                     if (!first) return;
                                     const [p, r, f] = first.split(':');
                                     setCurrentPage(Number(p));
@@ -292,10 +331,10 @@ export default function ReviewPage() {
                 )}
 
                 {/* Şüpheli hücre bilgisi */}
-                {suspicious.size > 0 && (
+                {allSuspicious.size > 0 && (
                     <div className="flex items-center gap-3 rounded-xl border border-[rgba(20,18,28,.12)] bg-white px-3.5 py-3">
                         <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--ok-amber-tint)] text-[11px] font-bold text-[var(--ok-amber)]">
-                            {suspicious.size}
+                            {allSuspicious.size}
                         </span>
                         <p className="text-[12.5px] leading-snug text-[var(--ok-body)]">{t('autoQueueNote')}</p>
                     </div>
@@ -338,7 +377,7 @@ export default function ReviewPage() {
                 <InvoiceTable
                     items={items}
                     page={currentPage}
-                    suspicious={suspicious}
+                    suspicious={allSuspicious}
                     onCellPress={(row, field) => setDetail({ row, field })}
                 />
 
@@ -375,7 +414,7 @@ export default function ReviewPage() {
                     fieldLabel={metaLabel(detail.field).label}
                     page={currentPage + 1}
                     row={detail.row + 1}
-                    reason={suspicious.get(detailKey) ?? null}
+                    reason={allSuspicious.get(detailKey) ?? null}
                     readValue={(() => {
                         const raw = (detailItem as any)[detail.field];
                         if (raw === undefined || raw === null || raw === '') return '—';

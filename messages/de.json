@@ -44,7 +44,9 @@
     "saveError": "Beim Speichern ist ein Fehler aufgetreten.",
     "autoQueueNote": "Verdächtige Felder sind markiert und werden automatisch an die Desktop-Korrekturliste gesendet. Hier ist nichts zu tun.",
     "tooManyTitle": "Zu viele verdächtige Felder",
-    "tooManyBody": "Diese Seite wurde offenbar schlecht gelesen. Neu aufnehmen ist besser als Feld für Feld zu korrigieren."
+    "tooManyBody": "Diese Seite wurde offenbar schlecht gelesen. Neu aufnehmen ist besser als Feld für Feld zu korrigieren.",
+    "culpritHint": "Wahrscheinlich fehlerhafte Zeile: <b>{product}</b> — sollte statt {current} wohl <b>{suggested}</b> sein.",
+    "unnamedLine": "unbenannte Zeile"
   },
   "HistoryPage": {
     "title": "Rechnungsverlauf",
@@ -261,7 +263,9 @@
       "nettoMismatch": "Berechneter Netto passt nicht",
       "quantityMismatch": "Kolli × Inhalt ergibt nicht die Menge",
       "missingValue": "Wert nicht lesbar",
-      "priceOutlier": "Preis wirkt unplausibel"
+      "priceOutlier": "Preis wirkt unplausibel",
+      "lineBreaksTotal": "Diese Zeile bricht die Rechnungssumme",
+      "outlierLine": "Betrag weicht stark von anderen Zeilen ab"
     },
     "noImage": "Kein Bild für diese Seite",
     "zoomHint": "Doppeltippen oder aufziehen zum Zoomen.",

@@ -68,7 +68,9 @@
     "saveError": "Something went wrong while saving.",
     "autoQueueNote": "Suspicious fields are highlighted and sent to the desktop correction queue automatically. Nothing to do here.",
     "tooManyTitle": "Too many suspicious fields",
-    "tooManyBody": "This page does not seem to have been read well. Re-capturing it is better than fixing field by field."
+    "tooManyBody": "This page does not seem to have been read well. Re-capturing it is better than fixing field by field.",
+    "culpritHint": "Likely faulty row: <b>{product}</b> — looks like it should be <b>{suggested}</b> instead of {current}.",
+    "unnamedLine": "unnamed row"
   },
   "HistoryPage": {
     "title": "Invoice History",
@@ -251,7 +253,9 @@
       "nettoMismatch": "Calculated net does not match",
       "quantityMismatch": "Box × content does not equal quantity",
       "missingValue": "Value could not be read",
-      "priceOutlier": "Price looks like an outlier"
+      "priceOutlier": "Price looks like an outlier",
+      "lineBreaksTotal": "This row breaks the invoice total",
+      "outlierLine": "Amount is an outlier versus other rows"
     },
     "noImage": "No image for this page",
     "zoomHint": "Double tap or pinch to zoom.",
