@@ -43,8 +43,6 @@
     "noCompanyCode": "Kein Firmencode gesetzt.",
     "saveError": "Beim Speichern ist ein Fehler aufgetreten.",
     "autoQueueNote": "Verdächtige Felder sind markiert und werden automatisch an die Desktop-Korrekturliste gesendet. Hier ist nichts zu tun.",
-    "tooManyTitle": "Zu viele verdächtige Felder",
-    "tooManyBody": "Diese Seite wurde offenbar schlecht gelesen. Neu aufnehmen ist besser als Feld für Feld zu korrigieren.",
     "culpritHint": "Wahrscheinlich fehlerhafte Zeile: <b>{product}</b> — sollte statt {current} wohl <b>{suggested}</b> sein.",
     "unnamedLine": "unbenannte Zeile"
   },

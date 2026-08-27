@@ -75,21 +75,21 @@ export default function CellDetailSheet({
             </div>
 
             <div className="mx-auto w-full max-w-lg flex flex-col gap-2 border-t border-[var(--ok-line)] px-4 pb-6 pt-3">
-                {canRescan && (
-                    <button
-                        onClick={onRescan}
-                        className="flex items-center justify-center gap-2 rounded-xl border border-[var(--ok-line)] py-3.5 text-[14.5px] font-semibold text-[var(--ok-body)]"
-                    >
-                        <Camera className="h-4 w-4" />
-                        {t('rescan')}
-                    </button>
-                )}
                 <button
                     onClick={onClose}
                     className="rounded-xl bg-[var(--ok-purple)] py-3.5 text-[14.5px] font-bold text-white transition active:scale-[.99]"
                 >
                     {t('close')}
                 </button>
+                {canRescan && (
+                    <button
+                        onClick={onRescan}
+                        className="flex items-center justify-center gap-1.5 py-1 text-[12px] font-medium text-[var(--ok-muted)]"
+                    >
+                        <Camera className="h-3 w-3" />
+                        {t('rescan')}
+                    </button>
+                )}
             </div>
         </div>
     );

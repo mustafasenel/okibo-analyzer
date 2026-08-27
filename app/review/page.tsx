@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { AlertTriangle, Loader2, Camera } from 'lucide-react';
+import { Loader2, Camera } from 'lucide-react';
 
 import ImageSheet from '@/components/review/ImageSheet';
 import InvoiceTable from '@/components/review/InvoiceTable';
@@ -214,9 +214,6 @@ export default function ReviewPage() {
 
     const confirmAndSave = () => persist();
 
-    // Çok fazla şüpheli alan varsa düzeltmeye uğraşmak yerine sayfayı baştan çekmek daha doğru
-    const suspiciousRows = new Set([...allSuspicious.keys()].map(k => k.split(':').slice(0, 2).join(':'))).size;
-    const tooManyIssues = totalItems > 0 && suspiciousRows / totalItems > 0.34;
 
     const leave = (to: string) => {
         sessionStorage.removeItem('analysisResult');
@@ -306,7 +303,7 @@ export default function ReviewPage() {
                                 })}
                             </div>
                         )}
-                        <div className="flex gap-2">
+                        <div className="flex items-center justify-between gap-3 pt-0.5">
                             <button
                                 onClick={() => {
                                     const first = [...allSuspicious.keys()][0];
@@ -315,14 +312,17 @@ export default function ReviewPage() {
                                     setCurrentPage(Number(p));
                                     setDetail({ row: Number(r), field: f as SuspicionField });
                                 }}
-                                className="flex-1 rounded-lg bg-[rgba(201,138,0,.18)] py-2.5 text-[12px] font-bold text-[#5C4200]"
+                                className="text-[12px] font-bold text-[#5C4200] underline underline-offset-2"
                             >
                                 {t('inspectDifference')}
                             </button>
                             {!isViewMode && (
-                                <button onClick={rescanPage} disabled={isRescanning}
-                                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[rgba(201,138,0,.5)] py-2.5 text-[12px] font-bold text-[#5C4200] disabled:opacity-50">
-                                    {isRescanning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+                                <button
+                                    onClick={rescanPage}
+                                    disabled={isRescanning}
+                                    className="flex items-center gap-1 text-[11.5px] font-medium text-[#7A6420] disabled:opacity-50"
+                                >
+                                    {isRescanning ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
                                     {t('rescanPage')}
                                 </button>
                             )}
@@ -337,22 +337,6 @@ export default function ReviewPage() {
                             {allSuspicious.size}
                         </span>
                         <p className="text-[12.5px] leading-snug text-[var(--ok-body)]">{t('autoQueueNote')}</p>
-                    </div>
-                )}
-
-                {/* Çok fazla şüpheli alan → sayfayı baştan çekmek daha doğru */}
-                {tooManyIssues && !isViewMode && (
-                    <div className="flex flex-col gap-2.5 rounded-xl border border-[rgba(168,33,92,.25)] bg-[#FCEEF4] p-3.5">
-                        <div className="flex items-center gap-2">
-                            <AlertTriangle className="h-4 w-4 shrink-0 text-[var(--ok-danger)]" />
-                            <span className="text-[13px] font-bold text-[var(--ok-danger)]">{t('tooManyTitle')}</span>
-                        </div>
-                        <p className="text-[12px] leading-relaxed text-[var(--ok-danger)]">{t('tooManyBody')}</p>
-                        <button onClick={rescanPage} disabled={isRescanning}
-                            className="flex items-center justify-center gap-1.5 rounded-lg bg-[var(--ok-danger)] py-2.5 text-[12.5px] font-bold text-white disabled:opacity-50">
-                            {isRescanning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
-                            {t('rescanPage')}
-                        </button>
                     </div>
                 )}
 

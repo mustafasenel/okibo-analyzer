@@ -19,8 +19,12 @@ import { checkUsageLimit, incrementScanCount } from '@/app/review/actions';
 import { useCompanyCode } from '@/hooks/use-company-code';
 import type { ScanPage } from '@/types/scan';
 
-/** Sayfa başına kaba süre tahmini (ilk ölçüm gelene kadar) */
-const SECONDS_PER_PAGE = 7;
+/** Sayfa başına kaba süre tahmini (ilk gerçek ölçüm gelene kadar).
+ *  Ölçümler ~15-25 sn arasında; olduğundan az göstermek "takıldı" hissi verdiği için
+ *  üst sınıra yakın, temkinli bir değer kullanıyoruz. */
+const SECONDS_PER_PAGE = 22;
+/** Tahmine eklenen güvenlik payı (az göstermektense biraz fazla göster) */
+const ETA_MARGIN = 1.2;
 
 export default function Home() {
     const t = useTranslations('HomePage');
@@ -53,7 +57,7 @@ export default function Home() {
 
     const multiplier = company?.creditMultiplier && company.creditMultiplier > 0 ? company.creditMultiplier : 1;
     const creditCost = pages.length * multiplier;
-    const estimatedSeconds = Math.max(SECONDS_PER_PAGE, Math.ceil((pages.length * SECONDS_PER_PAGE) / 2));
+    const estimatedSeconds = Math.max(SECONDS_PER_PAGE, Math.ceil((pages.length * SECONDS_PER_PAGE * ETA_MARGIN) / 2));
 
     const patch = (id: string, data: Partial<ScanPage>) =>
         setPages(prev => prev.map(p => (p.id === id ? { ...p, ...data } : p)));
@@ -167,11 +171,16 @@ export default function Home() {
             const list = analysisListRef.current;
             const settled = list.filter(p => outcomesRef.current.has(p.id)).length;
             const remaining = Math.max(0, list.length - settled);
-            const avg = durations.length > 0
-                ? durations.reduce((a, b) => a + b, 0) / durations.length
-                : SECONDS_PER_PAGE * 1000;
-            // Aynı anda 2 sayfa okunduğu için kalan süre yarıya iner
-            setEtaSeconds(remaining > 0 ? Math.ceil((avg * remaining) / 2000) : null);
+            if (remaining <= 0) {
+                setEtaSeconds(null);
+            } else if (durations.length > 0) {
+                // Gerçek ölçümden: aynı anda 2 sayfa okunduğu için kalan süre yarıya iner
+                const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
+                setEtaSeconds(Math.ceil((avg * remaining * ETA_MARGIN) / 2000));
+            } else {
+                // Henüz ölçüm yok — kaba tahminde kal
+                setEtaSeconds(Math.ceil((SECONDS_PER_PAGE * remaining * ETA_MARGIN) / 2));
+            }
         }
     };
 

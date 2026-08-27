@@ -67,8 +67,6 @@
     "noCompanyCode": "No company code set.",
     "saveError": "Something went wrong while saving.",
     "autoQueueNote": "Suspicious fields are highlighted and sent to the desktop correction queue automatically. Nothing to do here.",
-    "tooManyTitle": "Too many suspicious fields",
-    "tooManyBody": "This page does not seem to have been read well. Re-capturing it is better than fixing field by field.",
     "culpritHint": "Likely faulty row: <b>{product}</b> — looks like it should be <b>{suggested}</b> instead of {current}.",
     "unnamedLine": "unnamed row"
   },

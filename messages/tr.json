@@ -67,8 +67,6 @@
     "noCompanyCode": "Firma kodu ayarlanmamış.",
     "saveError": "Kaydetme sırasında bir hata oluştu.",
     "autoQueueNote": "Şüpheli alanlar sarı işaretli ve masaüstü düzeltme kuyruğuna otomatik gönderiliyor. Burada bir şey yapmana gerek yok.",
-    "tooManyTitle": "Çok fazla şüpheli alan",
-    "tooManyBody": "Bu sayfa iyi okunmamış görünüyor. Düzeltmeyle uğraşmak yerine sayfayı yeniden çekmek daha doğru olur.",
     "culpritHint": "Muhtemel hatalı satır: <b>{product}</b> — {current} yerine <b>{suggested}</b> olmalı görünüyor.",
     "unnamedLine": "isimsiz satır"
   },
