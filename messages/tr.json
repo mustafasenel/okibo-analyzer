@@ -150,5 +150,14 @@
     "verified": "{name} doğrulandı",
     "codeHint": "Yöneticinizden aldığınız firma kodunu girin.",
     "verifying": "Doğrulanıyor..."
+  },
+  "AnalysisProgress": {
+    "title": "Faturanız işleniyor",
+    "subtitle": "{total, plural, one {# sayfa} other {# sayfa}} işleniyor, lütfen bekleyin",
+    "stepAnalyzing": "Sayfalar okunuyor",
+    "stepAggregating": "Sonuçlar birleştiriliyor",
+    "stepUploading": "Görseller kaydediliyor",
+    "elapsed": "Geçen süre: {time}",
+    "keepOpen": "Uygulamayı açık tutun"
   }
 }

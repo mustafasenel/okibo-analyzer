@@ -150,5 +150,14 @@
     "verified": "{name} verified",
     "codeHint": "Enter the company code provided by your administrator.",
     "verifying": "Verifying..."
+  },
+  "AnalysisProgress": {
+    "title": "Processing your invoice",
+    "subtitle": "Processing {total, plural, one {# page} other {# pages}}, please wait",
+    "stepAnalyzing": "Reading pages",
+    "stepAggregating": "Merging results",
+    "stepUploading": "Saving images",
+    "elapsed": "Elapsed: {time}",
+    "keepOpen": "Keep the app open"
   }
 }

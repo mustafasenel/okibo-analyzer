@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ImageCapture from '@/components/scanner/ImageCapture';
@@ -12,6 +12,7 @@ import { analyzeImage, uploadImage, normalizePageItems, UploadedImageInfo } from
 import { checkUsageLimit, incrementScanCount } from '@/app/review/actions';
 import { useCompanyCode } from '@/hooks/use-company-code';
 import { expandFilesToImages, isPdf } from '@/lib/pdf';
+import AnalysisProgress, { AnalysisStage } from '@/components/scanner/AnalysisProgress';
 
 // --- TYPES ---
 type ImageFileStatus = 'pending' | 'processing' | 'completed' | 'error';
@@ -32,11 +33,25 @@ export default function Home() {
 
     const [imageFiles, setImageFiles] = useState<ImageFileWithStatus[]>([]);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [analysisMessage, setAnalysisMessage] = useState('');
+    const [stage, setStage] = useState<AnalysisStage>('analyzing');
+    const [analyzedCount, setAnalyzedCount] = useState(0);
+    const [uploadedCount, setUploadedCount] = useState(0);
+    const [elapsedSeconds, setElapsedSeconds] = useState(0);
     const [error, setError] = useState<string>('');
     const [lightboxImageUrl, setLightboxImageUrl] = useState<string | null>(null); // Lightbox için state
     const [isPreparing, setIsPreparing] = useState(false); // PDF sayfalara ayrılırken
     const [prepareMessage, setPrepareMessage] = useState('');
+
+    // Analiz sürerken geçen süreyi say (tahmini süre veremiyoruz; şeffaf olan bu)
+    useEffect(() => {
+        if (!isAnalyzing) return;
+        const startedAt = Date.now();
+        setElapsedSeconds(0);
+        const id = setInterval(() => {
+            setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+        }, 1000);
+        return () => clearInterval(id);
+    }, [isAnalyzing]);
 
     const handleFilesChange = async (files: FileList | null, idToReplace?: string) => {
         if (!files || files.length === 0) return;
@@ -116,6 +131,9 @@ export default function Home() {
         }
         setError('');
         setIsAnalyzing(true);
+        setStage('analyzing');
+        setAnalyzedCount(0);
+        setUploadedCount(0);
 
         const companyCode = localStorage.getItem('companyCode');
         if (!companyCode || !canScan) {
@@ -130,11 +148,10 @@ export default function Home() {
             return;
         }
 
-        const analysisPromises = imageFiles.map(async (imageFile, index) => {
+        // Sayfalar paralel analiz edilir; ilerleme gerçekten biten sayfa sayısıyla ölçülür.
+        const analysisPromises = imageFiles.map(async (imageFile) => {
+            updateImageStatus(imageFile.id, 'processing');
             try {
-                setAnalysisMessage(t('analyzingMessage', { current: index + 1, total: imageFiles.length }));
-                updateImageStatus(imageFile.id, 'processing');
-
                 // Model sunucu tarafında companyCode'dan çözülür.
                 const result = await analyzeImage(imageFile.file, companyCode);
                 updateImageStatus(imageFile.id, 'completed');
@@ -143,6 +160,8 @@ export default function Home() {
                 console.error(`Failed to process image ${imageFile.id}:`, err);
                 updateImageStatus(imageFile.id, 'error');
                 return null; // Return null for failed analyses
+            } finally {
+                setAnalyzedCount(prev => prev + 1);
             }
         });
 
@@ -155,7 +174,7 @@ export default function Home() {
         }
 
         // --- AGGREGATION & UPLOAD ---
-        setAnalysisMessage(t('aggregatingResults'));
+        setStage('aggregating');
         const finalMeta = allResults[0]?.invoice_meta || {};
         const finalSummary = allResults[allResults.length - 1]?.invoice_summary || null;
 
@@ -167,11 +186,15 @@ export default function Home() {
         const finalData = { invoiceMeta: finalMeta, invoiceData: finalPaginatedData, invoiceSummary: finalSummary };
         sessionStorage.setItem('analysisResult', JSON.stringify(finalData));
 
-        setAnalysisMessage(t('uploadingImages'));
-        const uploadPromises = imageFiles.map(img => uploadImage(img.file).catch(err => {
-            console.error(`Failed to upload ${img.file.name}:`, err);
-            return null; // Return null on upload failure
-        }));
+        setStage('uploading');
+        const uploadPromises = imageFiles.map(img =>
+            uploadImage(img.file)
+                .catch(err => {
+                    console.error(`Failed to upload ${img.file.name}:`, err);
+                    return null; // Return null on upload failure
+                })
+                .finally(() => setUploadedCount(prev => prev + 1))
+        );
         const uploadedImages = (await Promise.all(uploadPromises)).filter((res): res is UploadedImageInfo => res !== null);
 
         if (uploadedImages.length !== imageFiles.length) {
@@ -188,7 +211,7 @@ export default function Home() {
     };
 
     return (
-        <div className="p-4 max-w-lg mx-auto">
+        <div className={`p-4 max-w-lg mx-auto ${isAnalyzing ? "pb-80" : ""}`}>
             <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">{t('title')}</h1>
 
             {/* Firma kodu doğrulanmışsa firma adı + kalan kredi rozeti */}
@@ -241,23 +264,30 @@ export default function Home() {
                 />
             )}
             {imageFiles.length > 0 && (
-                <div className="mt-8">
-                    <button
-                        onClick={handleSubmit}
-                        disabled={isAnalyzing || !canScan}
-                        className="w-full bg-violet-600 text-white font-bold py-4 px-4 rounded-lg text-lg flex items-center justify-center gap-2 hover:bg-violet-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300"
-                    >
-                        {isAnalyzing ? (
-                            <>
-                                <Loader2 className="animate-spin h-6 w-6" />
-                                <span>{analysisMessage}</span>
-                            </>
-                        ) : (
-                            // Buton metnini de dil dosyasından al
-                            (t('analyzeButton', { count: imageFiles.length }))
-                        )}
-                    </button>
-                </div>
+                isAnalyzing ? (
+                    // Analiz sürerken panel her zaman görünür kalsın (alt navigasyonun üstünde)
+                    <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-3">
+                    <div className="mx-auto max-w-lg">
+                    <AnalysisProgress
+                        stage={stage}
+                        analyzed={analyzedCount}
+                        uploaded={uploadedCount}
+                        total={imageFiles.length}
+                        elapsedSeconds={elapsedSeconds}
+                    />
+                    </div>
+                    </div>
+                ) : (
+                    <div className="mt-8">
+                        <button
+                            onClick={handleSubmit}
+                            disabled={!canScan}
+                            className="w-full bg-violet-600 text-white font-bold py-4 px-4 rounded-lg text-lg flex items-center justify-center gap-2 hover:bg-violet-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300"
+                        >
+                            {t('analyzeButton', { count: imageFiles.length })}
+                        </button>
+                    </div>
+                )
             )}
             <ImageLightbox 
                 imageUrl={lightboxImageUrl}

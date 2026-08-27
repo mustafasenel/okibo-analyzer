@@ -160,5 +160,14 @@
     "uploadButton": "Datei hochladen",
     "cameraButton": "Kamera öffnen",
     "infoText": "Wählen Sie alle Seiten der Rechnung. PDF wird ebenfalls unterstützt."
+  },
+  "AnalysisProgress": {
+    "title": "Ihre Rechnung wird verarbeitet",
+    "subtitle": "{total, plural, one {# Seite} other {# Seiten}} werden verarbeitet, bitte warten",
+    "stepAnalyzing": "Seiten werden gelesen",
+    "stepAggregating": "Ergebnisse werden zusammengeführt",
+    "stepUploading": "Bilder werden gespeichert",
+    "elapsed": "Verstrichen: {time}",
+    "keepOpen": "App geöffnet lassen"
   }
 }
