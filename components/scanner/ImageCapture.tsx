@@ -56,7 +56,7 @@ export default function ImageCapture({ onFilesChange, disabled }: ImageCapturePr
         onChange={handleFileSelect}
         className="hidden"
         multiple
-        accept="image/*"
+        accept="image/*,application/pdf,.pdf"
       />
       <input
         type="file"

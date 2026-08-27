@@ -13,12 +13,18 @@
     "errorGeneric": "An unexpected error occurred. Please try again.",
     "errorNoImages": "Please select at least one page to analyze.",
     "errorApi": "An error occurred from the API. Please try again later.",
-    "errorNoResults": "No valid results were returned from the analysis."
+    "errorNoResults": "No valid results were returned from the analysis.",
+    "pdfPreparing": "Preparing PDF...",
+    "pdfProcessingPage": "Extracting PDF pages ({current}/{total})...",
+    "aggregatingResults": "Merging results...",
+    "uploadingImages": "Uploading images...",
+    "errorAnalysisFailed": "Some pages could not be analyzed. Please re-upload them and try again.",
+    "errorUploadFailed": "Not all images could be uploaded. Please try again."
   },
   "ImageCapture": {
     "uploadButton": "Upload Files",
     "cameraButton": "Open Camera",
-    "infoText": "Select all pages of your invoice."
+    "infoText": "Select all pages of the invoice. You can also upload a PDF."
   },
   "ReviewPage": {
     "title": "Review and Confirm Data",

@@ -11,6 +11,7 @@ import { useTranslations } from 'next-intl';
 import { analyzeImage, uploadImage, normalizePageItems, UploadedImageInfo } from '@/lib/scan';
 import { checkUsageLimit, incrementScanCount } from '@/app/review/actions';
 import { useCompanyCode } from '@/hooks/use-company-code';
+import { expandFilesToImages, isPdf } from '@/lib/pdf';
 
 // --- TYPES ---
 type ImageFileStatus = 'pending' | 'processing' | 'completed' | 'error';
@@ -34,12 +35,38 @@ export default function Home() {
     const [analysisMessage, setAnalysisMessage] = useState('');
     const [error, setError] = useState<string>('');
     const [lightboxImageUrl, setLightboxImageUrl] = useState<string | null>(null); // Lightbox için state
+    const [isPreparing, setIsPreparing] = useState(false); // PDF sayfalara ayrılırken
+    const [prepareMessage, setPrepareMessage] = useState('');
 
-    const handleFilesChange = (files: FileList | null, idToReplace?: string) => {
-        if (!files) return;
-        const newFiles = Array.from(files).map(file => ({
+    const handleFilesChange = async (files: FileList | null, idToReplace?: string) => {
+        if (!files || files.length === 0) return;
+        setError('');
+
+        const selected = Array.from(files);
+        let prepared = selected;
+
+        // PDF seçildiyse sayfalarına ayrılıp görsele çevrilir; sonrası mevcut akışla aynıdır.
+        if (selected.some(isPdf)) {
+            setIsPreparing(true);
+            setPrepareMessage(t('pdfPreparing'));
+            try {
+                const { images, errors } = await expandFilesToImages(selected, ({ current, total }) => {
+                    setPrepareMessage(t('pdfProcessingPage', { current, total }));
+                });
+                if (errors.length > 0) setError(errors.join(' '));
+                prepared = images;
+            } finally {
+                setIsPreparing(false);
+                setPrepareMessage('');
+            }
+        }
+
+        if (prepared.length === 0) return;
+
+        const stamp = Date.now();
+        const newFiles = prepared.map((file, index) => ({
             file,
-            id: `${file.name}-${Date.now()}`,
+            id: `${file.name}-${stamp}-${index}`,
             preview: URL.createObjectURL(file),
             status: 'pending' as ImageFileStatus,
             retries: 0,
@@ -176,7 +203,15 @@ export default function Home() {
 
             {canScan ? (
                 <div className="bg-white p-6 rounded-lg shadow-md">
-                    <ImageCapture onFilesChange={handleFilesChange} disabled={isAnalyzing} />
+                    <ImageCapture onFilesChange={handleFilesChange} disabled={isAnalyzing || isPreparing} />
+
+                    {/* PDF sayfalara ayrılırken ilerleme */}
+                    {isPreparing && (
+                        <div className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-violet-50 px-3 py-2.5 text-sm font-medium text-violet-700">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>{prepareMessage}</span>
+                        </div>
+                    )}
                 </div>
             ) : (
                 /* Firma kodu yok/geçersiz → tarama alanı kilitli */

@@ -139,5 +139,26 @@
     "verified": "{name} bestätigt",
     "codeHint": "Geben Sie den Firmencode Ihres Administrators ein.",
     "verifying": "Wird überprüft..."
+  },
+  "HomePage": {
+    "title": "Rechnungsanalyse",
+    "modelSelectionLabel": "Analysemodell wählen",
+    "analyzeButton": "{count, plural, one {# Seite analysieren} other {# Seiten analysieren}}",
+    "analyzingMessage": "Analysiere ({current}/{total})...",
+    "errorGeneric": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "errorNoImages": "Bitte wählen Sie mindestens eine Seite zur Analyse aus.",
+    "errorApi": "Die API hat einen Fehler zurückgegeben. Bitte später erneut versuchen.",
+    "errorNoResults": "Aus der Analyse wurden keine gültigen Ergebnisse zurückgegeben.",
+    "aggregatingResults": "Ergebnisse werden zusammengeführt...",
+    "uploadingImages": "Bilder werden hochgeladen...",
+    "errorAnalysisFailed": "Einige Seiten konnten nicht analysiert werden. Bitte laden Sie sie erneut hoch.",
+    "errorUploadFailed": "Nicht alle Bilder konnten hochgeladen werden. Bitte erneut versuchen.",
+    "pdfPreparing": "PDF wird vorbereitet...",
+    "pdfProcessingPage": "PDF-Seiten werden extrahiert ({current}/{total})..."
+  },
+  "ImageCapture": {
+    "uploadButton": "Datei hochladen",
+    "cameraButton": "Kamera öffnen",
+    "infoText": "Wählen Sie alle Seiten der Rechnung. PDF wird ebenfalls unterstützt."
   }
 }

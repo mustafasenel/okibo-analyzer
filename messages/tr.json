@@ -17,12 +17,14 @@
     "aggregatingResults": "Sonuçlar birleştiriliyor...",
     "uploadingImages": "Görseller yükleniyor...",
     "errorAnalysisFailed": "Bazı sayfalar analiz edilemedi. Lütfen sorunlu sayfaları yeniden yükleyip tekrar deneyin.",
-    "errorUploadFailed": "Görsellerin tamamı yüklenemedi. Lütfen tekrar deneyin."
+    "errorUploadFailed": "Görsellerin tamamı yüklenemedi. Lütfen tekrar deneyin.",
+    "pdfPreparing": "PDF hazırlanıyor...",
+    "pdfProcessingPage": "PDF sayfaları çıkarılıyor ({current}/{total})..."
   },
   "ImageCapture": {
     "uploadButton": "Dosya Yükle",
     "cameraButton": "Kamerayı Aç",
-    "infoText": "Faturanızın tüm sayfalarını seçin."
+    "infoText": "Faturanın tüm sayfalarını seçin. PDF de yükleyebilirsiniz."
   },
   "ReviewPage": {
     "title": "Veriyi İncele ve Onayla",
