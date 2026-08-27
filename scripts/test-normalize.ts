@@ -1,6 +1,6 @@
 // OCR normalizasyon algoritmalarının testi.
 // Çalıştır: npx ts-node --compiler-options '{"module":"commonjs"}' scripts/test-normalize.ts
-import { parseNum, normalizeInvoiceItem } from '../lib/normalize';
+import { parseNum, normalizeInvoiceItem, resolvePackaging } from '../lib/normalize';
 
 let pass = 0, fail = 0;
 function check(name: string, actual: unknown, expected: unknown) {
@@ -82,6 +82,33 @@ check('koli/içerik eksik → tutardan tamamla',
     (({ Kolli, Inhalt, Menge }) => ({ Kolli, Inhalt, Menge }))(
         normalizeInvoiceItem({ ArtikelBez:'X', Preis:'0,650', Netto:'58,50' })),
     { Kolli: 1, Inhalt: 90, Menge: 90 });
+
+console.log('\n--- koli / içerik ayrımı (ekranda ters çıkan satırlar) ---');
+
+const pack = (k: number, i: number, e?: string) => resolvePackaging(k, i, e);
+
+check('12 koli x 1 adet → 1 koli x 12 adet', pack(12, 1), { kolli: 1, inhalt: 12 });
+check('11 koli x 1 adet → 1 koli x 11 adet', pack(11, 1), { kolli: 1, inhalt: 11 });
+check('18 koli x 1 adet → 1 koli x 18 adet', pack(18, 1), { kolli: 1, inhalt: 18 });
+check('1 koli x 12 adet (doğru) korunur', pack(1, 12), { kolli: 1, inhalt: 12 });
+check('tek parça 1x1 korunur', pack(1, 1), { kolli: 1, inhalt: 1 });
+// Birim etiketi varsa modelin sırası korunur: 24 koli x 6 adet gerçek olabilir
+check('birim etiketi KTN → sıra korunur', pack(24, 6, 'KTN'), { kolli: 24, inhalt: 6 });
+check('etiket yokken büyük olan içerik sayılır', pack(24, 6), { kolli: 6, inhalt: 24 });
+
+// Uçtan uca: modelin ters verdiği satır düzelir, tutar değişmez
+check('ters satır normalize → tutar aynı',
+    (({ Kolli, Inhalt, Menge, originalNetto }) => ({ Kolli, Inhalt, Menge, originalNetto }))(
+        normalizeInvoiceItem({ ArtikelNumber:'00771-03', ArtikelBez:'CIZI PEYNIRLI KRAKER',
+            Kolli:12, Inhalt:1, Menge:12, Preis:'1,65', Netto:'19,80' })),
+    { Kolli: 1, Inhalt: 12, Menge: 12, originalNetto: 19.8 });
+
+// Etiketli gerçek satır: 5 KTN x 18
+check('5 KTN x 18 (etiketli) korunur',
+    (({ Kolli, Inhalt, Menge, originalNetto }) => ({ Kolli, Inhalt, Menge, originalNetto }))(
+        normalizeInvoiceItem({ ArtikelBez:'BISKREM', Kolli:5, Inhalt:18, Einheit:'KTN',
+            Preis:'0,650', Netto:'58,50' })),
+    { Kolli: 5, Inhalt: 18, Menge: 90, originalNetto: 58.5 });
 
 console.log(`\nSonuç: ${pass} geçti, ${fail} kaldı`);
 process.exit(fail > 0 ? 1 : 0);

@@ -34,12 +34,53 @@ export const round = (n: number, d: number): number => {
     return Math.round((n + Number.EPSILON) * f) / f;
 };
 
+
+/** Koli sayısıyla birlikte yazılan birim etiketleri (adet/koli ayrımı için). */
+const CARTON_UNITS = ['KTN', 'KAR', 'KRT', 'CTN', 'BOX', 'KOLI', 'KOLLI', 'PAL', 'DS', 'PK', 'PKT'];
+const PIECE_UNITS = ['STK', 'STÜCK', 'STUECK', 'EA', 'PCS', 'ADET'];
+
+function unitKind(raw: unknown): 'carton' | 'piece' | null {
+    const u = String(raw ?? '').toUpperCase().replace(/[^A-ZÜÖÄ]/g, '');
+    if (!u) return null;
+    if (CARTON_UNITS.includes(u)) return 'carton';
+    if (PIECE_UNITS.includes(u)) return 'piece';
+    return null;
+}
+
+/**
+ * Koli (kaç koli) ile İçerik (koli içinde kaç adet) ayrımını çözer.
+ * Model bu ikisini sık sık ters veriyor. Çarpımları aynı kaldığı için tutar
+ * etkilenmez; burada amaç doğru okunurluk.
+ *
+ * Karar sırası:
+ *  1) Birim etiketi ("5 KTN") varsa koli sayısı kesindir, dokunulmaz.
+ *  2) Biri 1 ise: 1 olan kolidir ("12 koli × 1 adet" perakendede gerçekçi değil).
+ *  3) İkisi de 1'den büyükse küçük olan koli kabul edilir (koli içi adet genelde daha büyüktür).
+ */
+export function resolvePackaging(
+    kolli: number,
+    inhalt: number,
+    einheit?: unknown
+): { kolli: number; inhalt: number } {
+    if (kolli <= 0 || inhalt <= 0) return { kolli, inhalt };
+
+    // 1) Birim etiketi koli sayısını işaret ediyorsa modelin verdiği sırayı koru
+    if (unitKind(einheit) === 'carton') return { kolli, inhalt };
+
+    // 2) Biri 1 ise, 1 olan koli sayısıdır
+    if (inhalt === 1 && kolli > 1) return { kolli: 1, inhalt: kolli };
+    if (kolli === 1) return { kolli, inhalt };
+
+    // 3) Küçük olan koli
+    return kolli > inhalt ? { kolli: inhalt, inhalt: kolli } : { kolli, inhalt };
+}
+
 // Bir fatura satırını mantıksal olarak tutarlı hale getirir:
 //  - Kolli/Inhalt/Menge ilişkisini (Kolli * Inhalt = Menge) zorlar
 //  - OCR'ın sütun karıştırmasını (Kolli > Inhalt) düzeltir
 //  - Netto'yu (Menge * Preis) hesaplar ve OCR değeriyle birlikte tutar
 export function normalizeInvoiceItem(item: any) {
-    const { ArtikelNumber, ArtikelBez, Kolli, Inhalt, Menge, Preis, Netto, MwSt, ...rest } = item;
+    const { ArtikelNumber, ArtikelBez, Kolli, Inhalt, Menge, Preis, Netto, MwSt, Einheit, ...rest } = item;
 
     let kolli = Math.round(parseNum(Kolli));
     let inhalt = Math.round(parseNum(Inhalt));
@@ -61,12 +102,9 @@ export function normalizeInvoiceItem(item: any) {
     }
 
     if (kolli > 0 && inhalt > 0) {
-        // Tanım gereği: koli sayısı × koli içi adet = toplam adet.
-        // (Model "Menge ME = 1 KTN" değerini toplam adet sansa bile burada düzelir.)
-        if (kolli > inhalt) {
-            // Çarpım değişmediği için bu yalnızca hangisinin koli olduğunu düzeltir
-            [kolli, inhalt] = [inhalt, kolli];
-        }
+        // Koli / içerik ayrımını çöz (çarpım değişmez, yalnızca hangisi hangisi netleşir)
+        ({ kolli, inhalt } = resolvePackaging(kolli, inhalt, Einheit));
+        // Tanım gereği: koli sayısı × koli içi adet = toplam adet
         menge = kolli * inhalt;
     } else if (impliedMenge > 0) {
         // Koli/içerik eksik: toplam adedi satır toplamı ÷ birim fiyattan tamamla
@@ -109,6 +147,7 @@ export function normalizeInvoiceItem(item: any) {
         Preis: preis,
         Netto: ocrNetto,
         originalNetto: calculatedNetto,
+        ...(Einheit ? { Einheit: String(Einheit).toUpperCase().trim() } : {}),
         ...(MwSt !== undefined && MwSt !== null && String(MwSt) !== ''
             ? { MwSt: Math.round(parseNum(MwSt)) }
             : {}),

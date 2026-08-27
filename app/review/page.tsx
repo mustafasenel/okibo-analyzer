@@ -53,7 +53,14 @@ export default function ReviewPage() {
                 .then(r => r.json())
                 .then(data => {
                     if (!data.success || !data.invoice) throw new Error('yok');
-                    setInvoiceData(data.invoice.invoiceData);
+                    // Kayıtlı faturalar eski normalizasyonla kaydedilmiş olabilir;
+                    // görüntülerken koli/içerik ayrımını tazeleriz (tutarlar değişmez).
+                    setInvoiceData(
+                        (data.invoice.invoiceData ?? []).map((p: any, i: number) => ({
+                            page: p.page ?? i + 1,
+                            items: normalizePageItems(p.items ?? []),
+                        }))
+                    );
                     setInvoiceMeta(data.invoice.invoiceMeta);
                     setInvoiceSummary(data.invoice.invoiceSummary);
                     return fetch(`/api/invoices/images?invoiceId=${viewId}`);

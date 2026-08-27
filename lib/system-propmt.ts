@@ -34,6 +34,10 @@ Your task is to extract and normalize all useful data into a structured JSON wit
      ALWAYS use the NET unit price (the price after the discount).
    - Netto -> the LINE TOTAL amount for this row.
      Headings: Gesamtpreis netto, Gesamtpreis, Gesamtbetrag, Betrag, Summe, Nettobetrag, Wert.
+   - Einheit -> the UNIT TOKEN printed next to the packing count, exactly as written.
+     Examples: "KTN", "KAR", "KRT", "STK", "BOX", "PAL", "DS", "PK", "EA".
+     If the quantity cell reads "5 KTN", then Kolli = 5 and Einheit = "KTN".
+     This token tells us which number is the carton count, so ALWAYS include it when visible.
    - MwSt -> the per-line VAT RATE, only if a real VAT PERCENTAGE column exists (7 or 19).
 
    COLUMNS THAT LOOK LIKE DATA BUT ARE NOT — NEVER map these into the fields above:
@@ -45,6 +49,17 @@ Your task is to extract and normalize all useful data into a structured JSON wit
    - Pos, Position, Nr, lfd. Nr -> the row number. Never use it as a quantity.
    - SC, Steuercode, MwSt-Code, Steuerschlüssel -> a TAX CODE (values like 1, 2, 3).
      A tax code is NOT a VAT rate. Only fill MwSt when you see a real percentage such as 7 or 19.
+
+   DO NOT SWAP Kolli AND Inhalt. This is the most common mistake:
+   - Kolli is the number of CARTONS ordered. It is the number that carries the unit token
+     ("1 KTN", "5 KTN") and it is very often 1.
+   - Inhalt is how many PIECES are inside one carton (6, 8, 11, 12, 18, 24, ...).
+   - "12 cartons containing 1 piece each" is almost never real in grocery invoices.
+     If you are about to output Inhalt = 1 while Kolli > 1, you have swapped them.
+
+   Netto MUST be READ from the line-total column of the invoice, not invented.
+   Do not compute Netto yourself; copy the printed line total. We compare your printed
+   value against Menge * Preis to detect reading errors, so an invented value hides the error.
 
    ARITHMETIC CHECKS — use them to verify your column mapping is correct:
    - Kolli * Inhalt = Menge (total pieces)
@@ -61,8 +76,9 @@ Your task is to extract and normalize all useful data into a structured JSON wit
      Kolli         = 5        (from "5 KTN")
      Inhalt        = 18       (pieces per carton)
      Menge         = 90       (5 * 18)
+     Einheit       = "KTN"
      Preis         = 0.65     (NET unit price, after the 44,44% discount - NOT 1,170)
-     Netto         = 58.50    (90 * 0.65 checks out)
+     Netto         = 58.50    (read from "Gesamtpreis netto"; 90 * 0.65 checks out)
      MwSt          = omitted  ("SC = 2" is a tax code, not a VAT rate)
    Note that 0,150 (weight) and 1,79 (UVP) were correctly ignored.
 
