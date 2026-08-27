@@ -8,7 +8,17 @@ export interface ModelInput {
   displayName: string;
   creditMultiplier: number;
   isActive: boolean;
+  /** Analiz hata verirse bu modele düşülür (yalnızca biri işaretli olabilir) */
+  isFallback?: boolean;
   sortOrder?: number;
+}
+
+/** Yedek model tekildir: başka bir model işaretlendiğinde diğerleri temizlenir. */
+async function clearOtherFallbacks(keepId: string) {
+  await prisma.model.updateMany({
+    where: { isFallback: true, id: { not: keepId } },
+    data: { isFallback: false },
+  });
 }
 
 function validate(input: ModelInput): string | null {
@@ -22,15 +32,17 @@ export async function createModel(input: ModelInput) {
   const err = validate(input);
   if (err) return { success: false, error: err };
   try {
-    await prisma.model.create({
+    const created = await prisma.model.create({
       data: {
         openrouterId: input.openrouterId.trim(),
         displayName: input.displayName.trim(),
         creditMultiplier: Math.round(input.creditMultiplier),
         isActive: input.isActive,
+        isFallback: input.isFallback ?? false,
         sortOrder: input.sortOrder ?? 0,
       },
     });
+    if (input.isFallback) await clearOtherFallbacks(created.id);
     revalidatePath('/admin/models');
     return { success: true };
   } catch (e: any) {
@@ -51,9 +63,11 @@ export async function updateModel(id: string, input: ModelInput) {
         displayName: input.displayName.trim(),
         creditMultiplier: Math.round(input.creditMultiplier),
         isActive: input.isActive,
+        isFallback: input.isFallback ?? false,
         sortOrder: input.sortOrder ?? 0,
       },
     });
+    if (input.isFallback) await clearOtherFallbacks(id);
     revalidatePath('/admin/models');
     return { success: true };
   } catch (e: any) {

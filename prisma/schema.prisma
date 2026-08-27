@@ -74,6 +74,8 @@ model Model {
   displayName      String            // friendly name shown to end users, e.g. "Standart"
   creditMultiplier Int       @default(1) // credits consumed per scan with this model
   isActive         Boolean   @default(true)
+  /// Analiz hata verirse bu modele düşülür (tek bir model işaretli olmalı)
+  isFallback       Boolean   @default(false)
   sortOrder        Int       @default(0)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt

@@ -13,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { createModel, updateModel, deleteModel, ModelInput } from '@/app/admin/(protected)/models/actions';
 
-const empty: ModelInput = { openrouterId: '', displayName: '', creditMultiplier: 1, isActive: true, sortOrder: 0 };
+const empty: ModelInput = { openrouterId: '', displayName: '', creditMultiplier: 1, isActive: true, isFallback: false, sortOrder: 0 };
 
 export function ModelsManager({ models }: { models: Model[] }) {
   const router = useRouter();
@@ -27,7 +27,7 @@ export function ModelsManager({ models }: { models: Model[] }) {
   const openNew = () => { setEditingId(null); setForm(empty); setError(''); setDialogOpen(true); };
   const openEdit = (m: Model) => {
     setEditingId(m.id);
-    setForm({ openrouterId: m.openrouterId, displayName: m.displayName, creditMultiplier: m.creditMultiplier, isActive: m.isActive, sortOrder: m.sortOrder });
+    setForm({ openrouterId: m.openrouterId, displayName: m.displayName, creditMultiplier: m.creditMultiplier, isActive: m.isActive, isFallback: m.isFallback, sortOrder: m.sortOrder });
     setError('');
     setDialogOpen(true);
   };
@@ -83,7 +83,10 @@ export function ModelsManager({ models }: { models: Model[] }) {
                 <TableCell className="font-mono text-xs text-muted-foreground">{m.openrouterId}</TableCell>
                 <TableCell className="text-right">×{m.creditMultiplier}</TableCell>
                 <TableCell>
-                  {m.isActive ? <Badge>Aktif</Badge> : <Badge variant="secondary">Pasif</Badge>}
+                  <div className="flex flex-wrap items-center gap-1">
+                    {m.isActive ? <Badge>Aktif</Badge> : <Badge variant="secondary">Pasif</Badge>}
+                    {m.isFallback && <Badge variant="outline">Yedek</Badge>}
+                  </div>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
@@ -117,6 +120,15 @@ export function ModelsManager({ models }: { models: Model[] }) {
             <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} className="h-4 w-4" />
               Aktif (kullanıcılara sunulabilir)
+            </label>
+            <label className="flex items-start gap-2 text-sm cursor-pointer">
+              <input type="checkbox" checked={!!form.isFallback} onChange={(e) => setForm({ ...form, isFallback: e.target.checked })} className="mt-0.5 h-4 w-4" />
+              <span>
+                Yedek model
+                <span className="block text-xs text-muted-foreground">
+                  Analiz hata verirse otomatik olarak bu modele düşülür. Yalnızca bir model yedek olabilir.
+                </span>
+              </span>
             </label>
             {error && <p className="text-sm text-red-600">{error}</p>}
           </div>

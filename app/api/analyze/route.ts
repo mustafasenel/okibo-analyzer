@@ -93,11 +93,18 @@ export async function POST(req: Request) {
             }
         }
 
+        // Yedek model: birincil model hata verirse buna düşülür (admin panelinden işaretlenir)
+        const fallback = await prisma.model.findFirst({
+            where: { isFallback: true, isActive: true },
+            select: { openrouterId: true, displayName: true },
+        });
+        const fallbackModel =
+            fallback?.openrouterId && fallback.openrouterId !== model ? fallback.openrouterId : null;
+
         const arrayBuffer = await image.arrayBuffer();
         const base64Image = Buffer.from(arrayBuffer).toString("base64");
         
         const payload = {
-            model: model, 
             max_tokens: 10000,
             response_format: { "type": "json_object" }, 
             messages: [
@@ -123,45 +130,60 @@ export async function POST(req: Request) {
             ],
         };
 
-        const response = await fetchWithRetry("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                "Content-Type": "application/json",
-                "HTTP-Referer": process.env.NODE_ENV === 'production' 
-                    ? `https://${process.env.VERCEL_URL}` 
-                    : 'http://localhost:3000', 
-                "X-Title": process.env.NODE_ENV === 'production'
-                    ? 'okibo-analyzer'
-                    : 'okibo-analyzer-local',
-            },
-            body: JSON.stringify(payload),
-        });
+        // Tek bir model denemesi: istek + JSON ayrıştırma
+        const runModel = async (useModel: string) => {
+            const response = await fetchWithRetry("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": process.env.NODE_ENV === 'production'
+                        ? `https://${process.env.VERCEL_URL}`
+                        : 'http://localhost:3000',
+                    "X-Title": process.env.NODE_ENV === 'production' ? 'okibo-analyzer' : 'okibo-analyzer-local',
+                },
+                body: JSON.stringify({ ...payload, model: useModel }),
+            });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error("OpenRouter API Error:", errorText);
-            return new Response(JSON.stringify({ error: `API request failed with status ${response.status}: ${errorText}` }), { status: 500 });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API ${response.status}: ${errorText.slice(0, 300)}`);
+            }
+
+            const jsonResponse = await response.json();
+            const content = jsonResponse.choices?.[0]?.message?.content;
+            const parsed = parseJsonResponse(content);
+            if (!parsed) throw new Error('Model yanıtı JSON olarak ayrıştırılamadı');
+            return parsed;
+        };
+
+        let parsedContent: any;
+        let usedModel = model;
+        try {
+            parsedContent = await runModel(model);
+        } catch (primaryError) {
+            console.error(`Birincil model (${model}) başarısız:`, primaryError);
+            if (!fallbackModel) {
+                return new Response(
+                    JSON.stringify({ error: "Analiz başarısız oldu ve tanımlı bir yedek model yok." }),
+                    { status: 502, headers: { "Content-Type": "application/json" } }
+                );
+            }
+            try {
+                console.warn(`Yedek modele düşülüyor: ${fallbackModel}`);
+                parsedContent = await runModel(fallbackModel);
+                usedModel = fallbackModel;
+            } catch (fallbackError) {
+                console.error(`Yedek model (${fallbackModel}) de başarısız:`, fallbackError);
+                return new Response(
+                    JSON.stringify({ error: "Analiz başarısız oldu. Lütfen sayfayı yeniden çekip tekrar deneyin." }),
+                    { status: 502, headers: { "Content-Type": "application/json" } }
+                );
+            }
         }
 
-        const jsonResponse = await response.json();
-        const content = jsonResponse.choices[0]?.message?.content;
-        
-        console.log("🔍 Raw AI Response:");
-        console.log(content);
-        
-        const parsedContent = parseJsonResponse(content);
-        
-        console.log("🔍 Parsed Content:");
-        console.log(JSON.stringify(parsedContent, null, 2));
-        
-        if (!parsedContent) {
-            return new Response(JSON.stringify({ error: "Failed to parse AI response" }), { status: 500 });
-        }
-        
-        // Return the full parsed content for the single image
         return new Response(JSON.stringify(parsedContent), {
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", "X-Model-Used": usedModel },
         });
 
     } catch (error) {
