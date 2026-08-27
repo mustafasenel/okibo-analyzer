@@ -10,6 +10,11 @@ const DEFAULT_OPENROUTER_MODEL = 'qwen/qwen3-vl-8b-instruct';
 // (finish_reason: length, içerik 0 karakter). Ölçülen: 28 satırlık sayfa ~23k token.
 const MAX_OUTPUT_TOKENS = Number(process.env.OPENROUTER_MAX_TOKENS ?? 32000);
 
+// Reasoning modelleri düşünme token'larını da çıktı bütçesinden harcıyor.
+// Ölçüm (GLM, 28 satırlık sayfa): varsayılan 25.583 token → effort:low 3.756 token,
+// aynı süre, aynı 28 satır. Yani ~%85 daha ucuz, kalite kaybı yok.
+const REASONING_EFFORT = process.env.OPENROUTER_REASONING_EFFORT ?? 'low';
+
 // Helper function for exponential backoff
 const fetchWithRetry = async (
     url: string, 
@@ -111,6 +116,7 @@ export async function POST(req: Request) {
         
         const payload = {
             max_tokens: MAX_OUTPUT_TOKENS,
+            ...(REASONING_EFFORT !== 'off' ? { reasoning: { effort: REASONING_EFFORT } } : {}),
             response_format: { "type": "json_object" }, 
             messages: [
                 {
@@ -135,8 +141,14 @@ export async function POST(req: Request) {
             ],
         };
 
-        // Tek bir model denemesi: istek + JSON ayrıştırma
-        const runModel = async (useModel: string) => {
+        // Tek bir model denemesi: istek + JSON ayrıştırma.
+        // withReasoning=false ise reasoning parametresi gönderilmez (desteklemeyen modeller için).
+        const runModel = async (useModel: string, withReasoning = true): Promise<any> => {
+            const { reasoning, ...rest } = payload as any;
+            const requestBody = withReasoning && reasoning
+                ? { ...rest, reasoning, model: useModel }
+                : { ...rest, model: useModel };
+
             const response = await fetchWithRetry("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -147,11 +159,16 @@ export async function POST(req: Request) {
                         : 'http://localhost:3000',
                     "X-Title": process.env.NODE_ENV === 'production' ? 'okibo-analyzer' : 'okibo-analyzer-local',
                 },
-                body: JSON.stringify({ ...payload, model: useModel }),
+                body: JSON.stringify(requestBody),
             });
 
             if (!response.ok) {
                 const errorText = await response.text();
+                // Model reasoning parametresini kabul etmiyorsa parametresiz bir kez daha dene
+                if (response.status === 400 && withReasoning && /reasoning/i.test(errorText)) {
+                    console.warn(`${useModel}: reasoning parametresi kabul edilmedi, parametresiz deneniyor.`);
+                    return runModel(useModel, false);
+                }
                 throw new Error(`API ${response.status}: ${errorText.slice(0, 300)}`);
             }
 
