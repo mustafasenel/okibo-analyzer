@@ -5,6 +5,11 @@ import { NextResponse } from 'next/server';
 // Company'ye atanmış model yoksa kullanılacak varsayılan OpenRouter modeli.
 const DEFAULT_OPENROUTER_MODEL = 'qwen/qwen3-vl-8b-instruct';
 
+// Çıktı bütçesi. Reasoning modelleri (ör. GLM) düşünme token'larını da bu bütçeden
+// harcıyor; 10k ile yoğun faturalarda cevap yazılamadan kesiliyordu
+// (finish_reason: length, içerik 0 karakter). Ölçülen: 28 satırlık sayfa ~23k token.
+const MAX_OUTPUT_TOKENS = Number(process.env.OPENROUTER_MAX_TOKENS ?? 32000);
+
 // Helper function for exponential backoff
 const fetchWithRetry = async (
     url: string, 
@@ -105,7 +110,7 @@ export async function POST(req: Request) {
         const base64Image = Buffer.from(arrayBuffer).toString("base64");
         
         const payload = {
-            max_tokens: 10000,
+            max_tokens: MAX_OUTPUT_TOKENS,
             response_format: { "type": "json_object" }, 
             messages: [
                 {

@@ -52,7 +52,7 @@ async function analyzePage(model: string, file: string) {
         headers: { Authorization: `Bearer ${API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
             model,
-            max_tokens: 10000,
+            max_tokens: 32000,
             response_format: { type: 'json_object' },
             messages: [
                 { role: 'system', content: system_propmt },
