@@ -2,7 +2,7 @@
 
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useTranslations } from 'next-intl';
-import { X, Flag, Check } from 'lucide-react';
+import { X, Camera } from 'lucide-react';
 import type { SuspicionField, SuspicionReason } from '@/lib/suspicion';
 
 interface CellDetailSheetProps {
@@ -14,16 +14,15 @@ interface CellDetailSheetProps {
     reason: SuspicionReason | null;
     readValue: string;
     imageUrl?: string;
-    flagged: boolean;
-    onFlag: () => void;
-    onAccept: () => void;
+    canRescan: boolean;
+    onRescan: () => void;
     onClose: () => void;
 }
 
 /** Hücreye dokununca düzenleme değil, kaynağı gösterir. Düzeltme masaüstünde yapılır. */
 export default function CellDetailSheet({
     invoiceLabel, productName, fieldLabel, page, row, reason,
-    readValue, imageUrl, flagged, onFlag, onAccept, onClose,
+    readValue, imageUrl, canRescan, onRescan, onClose,
 }: CellDetailSheetProps) {
     const t = useTranslations('CellDetail');
 
@@ -72,27 +71,24 @@ export default function CellDetailSheet({
                     <span className="text-[15px] font-bold tabular-nums text-[var(--ok-ink)]">{readValue}</span>
                 </div>
 
-                <p className="mt-3.5 text-[12px] leading-relaxed text-[var(--ok-muted)]">{t('noEditNote')}</p>
+                <p className="mt-3.5 text-[12px] leading-relaxed text-[var(--ok-muted)]">{t('autoNote')}</p>
             </div>
 
             <div className="flex flex-col gap-2 border-t border-[var(--ok-line)] px-4 pb-6 pt-3">
+                {canRescan && (
+                    <button
+                        onClick={onRescan}
+                        className="flex items-center justify-center gap-2 rounded-xl border border-[var(--ok-line)] py-3.5 text-[14.5px] font-semibold text-[var(--ok-body)]"
+                    >
+                        <Camera className="h-4 w-4" />
+                        {t('rescan')}
+                    </button>
+                )}
                 <button
-                    onClick={onFlag}
-                    className={`flex items-center justify-center gap-2 rounded-xl py-3.5 text-[14.5px] font-bold transition active:scale-[.99] ${
-                        flagged
-                            ? 'bg-[var(--ok-purple-tint)] text-[var(--ok-purple)]'
-                            : 'bg-[var(--ok-purple)] text-white'
-                    }`}
+                    onClick={onClose}
+                    className="rounded-xl bg-[var(--ok-purple)] py-3.5 text-[14.5px] font-bold text-white transition active:scale-[.99]"
                 >
-                    <Flag className="h-4 w-4" />
-                    {flagged ? t('flagged') : t('flagForDesktop')}
-                </button>
-                <button
-                    onClick={onAccept}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-[var(--ok-line)] py-3.5 text-[14.5px] font-semibold text-[var(--ok-body)]"
-                >
-                    <Check className="h-4 w-4" />
-                    {t('accept')}
+                    {t('close')}
                 </button>
             </div>
         </div>

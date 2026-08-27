@@ -32,7 +32,6 @@ export default function ReviewPage() {
     const [invoiceSummary, setInvoiceSummary] = useState<InvoiceSummary | null>(null);
     const [invoiceImages, setInvoiceImages] = useState<UploadedImageInfo[]>([]);
     const [currentPage, setCurrentPage] = useState(0);
-    const [flagged, setFlagged] = useState<Set<string>>(new Set());
     const [detail, setDetail] = useState<{ row: number; field: SuspicionField } | null>(null);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [isViewMode, setIsViewMode] = useState(false);
@@ -147,7 +146,8 @@ export default function ReviewPage() {
             };
         });
 
-    const persist = async (keys: Set<string>) => {
+    const persist = async () => {
+        const keys = new Set(suspicious.keys()); // şüpheliler otomatik kuyruğa gider
         const companyCode = localStorage.getItem('companyCode');
         if (!companyCode) { setError(t('noCompanyCode')); return; }
         setSaving(true);
@@ -165,7 +165,6 @@ export default function ReviewPage() {
             if (res.success) {
                 sessionStorage.removeItem('analysisResult');
                 sessionStorage.removeItem('invoiceImages');
-                setFlagged(keys);
                 setSaved(true);
             } else {
                 setError(res.error || t('saveError'));
@@ -177,8 +176,11 @@ export default function ReviewPage() {
         }
     };
 
-    const confirmAndSave = () => persist(flagged);
-    const sendAllToDesktop = () => persist(new Set([...flagged, ...suspicious.keys()]));
+    const confirmAndSave = () => persist();
+
+    // Çok fazla şüpheli alan varsa düzeltmeye uğraşmak yerine sayfayı baştan çekmek daha doğru
+    const suspiciousRows = new Set([...suspicious.keys()].map(k => k.split(':').slice(0, 2).join(':'))).size;
+    const tooManyIssues = totalItems > 0 && suspiciousRows / totalItems > 0.34;
 
     const leave = (to: string) => {
         sessionStorage.removeItem('analysisResult');
@@ -202,7 +204,7 @@ export default function ReviewPage() {
                 invoiceNo={String(invoiceMeta?.Rechnungsnummer ?? '—')}
                 itemCount={totalItems}
                 pageCount={invoiceData.length}
-                flaggedCount={flagged.size}
+                flaggedCount={suspicious.size}
                 creditsUsed={invoiceData.length}
                 summary={invoiceSummary}
                 lineTotal={totals.lineTotal}
@@ -218,7 +220,7 @@ export default function ReviewPage() {
     const detailKey = detail ? cellKey(currentPage, detail.row, detail.field) : '';
 
     return (
-        <div className={`min-h-full bg-[var(--ok-surface)] ${isViewMode ? "pb-44" : suspicious.size > 0 ? "pb-[15rem]" : "pb-[12rem]"}`}>
+        <div className={`min-h-full bg-[var(--ok-surface)] ${isViewMode ? "pb-44" : "pb-[12rem]"}`}>
             {/* Başlık */}
             <header className="flex items-center gap-3 border-b border-[rgba(20,18,28,.07)] bg-[var(--ok-surface)] px-4 pb-3 pt-5">
                 <div className="min-w-0 flex-1">
@@ -288,7 +290,23 @@ export default function ReviewPage() {
                         <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--ok-amber-tint)] text-[11px] font-bold text-[var(--ok-amber)]">
                             {suspicious.size}
                         </span>
-                        <p className="text-[12.5px] leading-snug text-[var(--ok-body)]">{t('suspiciousNote')}</p>
+                        <p className="text-[12.5px] leading-snug text-[var(--ok-body)]">{t('autoQueueNote')}</p>
+                    </div>
+                )}
+
+                {/* Çok fazla şüpheli alan → sayfayı baştan çekmek daha doğru */}
+                {tooManyIssues && !isViewMode && (
+                    <div className="flex flex-col gap-2.5 rounded-xl border border-[rgba(168,33,92,.25)] bg-[#FCEEF4] p-3.5">
+                        <div className="flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4 shrink-0 text-[var(--ok-danger)]" />
+                            <span className="text-[13px] font-bold text-[var(--ok-danger)]">{t('tooManyTitle')}</span>
+                        </div>
+                        <p className="text-[12px] leading-relaxed text-[var(--ok-danger)]">{t('tooManyBody')}</p>
+                        <button onClick={rescanPage} disabled={isRescanning}
+                            className="flex items-center justify-center gap-1.5 rounded-lg bg-[var(--ok-danger)] py-2.5 text-[12.5px] font-bold text-white disabled:opacity-50">
+                            {isRescanning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+                            {t('rescanPage')}
+                        </button>
                     </div>
                 )}
 
@@ -314,7 +332,6 @@ export default function ReviewPage() {
                     items={items}
                     page={currentPage}
                     suspicious={suspicious}
-                    flagged={flagged}
                     onCellPress={(row, field) => setDetail({ row, field })}
                 />
 
@@ -339,13 +356,6 @@ export default function ReviewPage() {
                                 {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                                 {saving ? t('saving') : t('confirmSave')}
                             </button>
-                            {suspicious.size > 0 && (
-                                <button onClick={sendAllToDesktop} disabled={saving}
-                                    className="flex items-center justify-center gap-1.5 rounded-xl border border-[var(--ok-line)] py-3 text-[13.5px] font-semibold text-[var(--ok-body)] disabled:opacity-60">
-                                    <AlertTriangle className="h-3.5 w-3.5" />
-                                    {t('fixOnDesktop', { count: suspicious.size })}
-                                </button>
-                            )}
                         </>
                     )}
                 </div>
@@ -367,16 +377,8 @@ export default function ReviewPage() {
                             : String(raw);
                     })()}
                     imageUrl={invoiceImages[currentPage]?.url}
-                    flagged={flagged.has(detailKey)}
-                    onFlag={() => {
-                        setFlagged(prev => {
-                            const next = new Set(prev);
-                            next.has(detailKey) ? next.delete(detailKey) : next.add(detailKey);
-                            return next;
-                        });
-                        setDetail(null);
-                    }}
-                    onAccept={() => setDetail(null)}
+                    canRescan={!isViewMode}
+                    onRescan={() => { setDetail(null); rescanPage(); }}
                     onClose={() => setDetail(null)}
                 />
             )}

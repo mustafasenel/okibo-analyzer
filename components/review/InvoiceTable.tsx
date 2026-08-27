@@ -7,8 +7,7 @@ import { cellKey, type SuspicionField } from '@/lib/suspicion';
 interface InvoiceTableProps {
     items: InvoiceItem[];
     page: number;                       // 0 tabanlı sayfa indeksi
-    suspicious: Map<string, string>;    // cellKey -> gerekçe
-    flagged: Set<string>;               // masaüstü kuyruğuna işaretlenenler
+    suspicious: Map<string, string>;    // cellKey -> gerekçe (otomatik tespit)
     onCellPress: (row: number, field: SuspicionField) => void;
 }
 
@@ -19,26 +18,18 @@ const fmt = (v: unknown, digits = 2) => {
 };
 
 /** Alışık olunan tablo formatı korunur; yalnızca okunurluk ve şüpheli hücre işareti eklenir. */
-export default function InvoiceTable({ items, page, suspicious, flagged, onCellPress }: InvoiceTableProps) {
+export default function InvoiceTable({ items, page, suspicious, onCellPress }: InvoiceTableProps) {
     const t = useTranslations('ReviewTable');
 
     const cellClass = (row: number, field: SuspicionField, extra = '') => {
-        const key = cellKey(page, row, field);
-        const isSuspicious = suspicious.has(key);
-        const isFlagged = flagged.has(key);
-        if (isFlagged) {
-            return `${extra} rounded-[5px] bg-[#EFE9FD] font-bold text-[var(--ok-purple)] shadow-[inset_0_0_0_1.5px_var(--ok-purple)]`;
-        }
-        if (isSuspicious) {
+        if (suspicious.has(cellKey(page, row, field))) {
             return `${extra} rounded-[5px] bg-[#FBF3DF] font-bold text-[#5C4200] shadow-[inset_0_0_0_1.5px_#C98A00]`;
         }
         return extra;
     };
 
     const press = (row: number, field: SuspicionField) => {
-        if (suspicious.has(cellKey(page, row, field)) || flagged.has(cellKey(page, row, field))) {
-            onCellPress(row, field);
-        }
+        if (suspicious.has(cellKey(page, row, field))) onCellPress(row, field);
     };
 
     return (

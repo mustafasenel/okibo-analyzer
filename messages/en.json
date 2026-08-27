@@ -59,15 +59,16 @@
     "inspectDifference": "Inspect difference",
     "rescanPage": "Re-capture page",
     "rescanError": "Something went wrong while re-capturing the page.",
-    "suspiciousNote": "Suspicious cells are highlighted. Corrections are made on desktop.",
     "itemsLabel": "ITEMS · {count} ROWS",
     "pageOf": "Page {current}/{total}",
     "lineTotal": "Line total · {count} rows",
     "confirmSave": "Confirm and save",
-    "fixOnDesktop": "Fix {count} cells on desktop",
     "backToHistory": "Back to history",
     "noCompanyCode": "No company code set.",
-    "saveError": "Something went wrong while saving."
+    "saveError": "Something went wrong while saving.",
+    "autoQueueNote": "Suspicious fields are highlighted and sent to the desktop correction queue automatically. Nothing to do here.",
+    "tooManyTitle": "Too many suspicious fields",
+    "tooManyBody": "This page does not seem to have been read well. Re-capturing it is better than fixing field by field."
   },
   "HistoryPage": {
     "title": "Invoice History",
@@ -251,10 +252,8 @@
     "noImage": "No image for this page",
     "zoomHint": "Double tap or pinch to zoom.",
     "readValue": "Value read",
-    "noEditNote": "Fields are not edited on mobile. If it does not match the image, re-capture the page or flag it for the desktop correction queue.",
-    "flagForDesktop": "Flag for desktop correction",
-    "flagged": "Flagged · tap to remove",
-    "accept": "Correct, skip"
+    "autoNote": "This field was added to the desktop correction queue automatically. If it differs a lot from the image, re-capture the page.",
+    "rescan": "Re-capture page"
   },
   "SavedScreen": {
     "subtitle": "{invoiceNo} · {items} items · {pages} pages",

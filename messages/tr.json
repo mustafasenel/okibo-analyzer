@@ -59,15 +59,16 @@
     "inspectDifference": "Farkı incele",
     "rescanPage": "Sayfayı yeniden çek",
     "rescanError": "Sayfa yeniden taranırken bir hata oluştu.",
-    "suspiciousNote": "Şüpheli hücre sarı işaretli. Düzeltmeyi masaüstünde yapacaksın.",
     "itemsLabel": "KALEMLER · {count} SATIR",
     "pageOf": "Sayfa {current}/{total}",
     "lineTotal": "Satır toplamı · {count} satır",
     "confirmSave": "Onayla ve kaydet",
-    "fixOnDesktop": "{count} hücreyi masaüstünde düzelt",
     "backToHistory": "Geçmişe dön",
     "noCompanyCode": "Firma kodu ayarlanmamış.",
-    "saveError": "Kaydetme sırasında bir hata oluştu."
+    "saveError": "Kaydetme sırasında bir hata oluştu.",
+    "autoQueueNote": "Şüpheli alanlar sarı işaretli ve masaüstü düzeltme kuyruğuna otomatik gönderiliyor. Burada bir şey yapmana gerek yok.",
+    "tooManyTitle": "Çok fazla şüpheli alan",
+    "tooManyBody": "Bu sayfa iyi okunmamış görünüyor. Düzeltmeyle uğraşmak yerine sayfayı yeniden çekmek daha doğru olur."
   },
   "HistoryPage": {
     "title": "Fatura Geçmişi",
@@ -251,10 +252,8 @@
     "noImage": "Bu sayfanın görseli yok",
     "zoomHint": "Yakınlaştırmak için çift dokun veya iki parmakla aç.",
     "readValue": "Okunan değer",
-    "noEditNote": "Mobilde alan düzenlenmez. Görüntüyle uyuşmuyorsa ya sayfayı yeniden çek ya da masaüstü düzeltme kuyruğuna işaretle.",
-    "flagForDesktop": "Masaüstünde düzeltilecek olarak işaretle",
-    "flagged": "İşaretlendi · kaldırmak için dokun",
-    "accept": "Doğru, geç"
+    "autoNote": "Bu alan masaüstü düzeltme kuyruğuna otomatik eklendi. Görüntüyle çok farklıysa sayfayı yeniden çekebilirsin.",
+    "rescan": "Sayfayı yeniden çek"
   },
   "SavedScreen": {
     "subtitle": "{invoiceNo} · {items} kalem · {pages} sayfa",

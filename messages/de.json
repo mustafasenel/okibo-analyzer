@@ -35,15 +35,16 @@
     "inspectDifference": "Differenz prüfen",
     "rescanPage": "Seite neu aufnehmen",
     "rescanError": "Beim erneuten Aufnehmen ist ein Fehler aufgetreten.",
-    "suspiciousNote": "Verdächtige Zellen sind markiert. Korrekturen erfolgen am Desktop.",
     "itemsLabel": "POSITIONEN · {count} ZEILEN",
     "pageOf": "Seite {current}/{total}",
     "lineTotal": "Zeilensumme · {count} Zeilen",
     "confirmSave": "Bestätigen und speichern",
-    "fixOnDesktop": "{count} Zellen am Desktop korrigieren",
     "backToHistory": "Zurück zum Verlauf",
     "noCompanyCode": "Kein Firmencode gesetzt.",
-    "saveError": "Beim Speichern ist ein Fehler aufgetreten."
+    "saveError": "Beim Speichern ist ein Fehler aufgetreten.",
+    "autoQueueNote": "Verdächtige Felder sind markiert und werden automatisch an die Desktop-Korrekturliste gesendet. Hier ist nichts zu tun.",
+    "tooManyTitle": "Zu viele verdächtige Felder",
+    "tooManyBody": "Diese Seite wurde offenbar schlecht gelesen. Neu aufnehmen ist besser als Feld für Feld zu korrigieren."
   },
   "HistoryPage": {
     "title": "Rechnungsverlauf",
@@ -261,10 +262,8 @@
     "noImage": "Kein Bild für diese Seite",
     "zoomHint": "Doppeltippen oder aufziehen zum Zoomen.",
     "readValue": "Gelesener Wert",
-    "noEditNote": "Auf dem Handy werden Felder nicht bearbeitet. Passt es nicht zum Bild, Seite neu aufnehmen oder für die Desktop-Korrektur markieren.",
-    "flagForDesktop": "Für Desktop-Korrektur markieren",
-    "flagged": "Markiert · zum Entfernen tippen",
-    "accept": "Korrekt, weiter"
+    "autoNote": "Dieses Feld wurde automatisch in die Desktop-Korrekturliste aufgenommen. Weicht es stark vom Bild ab, Seite neu aufnehmen.",
+    "rescan": "Seite neu aufnehmen"
   },
   "SavedScreen": {
     "subtitle": "{invoiceNo} · {items} Positionen · {pages} Seiten",
