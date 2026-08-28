@@ -35,6 +35,32 @@ export const round = (n: number, d: number): number => {
 };
 
 
+
+/**
+ * Barkod biçimi: sadece rakam ve tipik uzunluklar (EAN-8, UPC-12, EAN-13, ITF-14).
+ * Ürün kodu ise tedarikçiye göre değişir: "001", "00771-03", "098-2", "A-1234".
+ */
+function looksLikeBarcode(raw: unknown): boolean {
+    const v = String(raw ?? '').trim();
+    return /^\d+$/.test(v) && (v.length === 8 || (v.length >= 12 && v.length <= 14));
+}
+
+/**
+ * Ürün kodu ile barkodun yer değiştirmesini düzeltir.
+ * Model bu ikisini karıştırabiliyor (ikisi de aynı satırda yazılı olduğu için).
+ * Yalnızca AÇIKÇA ters olduğunda düzeltir; şüphede modelin verdiğine dokunmaz.
+ */
+export function resolveCodes(artikelNumber: unknown, barcode: unknown): { artikelNumber: string; barcode: string } {
+    const a = String(artikelNumber ?? '').trim();
+    const b = String(barcode ?? '').trim();
+
+    // İkisi de varsa ve ters görünüyorsa yer değiştir
+    if (a && b && looksLikeBarcode(a) && !looksLikeBarcode(b)) {
+        return { artikelNumber: b, barcode: a };
+    }
+    return { artikelNumber: a, barcode: b };
+}
+
 /** Koli sayısıyla birlikte yazılan birim etiketleri (adet/koli ayrımı için). */
 const CARTON_UNITS = ['KTN', 'KAR', 'KRT', 'CTN', 'BOX', 'KOLI', 'KOLLI', 'PAL', 'DS', 'PK', 'PKT'];
 const PIECE_UNITS = ['STK', 'STÜCK', 'STUECK', 'EA', 'PCS', 'ADET'];
@@ -80,11 +106,14 @@ export function resolvePackaging(
 //  - OCR'ın sütun karıştırmasını (Kolli > Inhalt) düzeltir
 //  - Netto'yu (Menge * Preis) hesaplar ve OCR değeriyle birlikte tutar
 export function normalizeInvoiceItem(item: any) {
-    const { ArtikelNumber, ArtikelBez, Kolli, Inhalt, Menge, Preis, Netto, MwSt, Einheit, ...rest } = item;
+    const { ArtikelNumber, ArtikelBez, Kolli, Inhalt, Menge, Preis, Netto, MwSt, Einheit, Barcode, ...rest } = item;
 
     let kolli = Math.round(parseNum(Kolli));
     let inhalt = Math.round(parseNum(Inhalt));
     let menge = Math.round(parseNum(Menge));
+
+    // Ürün kodu / barkod karışmışsa düzelt
+    const codes = resolveCodes(ArtikelNumber, Barcode);
 
     const preis = round(parseNum(Preis), 3);
     const ocrNetto = round(parseNum(Netto), 2);
@@ -139,7 +168,7 @@ export function normalizeInvoiceItem(item: any) {
 
     return {
         ...rest,
-        ArtikelNumber: String(ArtikelNumber ?? '').trim(),
+        ArtikelNumber: codes.artikelNumber,
         ArtikelBez: String(ArtikelBez ?? '').trim(),
         Kolli: kolli,
         Inhalt: inhalt,
@@ -147,6 +176,7 @@ export function normalizeInvoiceItem(item: any) {
         Preis: preis,
         Netto: ocrNetto,
         originalNetto: calculatedNetto,
+        ...(codes.barcode ? { Barcode: codes.barcode } : {}),
         ...(Einheit ? { Einheit: String(Einheit).toUpperCase().trim() } : {}),
         ...(MwSt !== undefined && MwSt !== null && String(MwSt) !== ''
             ? { MwSt: Math.round(parseNum(MwSt)) }

@@ -1,6 +1,6 @@
 // OCR normalizasyon algoritmalarının testi.
 // Çalıştır: npx ts-node --compiler-options '{"module":"commonjs"}' scripts/test-normalize.ts
-import { parseNum, normalizeInvoiceItem, resolvePackaging } from '../lib/normalize';
+import { parseNum, normalizeInvoiceItem, resolvePackaging, resolveCodes } from '../lib/normalize';
 
 let pass = 0, fail = 0;
 function check(name: string, actual: unknown, expected: unknown) {
@@ -109,6 +109,26 @@ check('5 KTN x 18 (etiketli) korunur',
         normalizeInvoiceItem({ ArtikelBez:'BISKREM', Kolli:5, Inhalt:18, Einheit:'KTN',
             Preis:'0,650', Netto:'58,50' })),
     { Kolli: 5, Inhalt: 18, Menge: 90, originalNetto: 58.5 });
+
+console.log('\n--- ürün kodu / barkod ayrımı (Sofra Kosovare) ---');
+
+check('doğru sıra korunur', resolveCodes('001', '4260059980036'),
+      { artikelNumber: '001', barcode: '4260059980036' });
+check('ters verilmişse düzeltilir', resolveCodes('4260059980036', '001'),
+      { artikelNumber: '001', barcode: '4260059980036' });
+check('tireli kod korunur', resolveCodes('098-2', '3902634650095'),
+      { artikelNumber: '098-2', barcode: '3902634650095' });
+check('sadece ürün kodu varsa dokunulmaz', resolveCodes('00771-03', ''),
+      { artikelNumber: '00771-03', barcode: '' });
+check('ikisi de barkod gibiyse dokunulmaz', resolveCodes('4260059980036', '8004248002002'),
+      { artikelNumber: '4260059980036', barcode: '8004248002002' });
+
+// Uçtan uca: ters gelen satır düzelir ve barkod korunur
+check('ters satır normalize edilir',
+    (({ ArtikelNumber, Barcode }) => ({ ArtikelNumber, Barcode }))(
+        normalizeInvoiceItem({ ArtikelNumber:'4260059980036', Barcode:'001',
+            ArtikelBez:'Kosova Suxhuk mild', Kolli:7, Inhalt:1, Preis:'5,699', Netto:'39,89' })),
+    { ArtikelNumber: '001', Barcode: '4260059980036' });
 
 console.log(`\nSonuç: ${pass} geçti, ${fail} kaldı`);
 process.exit(fail > 0 ? 1 : 0);

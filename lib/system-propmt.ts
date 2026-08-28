@@ -16,8 +16,15 @@ Your task is to extract and normalize all useful data into a structured JSON wit
    Column ORDER and HEADINGS vary between suppliers, but the MEANING is always the same.
    Never map by position. Identify each column by what it means, using the headings and the values:
 
-   - ArtikelNumber -> the article/product code.
-     Headings: Artikelnr, Artikel-Nr, Art.-Nr, Artikel, Artikelnummer, EAN.
+   - ArtikelNumber -> the SUPPLIER'S OWN article number.
+     Headings: Artikelnr, Artikel-Nr, Art.-Nr, Artikel, Artikelnummer, Pos-Nr.
+     Its format CHANGES FROM SUPPLIER TO SUPPLIER and is usually short:
+     "001", "00771-03", "01151-01", "A-1234", "06838-03".
+     It often contains leading zeros, dashes or letters.
+   - Barcode -> the EAN / GTIN barcode, only if printed. Put it in this field, never
+     in ArtikelNumber. Headings: Barcode, EAN, GTIN, EAN-Code.
+     A barcode is a LONG PURE-DIGIT number, typically 8, 12, 13 or 14 digits,
+     e.g. "4260059980036", "8004248002002". It has no dashes and no letters.
    - ArtikelBez -> the product description text.
      Headings: Bezeichnung, Artikelbezeichnung, Beschreibung, Bennenung, Text.
    - Kolli -> HOW MANY PACKING UNITS were delivered (cartons/boxes/pallets/pieces).
@@ -39,6 +46,14 @@ Your task is to extract and normalize all useful data into a structured JSON wit
      If the quantity cell reads "5 KTN", then Kolli = 5 and Einheit = "KTN".
      This token tells us which number is the carton count, so ALWAYS include it when visible.
    - MwSt -> the per-line VAT RATE, only if a real VAT PERCENTAGE column exists (7 or 19).
+
+   DO NOT CONFUSE THE ARTICLE NUMBER WITH THE BARCODE:
+   - Many invoices print BOTH on the same line, e.g. "Artikelnr.: 001   Barcode: 4260059980036".
+     There, ArtikelNumber = "001" and Barcode = "4260059980036".
+   - Rule of thumb: 8-14 pure digits with no dash/letter is a BARCODE, not an article number.
+     A short code, or one with leading zeros, dashes or letters, is the ARTICLE NUMBER.
+   - If only one code is printed, decide by its shape and fill the matching field.
+     Never put a barcode into ArtikelNumber just because no article number is visible.
 
    COLUMNS THAT LOOK LIKE DATA BUT ARE NOT — NEVER map these into the fields above:
    - Gewicht, Gew., kg, Gewicht Stk (kg) -> this is WEIGHT. It is not a quantity and not a price.
