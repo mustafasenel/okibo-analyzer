@@ -15,6 +15,10 @@ const MAX_OUTPUT_TOKENS = Number(process.env.OPENROUTER_MAX_TOKENS ?? 32000);
 // aynı süre, aynı 28 satır. Yani ~%85 daha ucuz, kalite kaybı yok.
 const REASONING_EFFORT = process.env.OPENROUTER_REASONING_EFFORT ?? 'low';
 
+// Sağlayıcı bazen çok uzun sürüyor (ölçümde aynı sayfa 1,5 sn ile 10 sn arasında değişti,
+// sahada daha da uzayabiliyor). Süre aşımında beklemek yerine yedek modele düşeriz.
+const REQUEST_TIMEOUT_MS = Number(process.env.OPENROUTER_TIMEOUT_MS ?? 45000);
+
 // Helper function for exponential backoff
 const fetchWithRetry = async (
     url: string, 
@@ -33,6 +37,8 @@ const fetchWithRetry = async (
 
         return response;
     } catch (error) {
+        // Süre aşımı / iptal: yeniden deneme, doğrudan yukarı bildir
+        if ((error as any)?.name === 'AbortError' || (error as any)?.name === 'TimeoutError') throw error;
         if (retries > 0) {
             console.warn(`İstek hatası. ${backoff}ms sonra yeniden denenecek. Kalan deneme: ${retries - 1}`, error);
             await new Promise(resolve => setTimeout(resolve, backoff));
@@ -160,6 +166,7 @@ export async function POST(req: Request) {
                     "X-Title": process.env.NODE_ENV === 'production' ? 'okibo-analyzer' : 'okibo-analyzer-local',
                 },
                 body: JSON.stringify(requestBody),
+                signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
             });
 
             if (!response.ok) {
