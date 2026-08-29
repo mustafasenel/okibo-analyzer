@@ -15,9 +15,9 @@ const MAX_OUTPUT_TOKENS = Number(process.env.OPENROUTER_MAX_TOKENS ?? 32000);
 // aynı süre, aynı 28 satır. Yani ~%85 daha ucuz, kalite kaybı yok.
 const REASONING_EFFORT = process.env.OPENROUTER_REASONING_EFFORT ?? 'low';
 
-// Sağlayıcı bazen çok uzun sürüyor (ölçümde aynı sayfa 1,5 sn ile 10 sn arasında değişti,
-// sahada daha da uzayabiliyor). Süre aşımında beklemek yerine yedek modele düşeriz.
-const REQUEST_TIMEOUT_MS = Number(process.env.OPENROUTER_TIMEOUT_MS ?? 45000);
+// Sağlayıcı bazen çok uzun sürüyor. Yavaş ama başarılı bir okumayı boşa harcamamak için
+// tavan geniş tutuldu: 2 dakikayı aşarsa yedek modele düşeriz.
+const REQUEST_TIMEOUT_MS = Number(process.env.OPENROUTER_TIMEOUT_MS ?? 120000);
 
 // Helper function for exponential backoff
 const fetchWithRetry = async (
