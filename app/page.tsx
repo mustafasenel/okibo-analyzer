@@ -29,6 +29,9 @@ const ETA_MARGIN = 1.2;
  *  Ölçüm (6 sayfa): 1 → 25,8 sn · 2 → 12,8 sn · 5 → 5,3 sn, hata ve hız limiti yok.
  *  Sayfa başı süre bozulmadığı için 5 güvenli. */
 const CONCURRENCY = 5;
+/** Cloudinary yüklemesi analizle PARALEL yürür; analiz isteklerini aç bırakmamak için
+ *  kendi eşzamanlılığı daha dar tutulur (aynı mobil yükleme hattını paylaşıyorlar). */
+const UPLOAD_CONCURRENCY = 3;
 
 export default function Home() {
     const t = useTranslations('HomePage');
@@ -55,6 +58,9 @@ export default function Home() {
     const outcomesRef = useRef<Map<string, { ok: boolean; result?: any; itemCount?: number; durationMs?: number }>>(new Map());
     const analysisListRef = useRef<ScanPage[]>([]);
     const abortRef = useRef<AbortController | null>(null);
+    /** Sayfa id → Cloudinary yükleme sözü. Analiz başlarken kuyruğa alınır,
+     *  kaydetme anında yalnızca beklenir (çoğu o ana kadar bitmiş olur). */
+    const uploadsRef = useRef<Map<string, Promise<UploadedImageInfo | null>>>(new Map());
     const recaptureIdRef = useRef<string | null>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -157,13 +163,16 @@ export default function Home() {
         });
 
     // ── Analiz: sayfalar sırayla okunur (sırada → okunuyor → bitti/hatalı) ──
-    const readPage = async (page: ScanPage, companyCode: string, durations: number[]) => {
+    const readPage = async (
+        page: ScanPage,
+        companyCode: string,
+        durations: number[],
+        signal: AbortSignal
+    ) => {
         patch(page.id, { status: 'reading' });
         const started = performance.now();
-        const controller = new AbortController();
-        abortRef.current = controller;
         try {
-            const result = await analyzeImage(page.file, companyCode, controller.signal, page.text);
+            const result = await analyzeImage(page.file, companyCode, signal, page.text);
             const durationMs = performance.now() - started;
             durations.push(durationMs);
             const itemCount = Array.isArray(result?.invoice_data) ? result.invoice_data.length : 0;
@@ -175,7 +184,6 @@ export default function Home() {
             outcomesRef.current.set(page.id, { ok: false });
             patch(page.id, { status: 'failed' });
         } finally {
-            abortRef.current = null;
             // Ölçülen sürelerden kalan süre tahmini
             const list = analysisListRef.current;
             const settled = list.filter(p => outcomesRef.current.has(p.id)).length;
@@ -191,6 +199,36 @@ export default function Home() {
                 setEtaSeconds(Math.ceil((SECONDS_PER_PAGE * remaining * ETA_MARGIN) / CONCURRENCY));
             }
         }
+    };
+
+    /** Sayfa görsellerini arka planda, sınırlı eşzamanlılıkla Cloudinary'ye yükler. */
+    const startUploads = (list: ScanPage[], signal: AbortSignal) => {
+        uploadsRef.current = new Map();
+        const queue = [...list];
+
+        const resolvers = new Map<string, (v: UploadedImageInfo | null) => void>();
+        for (const page of list) {
+            uploadsRef.current.set(
+                page.id,
+                new Promise<UploadedImageInfo | null>(resolve => resolvers.set(page.id, resolve))
+            );
+        }
+
+        const worker = async () => {
+            while (queue.length > 0) {
+                const page = queue.shift();
+                if (!page) return;
+                let result: UploadedImageInfo | null = null;
+                try {
+                    result = await uploadImage(page.file, signal);
+                } catch (err) {
+                    // Yükleme başarısız olsa da analiz sonucu kaybolmaz
+                    if ((err as any)?.name !== 'AbortError') console.error('Görsel yüklenemedi:', err);
+                }
+                resolvers.get(page.id)?.(result);
+            }
+        };
+        for (let i = 0; i < UPLOAD_CONCURRENCY; i++) void worker();
     };
 
     const startAnalysis = async () => {
@@ -212,6 +250,15 @@ export default function Home() {
         analysisListRef.current = list;
         outcomesRef.current = new Map();
 
+        // Tüm çalışma için TEK iptal denetleyicisi: eşzamanlı okumalarda her sayfa
+        // kendi denetleyicisini kurunca "İptal" yalnızca sonuncusunu durduruyordu.
+        const controller = new AbortController();
+        abortRef.current = controller;
+
+        // Görselleri okumayı BEKLEMEDEN yüklemeye başla: dosyalar hazır ve
+        // yükleme, analiz süresinin içine gizlenirse kullanıcı hiç beklemez.
+        startUploads(list, controller.signal);
+
         // Aynı anda en fazla 2 sayfa okunur: "sırada" durumu ve gerçek ETA korunur,
         // toplam süre tek tek okumaya göre yarıya iner.
         const durations: number[] = [];
@@ -221,13 +268,15 @@ export default function Home() {
                 if (cancelRef.current) return;
                 const page = queue.shift();
                 if (!page) return;
-                await readPage(page, companyCode, durations);
+                await readPage(page, companyCode, durations, controller.signal);
             }
         };
         try {
             await Promise.all(Array.from({ length: CONCURRENCY }, worker));
         } catch {
             return; // iptal edildi
+        } finally {
+            abortRef.current = null;
         }
         if (cancelRef.current) return;
 
@@ -242,7 +291,7 @@ export default function Home() {
         const page = analysisListRef.current.find(p => p.id === id);
         if (!companyCode || !page) return;
         try {
-            await readPage(page, companyCode, []);
+            await readPage(page, companyCode, [], new AbortController().signal);
         } catch {
             return;
         }
@@ -272,14 +321,11 @@ export default function Home() {
         }));
         sessionStorage.setItem('analysisResult', JSON.stringify({ invoiceMeta, invoiceData, invoiceSummary }));
 
-        const uploaded: UploadedImageInfo[] = [];
-        for (const page of done) {
-            try {
-                uploaded.push(await uploadImage(page.file));
-            } catch (err) {
-                console.error('Görsel yüklenemedi:', err);
-            }
-        }
+        // Yüklemeler analizle birlikte başlamıştı; burada yalnızca sonuçlanmalarını bekliyoruz.
+        const settled = await Promise.all(
+            done.map(page => uploadsRef.current.get(page.id) ?? Promise.resolve(null))
+        );
+        const uploaded = settled.filter((u): u is UploadedImageInfo => u !== null);
         sessionStorage.setItem('invoiceImages', JSON.stringify(uploaded));
         sessionStorage.removeItem('editingInvoiceId');
 
@@ -290,7 +336,8 @@ export default function Home() {
 
     const cancelAnalysis = () => {
         cancelRef.current = true;
-        abortRef.current?.abort();
+        abortRef.current?.abort();   // devam eden yüklemeleri de iptal eder
+        uploadsRef.current = new Map();
         setAnalyzing(false);
         setSaving(false);
         setEtaSeconds(null);

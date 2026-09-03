@@ -80,8 +80,8 @@ export async function analyzeImage(
     return response.json();
 }
 
-// Görseli sıkıştırıp Cloudinary'ye yükler.
-export async function uploadImage(file: File): Promise<UploadedImageInfo> {
+// Görseli sıkıştırıp Cloudinary'ye yükler. Analiz iptal edilirse istek de iptal edilir.
+export async function uploadImage(file: File, signal?: AbortSignal): Promise<UploadedImageInfo> {
     const options = { maxSizeMB: 1.5, maxWidthOrHeight: 1920, useWebWorker: true };
     const compressedFile = await imageCompression(file, options);
 
@@ -91,7 +91,7 @@ export async function uploadImage(file: File): Promise<UploadedImageInfo> {
     formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
 
     const url = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!}/image/upload`;
-    const response = await fetchWithRetry(url, { method: 'POST', body: formData });
+    const response = await fetchWithRetry(url, { method: 'POST', body: formData, signal });
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
