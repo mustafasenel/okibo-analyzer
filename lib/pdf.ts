@@ -44,6 +44,56 @@ function canvasToJpegBlob(canvas: HTMLCanvasElement): Promise<Blob> {
     });
 }
 
+/** Bir sayfanın analiz girdisi: görsel her zaman üretilir, metin varsa eklenir. */
+export interface ExpandedPage {
+    file: File;
+    /** PDF'in metin katmanından okunan sayfa metni (yalnızca kullanılabilir ise) */
+    text?: string;
+}
+
+/**
+ * Metin katmanının analiz için kullanılabilir olup olmadığına karar verir.
+ * Taranmış PDF'ler ya boş ya da birkaç anlamsız karakter döndürür; fatura metni ise
+ * hem uzundur hem de bol rakam içerir. Emin olmadığımızda görsele düşeriz.
+ */
+function isUsableText(text: string): boolean {
+    const compact = text.replace(/\s+/g, '');
+    if (compact.length < 120) return false;
+    const digits = (compact.match(/\d/g) ?? []).length;
+    return digits >= 15 && digits / compact.length >= 0.05;
+}
+
+/**
+ * Bir PDF sayfasının metnini satır düzenini koruyarak çıkarır.
+ * Parçalar y koordinatına göre satırlara, satır içinde x'e göre soldan sağa dizilir —
+ * böylece sütun sırası (koli, içerik, miktar, fiyat, tutar) bozulmadan kalır.
+ */
+async function extractPageText(page: any): Promise<string> {
+    const content = await page.getTextContent();
+    const rows = new Map<number, { x: number; s: string }[]>();
+
+    for (const item of content.items as any[]) {
+        const str = item?.str;
+        if (!str || !str.trim()) continue;
+        const y = Math.round(item.transform[5]);
+        // Aynı satırdaki parçalar birkaç piksel kayabilir
+        let key = y;
+        for (const existing of rows.keys()) {
+            if (Math.abs(existing - y) <= 2) { key = existing; break; }
+        }
+        if (!rows.has(key)) rows.set(key, []);
+        rows.get(key)!.push({ x: item.transform[4], s: str });
+    }
+
+    return [...rows.entries()]
+        .sort((a, b) => b[0] - a[0])                       // yukarıdan aşağı
+        .map(([, parts]) =>
+            parts.sort((a, b) => a.x - b.x).map(p => p.s).join(' ').replace(/\s+/g, ' ').trim()
+        )
+        .filter(Boolean)
+        .join('\n');
+}
+
 /**
  * Bir PDF dosyasını sayfa sayfa JPEG File nesnelerine çevirir.
  * @param onProgress (islenen, toplam) — ilerleme bildirimi
@@ -51,7 +101,7 @@ function canvasToJpegBlob(canvas: HTMLCanvasElement): Promise<Blob> {
 export async function pdfToPageImages(
     file: File,
     onProgress?: (current: number, total: number) => void
-): Promise<File[]> {
+): Promise<ExpandedPage[]> {
     const pdfjs = await loadPdfJs();
     const data = await file.arrayBuffer();
 
@@ -76,11 +126,19 @@ export async function pdfToPageImages(
     }
 
     const baseName = file.name.replace(/\.pdf$/i, '') || 'fatura';
-    const pages: File[] = [];
+    const pages: ExpandedPage[] = [];
 
     try {
         for (let pageNo = 1; pageNo <= total; pageNo++) {
             const page = await pdf.getPage(pageNo);
+
+            // Metin katmanını görselle aynı geçişte oku (PDF ikinci kez açılmasın)
+            let pageText = '';
+            try {
+                pageText = await extractPageText(page);
+            } catch {
+                // Metin çıkarılamazsa sorun değil — görselden okunur
+            }
 
             // Ölçeği hedef genişliğe göre ayarla
             const baseViewport = page.getViewport({ scale: 1 });
@@ -100,9 +158,10 @@ export async function pdfToPageImages(
             await page.render({ canvas, canvasContext: context, viewport }).promise;
 
             const blob = await canvasToJpegBlob(canvas);
-            pages.push(
-                new File([blob], `${baseName}-sayfa-${pageNo}.jpg`, { type: 'image/jpeg' })
-            );
+            pages.push({
+                file: new File([blob], `${baseName}-sayfa-${pageNo}.jpg`, { type: 'image/jpeg' }),
+                ...(isUsableText(pageText) ? { text: pageText } : {}),
+            });
 
             // Belleği serbest bırak
             canvas.width = 0;
@@ -125,8 +184,8 @@ export async function pdfToPageImages(
 export async function expandFilesToImages(
     files: File[],
     onProgress?: (info: { fileName: string; current: number; total: number }) => void
-): Promise<{ images: File[]; errors: string[] }> {
-    const images: File[] = [];
+): Promise<{ images: ExpandedPage[]; errors: string[] }> {
+    const images: ExpandedPage[] = [];
     const errors: string[] = [];
 
     for (const file of files) {
@@ -140,7 +199,8 @@ export async function expandFilesToImages(
                 errors.push(err instanceof PdfError ? err.message : `${file.name} işlenemedi.`);
             }
         } else if (file.type.startsWith('image/')) {
-            images.push(file);
+            // Fotoğrafın metin katmanı yoktur — görselden okunur
+            images.push({ file });
         } else {
             errors.push(`${file.name}: desteklenmeyen dosya türü.`);
         }

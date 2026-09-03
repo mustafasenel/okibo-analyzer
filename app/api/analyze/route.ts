@@ -80,11 +80,13 @@ const parseJsonResponse = (jsonString: string) => {
 export async function POST(req: Request) {
     try {
         const formData = await req.formData();
-        const image = formData.get("image") as File | null; // Expect a single image
+        const image = formData.get("image") as File | null;
+        // Kopyalanabilir PDF'lerde görsel yerine sayfanın metin katmanı gelir.
+        const pageText = (formData.get("text") as string | null)?.trim() || null;
         const companyCode = formData.get("companyCode") as string | null;
 
-        if (!image) {
-            return new Response(JSON.stringify({ error: "No image provided" }), { status: 400 });
+        if (!image && !pageText) {
+            return new Response(JSON.stringify({ error: "No image or text provided" }), { status: 400 });
         }
 
         // Sunucu yapılandırması eksikse net hata ver (aksi halde OpenRouter 401 döner ve
@@ -117,9 +119,27 @@ export async function POST(req: Request) {
         const fallbackModel =
             fallback?.openrouterId && fallback.openrouterId !== model ? fallback.openrouterId : null;
 
-        const arrayBuffer = await image.arrayBuffer();
-        const base64Image = Buffer.from(arrayBuffer).toString("base64");
-        
+        // Metin varsa onu, yoksa görseli gönderiyoruz
+        const userContent = pageText
+            ? [{
+                type: "text",
+                text: "Aşağıda bir faturanın PDF metin katmanından çıkarılmış hâli var. " +
+                      "Satır düzeni ve sütun sırası korunmuştur. Talimatlara uygun şekilde JSON olarak ver.\n\n" +
+                      pageText,
+            }]
+            : [
+                {
+                    type: "text",
+                    text: "Bu görseldeki faturayı analiz et ve talimatlara uygun şekilde JSON olarak ver.",
+                },
+                {
+                    type: "image_url",
+                    image_url: {
+                        url: `data:image/jpeg;base64,${Buffer.from(await image!.arrayBuffer()).toString("base64")}`,
+                    },
+                },
+            ];
+
         const payload = {
             max_tokens: MAX_OUTPUT_TOKENS,
             ...(REASONING_EFFORT !== 'off' ? { reasoning: { effort: REASONING_EFFORT } } : {}),
@@ -131,18 +151,7 @@ export async function POST(req: Request) {
                 },
                 {
                     role: "user",
-                    content: [
-                        {
-                            type: "text",
-                            text: "Bu görseldeki faturayı analiz et ve talimatlara uygun şekilde JSON olarak ver.",
-                        },
-                        {
-                            type: "image_url",
-                            image_url: {
-                                url: `data:image/jpeg;base64,${base64Image}`, 
-                            },
-                        },
-                    ],
+                    content: userContent,
                 },
             ],
         };
@@ -212,7 +221,11 @@ export async function POST(req: Request) {
         }
 
         return new Response(JSON.stringify(parsedContent), {
-            headers: { "Content-Type": "application/json", "X-Model-Used": usedModel },
+            headers: {
+                "Content-Type": "application/json",
+                "X-Model-Used": usedModel,
+                "X-Input-Mode": pageText ? "text" : "image",
+            },
         });
 
     } catch (error) {

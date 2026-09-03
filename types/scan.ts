@@ -8,6 +8,9 @@ export interface ScanPage {
     file: File;
     preview: string;
     sharpness: SharpnessLabel;
+    /** Kopyalanabilir PDF'lerde sayfanın metin katmanı — varsa analiz görsel yerine
+     *  bundan yapılır (daha az token, OCR hatası yok). Taranmış PDF/fotoğrafta boştur. */
+    text?: string;
     status: PageStatus;
     /** Analiz sonucu (ham AI çıktısı) */
     result?: any;

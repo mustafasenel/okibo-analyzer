@@ -43,19 +43,34 @@ export const fetchWithRetry = async (url: string, options: RequestInit, retries 
     }
 };
 
-// Tek bir görseli analiz eder. Model, sunucu tarafında companyCode'dan çözülür.
-export async function analyzeImage(file: File, companyCode: string, signal?: AbortSignal): Promise<any> {
-    // Ham telefon fotoğrafını göndermek yüklemeyi ve analizi gereksiz yavaşlatıyor.
-    let payloadFile = file;
-    try {
-        payloadFile = await imageCompression(file, ANALYSIS_IMAGE_OPTIONS);
-    } catch {
-        // Sıkıştırma başarısız olursa orijinali gönder — analiz yine de çalışsın
-    }
-
+/**
+ * Tek bir sayfayı analiz eder. Model, sunucu tarafında companyCode'dan çözülür.
+ *
+ * Kopyalanabilir PDF'lerde sayfanın metin katmanı gönderilir: hem daha az token
+ * harcar hem de OCR hatası içermez. Taranmış PDF ve fotoğraflarda metin olmadığı
+ * için görsel gönderilir — akışın geri kalanı ikisinde de aynıdır.
+ */
+export async function analyzeImage(
+    file: File,
+    companyCode: string,
+    signal?: AbortSignal,
+    text?: string
+): Promise<any> {
     const formData = new FormData();
-    formData.append('image', payloadFile);
     formData.append('companyCode', companyCode);
+
+    if (text && text.trim()) {
+        formData.append('text', text);
+    } else {
+        // Ham telefon fotoğrafını göndermek yüklemeyi ve analizi gereksiz yavaşlatıyor.
+        let payloadFile = file;
+        try {
+            payloadFile = await imageCompression(file, ANALYSIS_IMAGE_OPTIONS);
+        } catch {
+            // Sıkıştırma başarısız olursa orijinali gönder — analiz yine de çalışsın
+        }
+        formData.append('image', payloadFile);
+    }
 
     const response = await fetchWithRetry('/api/analyze', { method: 'POST', body: formData, signal });
     if (!response.ok) {

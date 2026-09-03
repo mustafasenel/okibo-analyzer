@@ -12,7 +12,7 @@ import ImageLightbox from '@/components/scanner/ImageLightbox';
 import PageOrderSheet from '@/components/scanner/PageOrderSheet';
 import AnalysisScreen from '@/components/scanner/AnalysisScreen';
 import { analyzeImage, uploadImage, normalizePageItems, UploadedImageInfo } from '@/lib/scan';
-import { expandFilesToImages, isPdf } from '@/lib/pdf';
+import { expandFilesToImages, isPdf, type ExpandedPage } from '@/lib/pdf';
 import { assessSharpness } from '@/lib/quality';
 import { rotateImageFile } from '@/lib/image';
 import { checkUsageLimit, incrementScanCount } from '@/app/review/actions';
@@ -25,6 +25,10 @@ import type { ScanPage } from '@/types/scan';
 const SECONDS_PER_PAGE = 22;
 /** Tahmine eklenen güvenlik payı (az göstermektense biraz fazla göster) */
 const ETA_MARGIN = 1.2;
+/** Aynı anda okunan sayfa sayısı.
+ *  Ölçüm (6 sayfa): 1 → 25,8 sn · 2 → 12,8 sn · 5 → 5,3 sn, hata ve hız limiti yok.
+ *  Sayfa başı süre bozulmadığı için 5 güvenli. */
+const CONCURRENCY = 5;
 
 export default function Home() {
     const t = useTranslations('HomePage');
@@ -57,7 +61,7 @@ export default function Home() {
 
     const multiplier = company?.creditMultiplier && company.creditMultiplier > 0 ? company.creditMultiplier : 1;
     const creditCost = pages.length * multiplier;
-    const estimatedSeconds = Math.max(SECONDS_PER_PAGE, Math.ceil((pages.length * SECONDS_PER_PAGE * ETA_MARGIN) / 2));
+    const estimatedSeconds = Math.max(SECONDS_PER_PAGE, Math.ceil((pages.length * SECONDS_PER_PAGE * ETA_MARGIN) / CONCURRENCY));
 
     const patch = (id: string, data: Partial<ScanPage>) =>
         setPages(prev => prev.map(p => (p.id === id ? { ...p, ...data } : p)));
@@ -69,12 +73,14 @@ export default function Home() {
         if (!fileList || fileList.length === 0) return;
         setError('');
 
-        let incoming = Array.from(fileList);
-        if (incoming.some(isPdf)) {
+        // Her giriş bir sayfadır: görsel her zaman var, metin yalnızca
+        // kopyalanabilir PDF'lerde dolar.
+        let incoming: ExpandedPage[] = Array.from(fileList).map(file => ({ file }));
+        if (Array.from(fileList).some(isPdf)) {
             setIsPreparing(true);
             setPrepareMessage(t('pdfPreparing'));
             try {
-                const { images, errors } = await expandFilesToImages(incoming, ({ current, total }) =>
+                const { images, errors } = await expandFilesToImages(Array.from(fileList), ({ current, total }) =>
                     setPrepareMessage(t('pdfProcessingPage', { current, total }))
                 );
                 if (errors.length > 0) setError(errors.join(' '));
@@ -91,14 +97,17 @@ export default function Home() {
         const stamp = Date.now();
         const built: ScanPage[] = [];
         for (let i = 0; i < incoming.length; i++) {
-            const file = incoming[i];
-            const { label } = await assessSharpness(file);
+            const { file, text } = incoming[i];
+            // Metin katmanından okunacak sayfada bulanıklık uyarısı anlamsız —
+            // görüntü kalitesi okumayı etkilemiyor.
+            const { label } = text ? { label: 'sharp' as const } : await assessSharpness(file);
             built.push({
                 id: `${file.name}-${stamp}-${i}`,
                 file,
                 preview: URL.createObjectURL(file),
                 sharpness: label,
                 status: 'idle',
+                ...(text ? { text } : {}),
             });
         }
         setIsPreparing(false);
@@ -154,7 +163,7 @@ export default function Home() {
         const controller = new AbortController();
         abortRef.current = controller;
         try {
-            const result = await analyzeImage(page.file, companyCode, controller.signal);
+            const result = await analyzeImage(page.file, companyCode, controller.signal, page.text);
             const durationMs = performance.now() - started;
             durations.push(durationMs);
             const itemCount = Array.isArray(result?.invoice_data) ? result.invoice_data.length : 0;
@@ -174,12 +183,12 @@ export default function Home() {
             if (remaining <= 0) {
                 setEtaSeconds(null);
             } else if (durations.length > 0) {
-                // Gerçek ölçümden: aynı anda 2 sayfa okunduğu için kalan süre yarıya iner
+                // Gerçek ölçümden: aynı anda CONCURRENCY sayfa okunduğu için kalan süre bölünür
                 const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
-                setEtaSeconds(Math.ceil((avg * remaining * ETA_MARGIN) / 2000));
+                setEtaSeconds(Math.ceil((avg * remaining * ETA_MARGIN) / (CONCURRENCY * 1000)));
             } else {
                 // Henüz ölçüm yok — kaba tahminde kal
-                setEtaSeconds(Math.ceil((SECONDS_PER_PAGE * remaining * ETA_MARGIN) / 2));
+                setEtaSeconds(Math.ceil((SECONDS_PER_PAGE * remaining * ETA_MARGIN) / CONCURRENCY));
             }
         }
     };
@@ -216,7 +225,7 @@ export default function Home() {
             }
         };
         try {
-            await Promise.all([worker(), worker()]);
+            await Promise.all(Array.from({ length: CONCURRENCY }, worker));
         } catch {
             return; // iptal edildi
         }
