@@ -130,5 +130,35 @@ check('ters satır normalize edilir',
             ArtikelBez:'Kosova Suxhuk mild', Kolli:7, Inhalt:1, Preis:'5,699', Netto:'39,89' })),
     { ArtikelNumber: '001', Barcode: '4260059980036' });
 
+console.log('\n--- ondalıklı miktarlar (kilo bazlı ve yarım koli satırlar) ---');
+
+const q = (item: any) => (({ Kolli, Inhalt, Menge, originalNetto }) =>
+    ({ Kolli, Inhalt, Menge, originalNetto }))(normalizeInvoiceItem(item));
+
+check('0,5 koli x 12 @1,00 = 6,00',
+    q({ ArtikelBez:'X', Kolli:'0,5', Inhalt:'12', Preis:'1,00', Netto:'6,00' }),
+    { Kolli: 0.5, Inhalt: 12, Menge: 6, originalNetto: 6 });
+
+check('1,5 koli x 6 @2,00 = 18,00',
+    q({ ArtikelBez:'Y', Kolli:'1,5', Inhalt:'6', Preis:'2,00', Netto:'18,00' }),
+    { Kolli: 1.5, Inhalt: 6, Menge: 9, originalNetto: 18 });
+
+check('2,5 kg @8,00 = 20,00',
+    q({ ArtikelBez:'Kıyma', Menge:'2,5', Einheit:'KG', Preis:'8,00', Netto:'20,00' }),
+    { Kolli: 1, Inhalt: 2.5, Menge: 2.5, originalNetto: 20 });
+
+check('12,340 kg @10,00 = 123,40',
+    q({ ArtikelBez:'Peynir', Menge:'12,340', Einheit:'KG', Preis:'10,00', Netto:'123,40' }),
+    { Kolli: 1, Inhalt: 12.34, Menge: 12.34, originalNetto: 123.4 });
+
+// Ondalıklı değerlerde koli/içerik takası yapılmamalı
+check('0,5 x 12 takas edilmez', resolvePackaging(0.5, 12), { kolli: 0.5, inhalt: 12 });
+check('12 x 0,5 takas edilmez', resolvePackaging(12, 0.5), { kolli: 12, inhalt: 0.5 });
+
+// Miktar eksikken tutardan türetme de ondalık verebilmeli
+check('eksik miktar → 2,5 türetilir',
+    q({ ArtikelBez:'Z', Preis:'8,00', Netto:'20,00' }),
+    { Kolli: 1, Inhalt: 2.5, Menge: 2.5, originalNetto: 20 });
+
 console.log(`\nSonuç: ${pass} geçti, ${fail} kaldı`);
 process.exit(fail > 0 ? 1 : 0);

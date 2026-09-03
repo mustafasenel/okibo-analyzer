@@ -18,6 +18,17 @@ const fmt = (v: unknown, digits = 2) => {
 };
 
 /**
+ * Miktar biçimi: tam sayı düz yazılır (12), ondalıklı ise virgüllü (2,5 · 12,34).
+ * Kilo bazlı satırlarda miktar ondalıklı olabiliyor; sabit basamak kullanmıyoruz ki
+ * "12" yerine "12,00" gibi yanıltıcı bir kesinlik görünmesin.
+ */
+const qty = (v: unknown) => {
+    const n = typeof v === 'number' ? v : parseFloat(String(v ?? '').replace(',', '.'));
+    if (!isFinite(n)) return '—';
+    return new Intl.NumberFormat('de-DE', { maximumFractionDigits: 3 }).format(n);
+};
+
+/**
  * Fatura kalemleri — kullanıcının alışık olduğu tüm kolonlar korunur.
  * Okunurluk için: ürün kolonu sabit (yatay kaydırmada yerinde kalır),
  * sayılar sağa hizalı ve tabular, satır yüksekliği 44px, başlıklar yapışkan.
@@ -77,11 +88,11 @@ export default function InvoiceTable({ items, page, suspicious, onCellPress }: I
                                 </div>
                             </button>
 
-                            <div className={`${num} w-[42px]`}>{item.Kolli ?? '—'}</div>
-                            <div className={`${num} w-[48px]`}>{item.Inhalt ?? '—'}</div>
+                            <div className={`${num} w-[42px]`}>{qty(item.Kolli)}</div>
+                            <div className={`${num} w-[48px]`}>{qty(item.Inhalt)}</div>
 
                             <button onClick={() => press(row, 'Menge')} className={`${num} w-[46px]`}>
-                                <span className={mark(row, 'Menge', 'inline-block px-1')}>{item.Menge ?? '—'}</span>
+                                <span className={mark(row, 'Menge', 'inline-block px-1')}>{qty(item.Menge)}</span>
                             </button>
 
                             <button onClick={() => press(row, 'Preis')} className={`${num} w-[56px]`}>

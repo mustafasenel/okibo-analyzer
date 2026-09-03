@@ -35,6 +35,15 @@ Your task is to extract and normalize all useful data into a structured JSON wit
      Headings: Inhalt, Inhalt Stk, Inh, VPE, Einheit, Stk/KTN, Verpackungseinheit.
      Example: "18" means each carton holds 18 pieces.
    - Menge -> TOTAL PIECES = Kolli * Inhalt. Usually NOT printed on the invoice; compute it.
+
+   QUANTITIES MAY BE DECIMAL — DO NOT ROUND THEM:
+   Grocery invoices often bill by weight or by part of a packing unit:
+     "2,5 kg", "12,340 kg", "0,750", "0,5 KTN", "1,5 KAR".
+   Copy such a quantity EXACTLY as printed (2,5 stays 2.5; 12,340 stays 12.34).
+   Never round a decimal quantity up or down to a whole number, and never drop the
+   decimal part. This applies to Kolli, Inhalt and Menge alike.
+   If the quantity is a weight, put the weight value in Menge and the unit in Einheit
+   ("KG"), because the line total is then Menge * Preis just like any other row.
    - Preis -> the NET UNIT PRICE for ONE PIECE (not for the carton).
      Headings: E-Preis netto, Einzelpreis netto, Nettopreis, Preis/Stk, Stückpreis, EP netto.
      If the table shows BOTH a gross unit price AND a discount (Rabatt %) AND a net unit price,

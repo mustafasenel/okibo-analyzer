@@ -63,7 +63,7 @@ export function resolveCodes(artikelNumber: unknown, barcode: unknown): { artike
 
 /** Koli sayısıyla birlikte yazılan birim etiketleri (adet/koli ayrımı için). */
 const CARTON_UNITS = ['KTN', 'KAR', 'KRT', 'CTN', 'BOX', 'KOLI', 'KOLLI', 'PAL', 'DS', 'PK', 'PKT'];
-const PIECE_UNITS = ['STK', 'STÜCK', 'STUECK', 'EA', 'PCS', 'ADET'];
+const PIECE_UNITS = ['STK', 'STÜCK', 'STUECK', 'ST', 'EA', 'PCS', 'ADET', 'KG', 'GR', 'G', 'L', 'LT'];
 
 function unitKind(raw: unknown): 'carton' | 'piece' | null {
     const u = String(raw ?? '').toUpperCase().replace(/[^A-ZÜÖÄ]/g, '');
@@ -82,6 +82,9 @@ function unitKind(raw: unknown): 'carton' | 'piece' | null {
  *  1) Birim etiketi ("5 KTN") varsa koli sayısı kesindir, dokunulmaz.
  *  2) Biri 1 ise: 1 olan kolidir ("12 koli × 1 adet" perakendede gerçekçi değil).
  *  3) İkisi de 1'den büyükse küçük olan koli kabul edilir (koli içi adet genelde daha büyüktür).
+ *
+ * Ondalıklı değerlerde (0,5 koli / 2,5 kg) takas yapılmaz: kesirli miktar bilinçli
+ * bir değerdir ve "küçük olan kolidir" varsayımı orada geçerli değildir.
  */
 export function resolvePackaging(
     kolli: number,
@@ -92,6 +95,9 @@ export function resolvePackaging(
 
     // 1) Birim etiketi koli sayısını işaret ediyorsa modelin verdiği sırayı koru
     if (unitKind(einheit) === 'carton') return { kolli, inhalt };
+
+    // Ondalıklı miktar (0,5 koli, 2,5 kg) bilinçlidir — sıralamaya karışma
+    if (!Number.isInteger(kolli) || !Number.isInteger(inhalt)) return { kolli, inhalt };
 
     // 2) Biri 1 ise, 1 olan koli sayısıdır
     if (inhalt === 1 && kolli > 1) return { kolli: 1, inhalt: kolli };
@@ -108,9 +114,12 @@ export function resolvePackaging(
 export function normalizeInvoiceItem(item: any) {
     const { ArtikelNumber, ArtikelBez, Kolli, Inhalt, Menge, Preis, Netto, MwSt, Einheit, Barcode, ...rest } = item;
 
-    let kolli = Math.round(parseNum(Kolli));
-    let inhalt = Math.round(parseNum(Inhalt));
-    let menge = Math.round(parseNum(Menge));
+    // Miktarlar ondalıklı olabilir: 0,5 koli · 2,5 kg · 12,340 kg gibi satırlar gerçektir.
+    // Tam sayıya yuvarlamak bu satırları yapısal olarak bozuyordu.
+    const qty = (v: unknown) => round(parseNum(v), 3);
+    let kolli = qty(Kolli);
+    let inhalt = qty(Inhalt);
+    let menge = qty(Menge);
 
     // Ürün kodu / barkod karışmışsa düzelt
     const codes = resolveCodes(ArtikelNumber, Barcode);
@@ -120,38 +129,35 @@ export function normalizeInvoiceItem(item: any) {
 
     // Güvenlik ağı: satır toplamı ve birim fiyat biliniyorsa gerçek adet bunlardan çıkar.
     // (Model "Menge ME = 1 KTN" gibi koli sayısını toplam adet sanabiliyor.)
+    // Satır toplamı / birim fiyat = toplam miktar (kilo bazlı satırlarda ondalıklı olabilir)
     let impliedMenge = 0;
     if (preis > 0 && ocrNetto > 0) {
-        const raw = ocrNetto / preis;
-        const rounded = Math.round(raw);
-        // Yuvarlama makul ölçüde tutuyorsa güvenilir kabul et
-        if (rounded > 0 && Math.abs(raw - rounded) <= Math.max(0.02, rounded * 0.02)) {
-            impliedMenge = rounded;
-        }
+        const raw = round(ocrNetto / preis, 3);
+        if (raw > 0) impliedMenge = raw;
     }
 
     if (kolli > 0 && inhalt > 0) {
         // Koli / içerik ayrımını çöz (çarpım değişmez, yalnızca hangisi hangisi netleşir)
         ({ kolli, inhalt } = resolvePackaging(kolli, inhalt, Einheit));
         // Tanım gereği: koli sayısı × koli içi adet = toplam adet
-        menge = kolli * inhalt;
+        menge = round(kolli * inhalt, 3);
     } else if (impliedMenge > 0) {
         // Koli/içerik eksik: toplam adedi satır toplamı ÷ birim fiyattan tamamla
         menge = impliedMenge;
-        if (inhalt > 0 && menge % inhalt === 0) {
+        if (inhalt > 0 && Number.isInteger(menge) && Number.isInteger(inhalt) && menge % inhalt === 0) {
             kolli = menge / inhalt;
-        } else if (kolli > 0 && menge % kolli === 0) {
+        } else if (kolli > 0 && Number.isInteger(menge) && Number.isInteger(kolli) && menge % kolli === 0) {
             inhalt = menge / kolli;
         } else {
             kolli = 1;
             inhalt = menge;
         }
     } else if (menge > 0 && inhalt > 0) {
-        kolli = Math.max(1, Math.round(menge / inhalt));
-        menge = kolli * inhalt;
+        kolli = round(menge / inhalt, 3);
+        menge = round(kolli * inhalt, 3);
     } else if (menge > 0 && kolli > 0) {
-        inhalt = Math.max(1, Math.round(menge / kolli));
-        menge = kolli * inhalt;
+        inhalt = round(menge / kolli, 3);
+        menge = round(kolli * inhalt, 3);
     } else if (inhalt > 0) {
         kolli = 1;
         menge = inhalt;
@@ -161,7 +167,7 @@ export function normalizeInvoiceItem(item: any) {
     } else {
         kolli = kolli || 1;
         inhalt = inhalt || 0;
-        menge = kolli * inhalt;
+        menge = round(kolli * inhalt, 3);
     }
 
     const calculatedNetto = round(menge * preis, 2);       // hesaplanan
