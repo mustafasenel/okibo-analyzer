@@ -129,46 +129,60 @@ export function normalizeInvoiceItem(item: any) {
 
     // Güvenlik ağı: satır toplamı ve birim fiyat biliniyorsa gerçek adet bunlardan çıkar.
     // (Model "Menge ME = 1 KTN" gibi koli sayısını toplam adet sanabiliyor.)
-    // Satır toplamı / birim fiyat = toplam miktar (kilo bazlı satırlarda ondalıklı olabilir)
-    let impliedMenge = 0;
-    if (preis > 0 && ocrNetto > 0) {
-        const raw = round(ocrNetto / preis, 3);
-        if (raw > 0) impliedMenge = raw;
+    // ── Miktar seçimi ────────────────────────────────────────────────────────
+    // Elimizde üç aday var ve hangisinin doğru olduğuna SATIR TOPLAMI karar verir:
+    //   a) koli × içerik      b) faturada yazan miktar      c) satır toplamı / birim fiyat
+    // Toplam bir kanıttır: doğru miktar, fiyatla çarpıldığında toplamı tutturandır.
+    // Bu sayede iade satırları (negatif) ve tedarikçinin yuvarladığı koli değerleri
+    // (-6/16 = -0,375 ama faturada -0,38 yazar) bozulmadan geçer.
+    const given = (v: unknown) => v !== undefined && v !== null && String(v).trim() !== '';
+
+    // Koli/içerik ayrımı yalnızca ikisi de pozitifken anlamlıdır
+    if (kolli > 0 && inhalt > 0) {
+        ({ kolli, inhalt } = resolvePackaging(kolli, inhalt, Einheit));
     }
 
-    if (kolli > 0 && inhalt > 0) {
-        // Koli / içerik ayrımını çöz (çarpım değişmez, yalnızca hangisi hangisi netleşir)
-        ({ kolli, inhalt } = resolvePackaging(kolli, inhalt, Einheit));
-        // Tanım gereği: koli sayısı × koli içi adet = toplam adet
-        menge = round(kolli * inhalt, 3);
-    } else if (impliedMenge > 0) {
-        // Koli/içerik eksik: toplam adedi satır toplamı ÷ birim fiyattan tamamla
-        menge = impliedMenge;
-        if (inhalt > 0 && Number.isInteger(menge) && Number.isInteger(inhalt) && menge % inhalt === 0) {
-            kolli = menge / inhalt;
-        } else if (kolli > 0 && Number.isInteger(menge) && Number.isInteger(kolli) && menge % kolli === 0) {
-            inhalt = menge / kolli;
+    const candidates: number[] = [];
+    if (kolli !== 0 && inhalt !== 0) candidates.push(round(kolli * inhalt, 3));
+    if (menge !== 0) candidates.push(menge);
+    if (preis !== 0 && ocrNetto !== 0) candidates.push(round(ocrNetto / preis, 3));
+
+    // Faturada açıkça sıfır yazan satırlar gerçektir (teslim edilmemiş kalem)
+    const explicitZero =
+        (given(Kolli) && kolli === 0) || (given(Netto) && ocrNetto === 0 && preis !== 0);
+
+    if (explicitZero) {
+        menge = 0;
+        if (kolli === 0 && !given(Kolli)) kolli = 0;
+    } else if (candidates.length > 0) {
+        if (preis !== 0 && ocrNetto !== 0) {
+            // Toplamı en iyi tutturan adayı seç. Adaylar öncelik sırasında geldiği için
+            // (koli×içerik → yazan miktar → toplam/fiyat) yalnızca BELİRGİN şekilde daha
+            // iyi olan aday öne geçer. Aksi halde bölme işleminin ondalık gürültüsü
+            // temiz 12 yerine 12,001 gibi değerler üretiyordu.
+            const MEANINGFUL = 0.005; // yarım kuruş
+            const err = (c: number) => Math.abs(c * preis - ocrNetto);
+            menge = candidates.reduce((best, c) => (err(best) - err(c) > MEANINGFUL ? c : best));
+        } else {
+            menge = candidates[0];
+        }
+    }
+
+    // Koli / içerik değerlerini seçilen miktarla tutarlı hale getir
+    if (menge === 0) {
+        if (inhalt === 0) inhalt = 0;
+        if (!given(Kolli)) kolli = kolli || 0;
+    } else if (round(kolli * inhalt, 3) !== menge) {
+        if (inhalt !== 0) {
+            kolli = round(menge / inhalt, 3);
+        } else if (kolli !== 0) {
+            inhalt = round(menge / kolli, 3);
         } else {
             kolli = 1;
             inhalt = menge;
         }
-    } else if (menge > 0 && inhalt > 0) {
-        kolli = round(menge / inhalt, 3);
-        menge = round(kolli * inhalt, 3);
-    } else if (menge > 0 && kolli > 0) {
-        inhalt = round(menge / kolli, 3);
-        menge = round(kolli * inhalt, 3);
-    } else if (inhalt > 0) {
-        kolli = 1;
-        menge = inhalt;
-    } else if (menge > 0) {
-        kolli = 1;
-        inhalt = menge;
-    } else {
-        kolli = kolli || 1;
-        inhalt = inhalt || 0;
-        menge = round(kolli * inhalt, 3);
     }
+    if (kolli === 0 && menge !== 0) kolli = 1;
 
     const calculatedNetto = round(menge * preis, 2);       // hesaplanan
 

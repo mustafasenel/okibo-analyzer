@@ -43,25 +43,33 @@ export function findSuspiciousCellsInPage(items: InvoiceItem[], page: number): S
         const inhalt = num(item.Inhalt);
 
         // 1) OCR net tutarı ile hesaplanan tutmuyor → miktar/fiyat/net birinde okuma hatası
-        if (netto > 0 && calculated > 0 && Math.abs(netto - calculated) > 0.02) {
+        // (iade satırları negatiftir; ">0" şartı bu satırlarda kontrolü tamamen kapatıyordu)
+        if (netto !== 0 && calculated !== 0 && Math.abs(netto - calculated) > 0.02) {
             found.push({ page, row, field: 'Netto', reason: 'nettoMismatch' });
             found.push({ page, row, field: 'Preis', reason: 'nettoMismatch' });
         }
 
         // 2) Koli × içerik, miktarı vermiyor
-        if (kolli > 0 && inhalt > 0 && menge > 0 && Math.abs(kolli * inhalt - menge) > 0.01) {
+        // Tedarikçi iade satırlarında koliyi yuvarlayarak basar (-6/16 = -0,375 → "-0,38"),
+        // bu yüzden negatif satırlarda tolerans bir koli-içi adet kadar gevşetilir.
+        const packTolerance = menge < 0 ? Math.abs(inhalt) * 0.05 + 0.01 : 0.01;
+        if (kolli !== 0 && inhalt !== 0 && menge !== 0
+            && Math.abs(kolli * inhalt - menge) > packTolerance) {
             found.push({ page, row, field: 'Menge', reason: 'quantityMismatch' });
         }
 
-        // 3) Eksik / sıfır değerler
-        if (preis <= 0) found.push({ page, row, field: 'Preis', reason: 'missingValue' });
-        if (menge <= 0) found.push({ page, row, field: 'Menge', reason: 'missingValue' });
+        // 3) Eksik değerler.
+        // Negatif miktar bir HATA DEĞİL, iadedir. Sıfır miktar da geçerlidir
+        // (teslim edilmemiş kalem: faturada 0,00 yazar ve tutarı da 0,00'dır).
+        // Yalnızca tutarı olup miktarı olmayan satır gerçekten eksiktir.
+        if (preis === 0) found.push({ page, row, field: 'Preis', reason: 'missingValue' });
+        if (menge === 0 && netto !== 0) found.push({ page, row, field: 'Menge', reason: 'missingValue' });
         if (!String(item.ArtikelBez ?? '').trim()) {
             found.push({ page, row, field: 'ArtikelBez', reason: 'missingValue' });
         }
 
         // 4) Aykırı birim fiyat (ondalık ayraç hatası işareti)
-        if (preis > PRICE_OUTLIER) found.push({ page, row, field: 'Preis', reason: 'priceOutlier' });
+        if (Math.abs(preis) > PRICE_OUTLIER) found.push({ page, row, field: 'Preis', reason: 'priceOutlier' });
     });
 
     return found;

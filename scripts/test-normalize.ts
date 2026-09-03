@@ -160,5 +160,36 @@ check('eksik miktar → 2,5 türetilir',
     q({ ArtikelBez:'Z', Preis:'8,00', Netto:'20,00' }),
     { Kolli: 1, Inhalt: 2.5, Menge: 2.5, originalNetto: 20 });
 
+console.log('\n--- iade / sıfır miktar satırları (Ugur Lebensmittel PDF) ---');
+
+// İade satırı: faturada koli YUVARLANMIŞ yazılır (-6/16 = -0,375 ama -0,38 basılmış).
+// Doğru miktar, fiyatla çarpınca satır toplamını tutturandır.
+check('iade -0,38 x 16 → -6 adet, -5,40',
+    q({ ArtikelNumber:'518', ArtikelBez:'Yayla Truthahnsalami',
+        Kolli:'-0,38', Inhalt:'16', Menge:'-6,00', Preis:'0,900', Netto:'-5,40' }),
+    { Kolli: -0.375, Inhalt: 16, Menge: -6, originalNetto: -5.4 });
+
+check('iade -0,42 x 12 → -5 adet, -4,50',
+    q({ ArtikelNumber:'714', ArtikelBez:'Fulya Paprika',
+        Kolli:'-0,42', Inhalt:'12', Menge:'-5,00', Preis:'0,900', Netto:'-4,50' }),
+    { Kolli: -0.417, Inhalt: 12, Menge: -5, originalNetto: -4.5 });
+
+// Teslim edilmemiş kalem: faturada 0,00 yazar, uydurulmamalı
+check('sıfır miktar satırı 0 kalır',
+    q({ ArtikelNumber:'93501', ArtikelBez:'Karuzo Blueberry',
+        Kolli:'0,00', Inhalt:'24', Preis:'0,609', Netto:'0,00' }),
+    { Kolli: 0, Inhalt: 24, Menge: 0, originalNetto: 0 });
+
+// Aynı faturadan normal satırlar bozulmamalı
+check('normal 2,00 koli x 6 = 12 @2,399',
+    q({ ArtikelNumber:'316', ArtikelBez:'Yayla Süzme',
+        Kolli:'2,00', Inhalt:'6', Menge:'12,00', Preis:'2,399', Netto:'28,79' }),
+    { Kolli: 2, Inhalt: 6, Menge: 12, originalNetto: 28.79 });
+
+check('normal 3,00 koli x 6 = 18 @1,799',
+    q({ ArtikelNumber:'371', ArtikelBez:'Anatolische Bauern Yogurt',
+        Kolli:'3,00', Inhalt:'6', Menge:'18,00', Preis:'1,799', Netto:'32,38' }),
+    { Kolli: 3, Inhalt: 6, Menge: 18, originalNetto: 32.38 });
+
 console.log(`\nSonuç: ${pass} geçti, ${fail} kaldı`);
 process.exit(fail > 0 ? 1 : 0);

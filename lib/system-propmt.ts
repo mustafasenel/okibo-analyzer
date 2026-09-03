@@ -36,6 +36,17 @@ Your task is to extract and normalize all useful data into a structured JSON wit
      Example: "18" means each carton holds 18 pieces.
    - Menge -> TOTAL PIECES = Kolli * Inhalt. Usually NOT printed on the invoice; compute it.
 
+   NEGATIVE LINES ARE RETURNS / CREDITS — KEEP THE MINUS SIGN:
+   A row may carry negative quantity and a negative line total, e.g.
+     "518 | Yayla Truthahnsalami | -0,38 | 16 | -6,00 | 0,900 | -5,40"
+   That is a returned/credited item. Copy Kolli, Menge and Netto WITH their minus sign.
+   Never drop the sign and never turn it into a positive number: doing so turns a
+   credit into a charge and breaks the invoice total.
+   The unit price (Preis) normally stays POSITIVE on such rows.
+
+   A ZERO row is also real: if the invoice prints 0,00 for the quantity and 0,00 for the
+   line total (an item that was not delivered), report 0 - do not invent a quantity.
+
    QUANTITIES MAY BE DECIMAL — DO NOT ROUND THEM:
    Grocery invoices often bill by weight or by part of a packing unit:
      "2,5 kg", "12,340 kg", "0,750", "0,5 KTN", "1,5 KAR".
